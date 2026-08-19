@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoseDash | Premium Food Delivery</title>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="main-header">
+      <div class="logo" id="logo-trigger" style="cursor: pointer;">
+        <span class="logo-icon">🚀</span>
+        <span>RoseDash</span>
+      </div>
+      
+      <!-- Delivery Location Mock -->
+      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+        <i class="fa-solid fa-location-dot" style="color: var(--accent);"></i>
+        <span>Connaught Place, New Delhi</span>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Search bar (Navbar) -->
+        <div class="search-nav">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="navbar-search" placeholder="Search dishes or restaurants...">
+        </div>
+
+        <!-- Floating Cart Trigger -->
+        <button class="cart-trigger" id="cart-drawer-trigger">
+          <i class="fa-solid fa-bag-shopping" style="color: var(--accent-light); font-size: 1.15rem;"></i>
+          <span>Cart</span>
+          <span class="cart-count" id="header-cart-count">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- HOME VIEW -->
+      <section id="home-view">
+        <!-- Hero Section -->
+        <div class="hero-section">
+          <div class="hero-text">
+            <span class="hero-badge">Spark your taste buds</span>
+            <h1>Super-Fast Delivery of <span>Gourmet Food</span> to your doorstep</h1>
+            <p>Craving delicious food from your favorite spots? Find the best cuisines prepared by top chefs, delivered piping hot and fresh.</p>
+            
+            <div class="search-large-container">
+              <input type="text" id="hero-search" placeholder="Enter dish, cuisine or restaurant...">
+              <button id="hero-search-btn">Search</button>
+            </div>
+          </div>
+          <div class="hero-image-side">
+            <div class="hero-image-wrapper">
+              <!-- Placeholder or generated high fidelity image -->
+              <img src="./assets/hero_food.jpg" alt="Delicious Gourmet Food Selection" class="hero-main-img" id="hero-main-image">
+            </div>
+          </div>
+        </div>
+
+        <!-- Cuisines Category Row -->
+        <div class="category-section">
+          <div class="section-header">
+            <h2>Explore by Cuisine</h2>
+          </div>
+          <div class="category-list" id="cuisine-categories">
+            <!-- Dynamic Category Cards from JS -->
+          </div>
+        </div>
+
+        <!-- Sorting & Filter Options -->
+        <div class="filter-bar">
+          <div class="restaurant-count" id="res-count-label">Showing all restaurants</div>
+          <div class="filter-options">
+            <!-- Veg toggle -->
+            <button class="toggle-veg-btn" id="veg-only-filter">
+              <i class="fa-solid fa-leaf"></i>
+              <span>Pure Veg Only</span>
+            </button>
+            
+            <!-- Sort dropdown -->
+            <select class="sort-select" id="restaurant-sort">
+              <option value="default">Relevance (Default)</option>
+              <option value="rating">Top Rated (4.5+)</option>
+              <option value="time">Fastest Delivery</option>
+              <option value="cost-low">Cost: Low to High</option>
+              <option value="cost-high">Cost: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Restaurants List Grid -->
+        <div class="restaurants-grid" id="restaurants-grid-container">
+          <!-- Dynamic restaurant cards from JS -->
+        </div>
+      </section>
+
+      <!-- RESTAURANT / MENU VIEW -->
+      <section id="restaurant-view" class="detail-view">
+        <button class="back-btn" id="menu-back-btn">
+          <i class="fa-solid fa-arrow-left"></i> Back to Restaurants
+        </button>
+
+        <div class="restaurant-banner-hero" id="res-banner-hero">
+          <!-- Banner Image dynamic -->
+          <img src="" alt="" class="banner-img-bg" id="res-banner-img">
+          <div class="banner-overlay">
+            <div class="banner-info-wrap">
+              <h1 id="res-detail-name">The Burger Craft</h1>
+              <div class="banner-stats">
+                <span id="res-detail-rating"><i class="fa-solid fa-star"></i> 4.8 (340+ reviews)</span>
+                <span id="res-detail-time"><i class="fa-solid fa-clock"></i> 25 mins</span>
+                <span id="res-detail-distance"><i class="fa-solid fa-route"></i> 1.8 km</span>
+                <span id="res-detail-cost"><i class="fa-solid fa-indian-rupee-sign"></i> 500 for two</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu Navigation and Items list -->
+        <div class="menu-layout">
+          <!-- Left side Categories Navigation -->
+          <nav class="menu-sidebar" id="menu-category-nav">
+            <!-- Dynamic links -->
+          </nav>
+          
+          <!-- Right side items -->
+          <div class="menu-list-container" id="menu-items-container">
+            <!-- Dynamic sections of menu items -->
+          </div>
+        </div>
+      </section>
+
+      <!-- CHECKOUT VIEW -->
+      <section id="checkout-view" class="checkout-view">
+        <button class="back-btn" id="checkout-back-btn">
+          <i class="fa-solid fa-arrow-left"></i> Back to Restaurant
+        </button>
+
+        <div class="checkout-grid">
+          <!-- Left: Checkout Forms -->
+          <div class="checkout-card">
+            <h3>Secure Checkout</h3>
+            
+            <form id="checkout-form" onsubmit="event.preventDefault();">
+              <div class="form-group">
+                <label for="checkout-name">Full Name</label>
+                <input type="text" id="checkout-name" required placeholder="John Doe">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="checkout-phone">Phone Number</label>
+                  <input type="tel" id="checkout-phone" required placeholder="+91 98765 43210">
+                </div>
+                <div class="form-group">
+                  <label for="checkout-email">Email Address</label>
+                  <input type="email" id="checkout-email" required placeholder="john@example.com">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="checkout-address">Delivery Address</label>
+                <textarea id="checkout-address" rows="3" required placeholder="Flat No, Building, Street Name, Landmark, Area, New Delhi"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Payment Method</label>
+                <div class="payment-options">
+                  <div class="pay-opt-card active" data-method="cod">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                    <span>Cash on Delivery</span>
+                  </div>
+                  <div class="pay-opt-card" data-method="upi">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>UPI (Paytm/GPay)</span>
+                  </div>
+                  <div class="pay-opt-card" data-method="card">
+                    <i class="fa-regular fa-credit-card"></i>
+                    <span>Credit / Debit Card</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Submit button -->
+              <button type="submit" class="checkout-action-btn" id="place-order-btn">
+                <i class="fa-solid fa-circle-check"></i> Place Order
+              </button>
+            </form>
+          </div>
+
+          <!-- Right: Order Summary -->
+          <div class="order-summary-box">
+            <h3 style="border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">Order Summary</h3>
+            <div id="order-summary-restaurant" style="font-weight: 700; margin-bottom: 1rem; color: var(--accent-light);">
+              Ordering from: The Burger Craft
+            </div>
+            
+            <div class="order-summary-items" id="checkout-items-summary">
+              <!-- Dynamic item summaries -->
+            </div>
+
+            <div class="bill-details" style="border-top: 1px solid var(--border-glass); padding-top: 1rem;">
+              <div class="bill-row">
+                <span>Items Subtotal</span>
+                <span id="checkout-subtotal">₹0</span>
+              </div>
+              <div class="bill-row">
+                <span>Delivery Partner Fee</span>
+                <span id="checkout-delivery-fee">₹40</span>
+              </div>
+              <div class="bill-row">
+                <span>GST & Restaurant Charges</span>
+                <span id="checkout-tax">₹0</span>
+              </div>
+              <div class="bill-row total">
+                <span>To Pay</span>
+                <span id="checkout-total">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ORDER TRACKING VIEW -->
+      <section id="order-status-view" class="order-status-view">
+        <div class="tracking-card">
+          <div class="tracking-header">
+            <h2>Your food is on the way! 🥳</h2>
+            <p>Order ID: <span id="tracking-order-id" style="font-family: monospace; font-weight: 700; color: var(--accent-light);">BD-9481948</span></p>
+          </div>
+
+          <div class="est-time-card">
+            <h4>Estimated Delivery Time</h4>
+            <p id="tracking-eta">25-35 Minutes</p>
+          </div>
+
+          <!-- Moving bike animation -->
+          <div class="delivery-courier-animation">
+            <div class="courier-icon" id="tracking-bike">🏍️</div>
+          </div>
+
+          <!-- Stepper tracker -->
+          <div class="tracking-stepper">
+            <div class="stepper-progress-bar" id="tracking-progress"></div>
+            
+            <div class="step-node completed" id="step-confirmed">
+              <div class="step-circle"><i class="fa-solid fa-receipt"></i></div>
+              <div class="step-label">Confirmed</div>
+            </div>
+            <div class="step-node" id="step-preparing">
+              <div class="step-circle"><i class="fa-solid fa-fire-burner"></i></div>
+              <div class="step-label">Preparing</div>
+            </div>
+            <div class="step-node" id="step-outfordelivery">
+              <div class="step-circle"><i class="fa-solid fa-motorcycle"></i></div>
+              <div class="step-label">Out for Delivery</div>
+            </div>
+            <div class="step-node" id="step-delivered">
+              <div class="step-circle"><i class="fa-solid fa-house-chimney-user"></i></div>
+              <div class="step-label">Delivered</div>
+            </div>
+          </div>
+
+          <button class="back-btn" id="tracking-home-btn" style="margin-bottom: 0;">
+            <i class="fa-solid fa-house"></i> Go Back Home
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Side Shopping Cart Drawer -->
+    <div class="cart-overlay" id="cart-drawer-overlay"></div>
+    <aside class="cart-drawer" id="cart-drawer">
+      <div class="cart-header">
+        <h3>Your Cart</h3>
+        <button class="close-cart-btn" id="cart-close-btn">&times;</button>
+      </div>
+
+      <!-- Scrollable Cart Items List -->
+      <div class="cart-items-list" id="cart-items-container">
+        <!-- Rendered by JS or shows empty state -->
+        <div class="empty-cart-state">
+          <i class="fa-solid fa-basket-shopping"></i>
+          <h4>Your cart is empty</h4>
+          <p style="font-size: 0.85rem; margin-top: 0.25rem;">Add mouth-watering dishes to get started!</p>
+        </div>
+      </div>
+
+      <!-- Cart Footer calculations -->
+      <div class="cart-footer" id="cart-footer-calculations" style="display: none;">
+        <div class="bill-details">
+          <div class="bill-row">
+            <span>Subtotal</span>
+            <span id="cart-subtotal">₹0</span>
+          </div>
+          <div class="bill-row">
+            <span>Delivery Fee</span>
+            <span id="cart-delivery-fee">₹40</span>
+          </div>
+          <div class="bill-row">
+            <span>Taxes & Charges</span>
+            <span id="cart-tax">₹0</span>
+          </div>
+          <div class="bill-row total">
+            <span>Grand Total</span>
+            <span id="cart-total">₹0</span>
+          </div>
+        </div>
+
+        <button class="checkout-action-btn" id="cart-checkout-btn">
+          Proceed to Checkout <i class="fa-solid fa-arrow-right-long" style="margin-left: 0.5rem;"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-grid">
+        <div class="footer-info">
+          <h3 style="color: var(--accent-light);">RoseDash</h3>
+          <p>Delivering high-quality premium gourmet dishes to your doorstep in minutes. Experience food ordering redefined with state-of-the-art visuals and super-fast delivery logistics.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Discover</h4>
+          <ul>
+            <li><a href="#">Featured Restaurants</a></li>
+            <li><a href="#">Top Rated Dishes</a></li>
+            <li><a href="#">Exclusive Offers</a></li>
+            <li><a href="#">Healthy Options</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#">Contact Support</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Privacy Settings</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Follow Us</h4>
+          <ul>
+            <li><a href="#"><i class="fa-brands fa-instagram" style="margin-right: 0.5rem;"></i> Instagram</a></li>
+            <li><a href="#"><i class="fa-brands fa-facebook" style="margin-right: 0.5rem;"></i> Facebook</a></li>
+            <li><a href="#"><i class="fa-brands fa-x-twitter" style="margin-right: 0.5rem;"></i> Twitter</a></li>
+            <li><a href="#"><i class="fa-brands fa-linkedin" style="margin-right: 0.5rem;"></i> LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 RoseDash. Developed with ❤️ for code & food. All rights reserved.</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Place three sample images named restaurant1.jpg, restaurant2.jpg, restaurant3.jpg in this folder to view in the UI. You can copy images from your existing frontend assets or use placeholders.
