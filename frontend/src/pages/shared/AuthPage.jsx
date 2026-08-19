@@ -133,9 +133,15 @@ const AuthPage = () => {
     setError('');
     setIsLoading(true);
     try {
+      const nameParts = signUpName.trim().split(' ');
+      const firstName = nameParts[0] || 'User';
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ' ';
+      
       const result = await signUp.create({
         emailAddress: signUpEmail,
         password: signUpPassword,
+        firstName: firstName,
+        lastName: lastName
       });
       if (result.status === "complete") {
         await setSignUpActive({ session: result.createdSessionId });
