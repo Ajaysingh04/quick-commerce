@@ -54,6 +54,37 @@ const AuthPage = () => {
     window.history.pushState(null, '', path);
   };
 
+  const handleGoogleAuth = async (e) => {
+    if (e) e.preventDefault();
+    const currentOrigin = window.location.origin;
+    try {
+      if (isActive) {
+        if (!isSignUpLoaded) {
+          setError("Clerk is not loaded yet.");
+          return;
+        }
+        await signUp.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: `${currentOrigin}/sso-callback`,
+          redirectUrlComplete: `${currentOrigin}/auth-sync`,
+        });
+      } else {
+        if (!isSignInLoaded) {
+          setError("Clerk is not loaded yet.");
+          return;
+        }
+        await signIn.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: `${currentOrigin}/sso-callback`,
+          redirectUrlComplete: `${currentOrigin}/auth-sync`,
+        });
+      }
+    } catch (err) {
+      console.error("Google Auth Error:", err);
+      setError("Google Login failed. Please check console for details.");
+    }
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     if (!isSignInLoaded) {
@@ -185,7 +216,7 @@ const AuthPage = () => {
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleSignUp}>
               <h1 className="text-3xl font-black text-gray-800 tracking-wide">Create Account</h1>
               <div className="flex gap-4 my-6">
-                <button type="button" className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-[20%] text-gray-700 hover:bg-gray-100 transition-colors"><FaGoogle /></button>
+                <button type="button" onClick={handleGoogleAuth} className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-[20%] text-gray-700 hover:bg-gray-100 transition-colors"><FaGoogle /></button>
               </div>
               <span className="text-xs text-gray-500 font-medium">or register with email</span>
               
@@ -262,7 +293,7 @@ const AuthPage = () => {
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleSignIn}>
               <h1 className="text-3xl font-black text-gray-800 tracking-wide">Sign In</h1>
               <div className="flex gap-4 my-6">
-                <button type="button" className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-[20%] text-gray-700 hover:bg-gray-100 transition-colors"><FaGoogle /></button>
+                <button type="button" onClick={handleGoogleAuth} className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-[20%] text-gray-700 hover:bg-gray-100 transition-colors"><FaGoogle /></button>
               </div>
               <span className="text-xs text-gray-500 font-medium">or sign in with email & password</span>
               
