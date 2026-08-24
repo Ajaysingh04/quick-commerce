@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import dotenv from 'dotenv';
+import path from 'path';
 
 import connectDB from './config/db.js';
 import configurePassport from './config/passport.js';
@@ -21,6 +22,9 @@ import settingsRoutes from './routes/settingsRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import withdrawalRoutes from './routes/withdrawalRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
+import bannerRoutes from './routes/bannerRoutes.js';
+import pageRoutes from './routes/pageRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
@@ -59,6 +63,10 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// Serve static uploads
+const __dirname = path.resolve();
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Active Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/stores', storeRoutes);
@@ -71,6 +79,9 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/withdrawals', withdrawalRoutes);
 app.use('/api/partner', partnerRoutes);
+app.use('/api/banners', bannerRoutes);
+app.use('/api/pages', pageRoutes);
+app.use('/api/support', supportRoutes);
 
 // Base Route
 app.get('/', (req, res) => {

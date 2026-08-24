@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, MapPin, Clock, DollarSign, Bookmark, Search, ChevronDown, Menu, X } from 'lucide-react';
+import { Star, MapPin, Clock, IndianRupee, Bookmark, Search, ChevronDown, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const StoreListing = () => {
@@ -269,7 +269,7 @@ const StoreListing = () => {
  <span>{store.deliveryTime} mins</span>
  </div>
  <div className="flex items-center gap-1">
- <DollarSign className="h-4 w-4 flex-shrink-0" />
+ <IndianRupee className="h-4 w-4 flex-shrink-0" />
  <span>₹{store.costFor2}</span>
  </div>
  <div className="text-slate-500">

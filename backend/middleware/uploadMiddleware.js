@@ -47,6 +47,13 @@ export const uploadToCloudinary = async (req, res, next) => {
     req.fileUrl = result.secure_url;
     next();
   } catch (error) {
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME.includes('mock')) {
+      // Fallback for mock environments: use the local file
+      const port = process.env.PORT || 5000;
+      req.fileUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+      return next();
+    }
+
     // Make sure to clean up local file on failure
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
@@ -84,6 +91,16 @@ export const uploadMultipleToCloudinary = async (req, res, next) => {
     }
     next();
   } catch (error) {
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME.includes('mock')) {
+      // Fallback for mock environments: use local files
+      const port = process.env.PORT || 5000;
+      Object.keys(req.files).forEach(fieldname => {
+        const files = req.files[fieldname];
+        req.fileUrls[fieldname] = files.map(file => `http://localhost:${port}/uploads/${file.filename}`);
+      });
+      return next();
+    }
+
     // Cleanup any local files on error
     Object.values(req.files).flat().forEach(file => {
       if (fs.existsSync(file.path)) fs.unlinkSync(file.path);

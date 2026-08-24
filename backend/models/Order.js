@@ -17,8 +17,13 @@ const orderSchema = new mongoose.Schema({
   billDetails: {
     subtotal: { type: Number, required: true },
     deliveryFee: { type: Number, default: 40 },
-    tax: { type: Number, required: true },
+    tax: { type: Number, default: 0 },
     codCharge: { type: Number, default: 0 },
+    extraDistanceSurcharge: { type: Number, default: 0 },
+    appliedCharges: [{
+      name: { type: String, required: true },
+      amount: { type: Number, required: true }
+    }],
     discount: { type: Number, default: 0 },
     grandTotal: { type: Number, required: true }
   },

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, History, TrendingUp, TrendingDown, Calendar, Wallet, X, Building2 } from 'lucide-react';
+import { IndianRupee, History, TrendingUp, TrendingDown, Calendar, Wallet, X, Building2 } from 'lucide-react';
 import API from '../../services/api';
 
 const EarningsChart = () => {

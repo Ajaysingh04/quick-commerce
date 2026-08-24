@@ -67,9 +67,13 @@ export const selectSubtotal = (state) =>
 export const selectCartTotal = (state) => {
  const subtotal = selectSubtotal(state);
  const deliveryFee = subtotal >= 500 || subtotal === 0 ? 0 : 40;
- const tax = Math.round(subtotal * 0.05);
+ 
+ // Distance logic
+ const distance = state.cart.store?.distance || 2;
+ const extraDistanceSurcharge = distance > 5 ? Math.ceil(distance - 5) * 4.75 : 0;
+ 
  const discount = state.cart.coupon ? state.cart.coupon.discountAmount : 0;
- return subtotal + deliveryFee + tax - discount;
+ return subtotal + deliveryFee + extraDistanceSurcharge - discount;
 };
 
 export default cartSlice.reducer;

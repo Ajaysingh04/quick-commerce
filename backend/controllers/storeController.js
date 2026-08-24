@@ -4,12 +4,22 @@ import Store from '../models/Store.js';
 // @route   GET /api/stores
 // @access  Public
 export const getStores = async (req, res) => {
-  const { search, cuisine, rating, vegOnly, sort } = req.query;
+  const { search, cuisine, category, rating, featured, sort } = req.query;
   let queryObject = { isActive: true };
 
-  // 1. Cuisine Category Filter
+  // 0. Featured Filter
+  if (featured === 'true') {
+    queryObject.featured = true;
+  } else if (featured === 'false') {
+    queryObject.featured = false;
+  }
+
+  // 1. Cuisine/Category Filter
   if (cuisine && cuisine !== 'all') {
     queryObject.cuisineTypes = { $in: [new RegExp(cuisine, 'i')] };
+  }
+  if (category && category !== 'all') {
+    queryObject.category = new RegExp(category, 'i');
   }
 
   // 2. Search Query (matches store names or cuisines)
@@ -67,15 +77,16 @@ export const getStoreById = async (req, res) => {
 // @route   POST /api/admin/stores
 // @access  Private/Admin
 export const createStore = async (req, res) => {
-  const { name, description, cuisineTypes, deliveryTime, distance, costForTwo, featured } = req.body;
+  const { name, description, cuisineTypes, category, deliveryTime, distance, costForTwo, featured, bannerImageUrl } = req.body;
 
   try {
-    const bannerImage = req.fileUrl || '/assets/res_default.jpg'; // use uploaded url or default
+    const bannerImage = req.fileUrl || bannerImageUrl || '/assets/res_default.jpg'; // use uploaded url or default
 
     const store = await Store.create({
       name,
       description,
       bannerImage,
+      category,
       cuisineTypes: typeof cuisineTypes === 'string' ? cuisineTypes.split(',') : cuisineTypes,
       deliveryTime: parseInt(deliveryTime),
       distance: parseFloat(distance),
@@ -103,6 +114,8 @@ export const updateStore = async (req, res) => {
     const updates = { ...req.body };
     if (req.fileUrl) {
       updates.bannerImage = req.fileUrl;
+    } else if (updates.bannerImageUrl) {
+      updates.bannerImage = updates.bannerImageUrl;
     }
     if (updates.cuisineTypes && typeof updates.cuisineTypes === 'string') {
       updates.cuisineTypes = updates.cuisineTypes.split(',');

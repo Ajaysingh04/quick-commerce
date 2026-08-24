@@ -1,27 +1,77 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import { ArrowLeft, Search, ShoppingBag } from 'lucide-react';
 import ProductCard from '../../components/common/ProductCard';
-import { CATEGORIES, PRODUCTS } from './Home';
+import { PRODUCTS } from '../../data/mockProducts.js';
 
 const CategoryProducts = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCategoryProducts = useCallback(async (catObj) => {
+    try {
+      const { default: API } = await import('../../services/api.js');
+      const res = await API.get('/products');
+      
+      const fetchedProducts = res.data.map(p => ({
+        ...p,
+        id: p._id || p.id
+      }));
+
+      if (id === 'search') {
+         setProducts(fetchedProducts);
+      } else {
+         setProducts(fetchedProducts.filter(p => 
+            (p.category && (p.category.name === catObj?.name || p.category.toString() === id || p.category === id)) || 
+            (fetchedProducts.length > 0 && false)
+         ));
+      }
+    } catch (error) {
+      console.error('Failed to fetch category products', error);
+    }
+  }, [id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const cat = CATEGORIES.find(c => c.id === id);
-    if (cat) {
-      setCategory(cat);
-      // Mock filtering products by category
-      setProducts(PRODUCTS.filter(p => p.category === id));
-    } else if (id === 'search') {
-      setCategory({ name: 'Search Results' });
-      setProducts(PRODUCTS);
-    }
-  }, [id]);
+
+    const loadData = async () => {
+      try {
+        const { default: API } = await import('../../services/api.js');
+        const catRes = await API.get('/products/categories');
+        const cats = catRes.data;
+        setCategories(cats);
+        
+        let currentCat = null;
+        if (id === 'search') {
+          currentCat = { name: 'Search Results' };
+        } else {
+          currentCat = cats.find(c => c._id === id);
+          // Fallback if not found by ID (maybe string ID from older mock data)
+          if (!currentCat) {
+             currentCat = { name: id.charAt(0).toUpperCase() + id.slice(1) };
+          }
+        }
+        setCategory(currentCat);
+        fetchCategoryProducts(currentCat);
+      } catch (err) {
+        console.error('Failed to load category', err);
+      }
+    };
+
+    loadData();
+
+    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
+    socket.on('contentUpdated', () => {
+      loadData();
+    });
+
+    return () => socket.disconnect();
+  }, [id, fetchCategoryProducts]);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 font-sans">
@@ -46,12 +96,12 @@ const CategoryProducts = () => {
       {/* Category Slider */}
       <div className="max-w-7xl mx-auto px-4 mt-6">
         <div className="flex gap-3 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <button 
-              key={cat.id}
-              onClick={() => navigate(`/category/${cat.id}`)}
+              key={cat._id}
+              onClick={() => navigate(`/category/${cat._id}`)}
               className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all shrink-0 ${
-                cat.id === id 
+                cat._id === id 
                   ? 'border-[#e31837] bg-red-50 text-[#e31837] font-bold shadow-sm shadow-red-500/10' 
                   : 'border-gray-200 bg-white text-gray-600 hover:border-red-200 hover:bg-red-50/30'
               }`}

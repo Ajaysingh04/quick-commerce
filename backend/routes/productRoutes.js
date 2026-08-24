@@ -5,7 +5,11 @@ import {
   updateProduct,
   deleteProduct,
   getCategories,
-  createCategory
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  bulkCreateCategories,
+  bulkCreateProducts
 } from '../controllers/productController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 import upload, { uploadToCloudinary } from '../middleware/uploadMiddleware.js';
@@ -14,7 +18,30 @@ const router = express.Router();
 
 // Categories routes
 router.get('/categories', getCategories);
-router.post('/categories', protect, restrictTo('admin'), createCategory);
+router.post(
+  '/categories/bulk',
+  protect,
+  restrictTo('admin'),
+  bulkCreateCategories
+);
+
+router.post(
+  '/categories', 
+  protect, 
+  restrictTo('admin'), 
+  upload.single('image'), 
+  uploadToCloudinary, 
+  createCategory
+);
+router.put(
+  '/categories/:id', 
+  protect, 
+  restrictTo('admin'), 
+  upload.single('image'), 
+  uploadToCloudinary, 
+  updateCategory
+);
+router.delete('/categories/:id', protect, restrictTo('admin'), deleteCategory);
 
 // Dishes routes
 router.get('/', getProducts);
@@ -26,6 +53,13 @@ router.post(
   upload.single('image'), 
   uploadToCloudinary, 
   createProduct
+);
+
+router.post(
+  '/bulk',
+  protect,
+  restrictTo('admin'),
+  bulkCreateProducts
 );
 
 router.put(

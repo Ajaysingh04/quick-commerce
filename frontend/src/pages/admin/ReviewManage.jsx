@@ -27,9 +27,9 @@ const ReviewManage = () => {
  };
 
  return (
- <div className="bg-white rounded-3xl p-6 border border-pink-200/60 shadow-premium">
+ <div className="bg-white rounded-3xl p-6 border border-emerald-200/60 shadow-premium">
  
- <div className="border-b border-pink-200 pb-3 mb-6">
+ <div className="border-b border-emerald-200 pb-3 mb-6">
  <h3 className="text-lg font-black">Customer Feedback Reviews</h3>
  <p className="text-xs text-slate-400 mt-1">Review customer scores, ratings and moderate comment boards.</p>
  </div>

@@ -11,7 +11,8 @@ import {
   cancelOrder,
   requestRefund,
   getAllOrders,
-  getPartnerOrders
+  getPartnerOrders,
+  deleteOrder
 } from '../controllers/orderController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -24,6 +25,7 @@ router.get('/myorders', protect, getMyOrders);
 router.get('/admin/all', protect, restrictTo('admin'), getAllOrders);
 router.get('/partner', protect, restrictTo('partner', 'admin'), getPartnerOrders);
 router.get('/:id', protect, getOrderById);
+router.delete('/:id', protect, restrictTo('admin'), deleteOrder);
 
 // User Order actions
 router.put('/:id/cancel', protect, cancelOrder);

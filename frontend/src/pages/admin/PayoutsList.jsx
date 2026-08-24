@@ -114,25 +114,25 @@ const PayoutsList = () => {
  case 'pending': return 'bg-amber-100 text-amber-600 border border-amber-200';
  case 'approved': return 'bg-emerald-100 text-emerald-600 border border-emerald-200';
  case 'rejected': return 'bg-rose-100 text-rose-600 border border-rose-200';
- default: return 'bg-pink-100 text-slate-600';
+ default: return 'bg-emerald-100 text-slate-600';
  }
  };
 
  if (loading) {
  return (
  <div className="flex justify-center items-center h-64">
- <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+ <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
  </div>
  );
  }
 
  return (
- <div className="bg-white border border-pink-200/60 rounded-3xl shadow-sm overflow-hidden flex flex-col animate-in fade-in">
+ <div className="bg-white border border-emerald-200/60 rounded-3xl shadow-sm overflow-hidden flex flex-col animate-in fade-in">
  {/* Header & Filters */}
- <div className="p-6 border-b border-pink-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-pink-50/50 ">
+ <div className="p-6 border-b border-emerald-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-emerald-50/50 ">
  <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
  Payouts Management
- <span className="bg-brand-500 text-white text-xs px-2.5 py-0.5 rounded-full">{withdrawals.length}</span>
+ <span className="bg-emerald-600 text-white text-xs px-2.5 py-0.5 rounded-full">{withdrawals.length}</span>
  </h3>
 
  <div className="flex flex-col sm:flex-row gap-3">
@@ -143,13 +143,13 @@ const PayoutsList = () => {
  placeholder="Search partner or account..."
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
- className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white border border-pink-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all "
+ className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white border border-emerald-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all "
  />
  </div>
  <select 
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value)}
- className="px-4 py-2 bg-white border border-pink-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20"
+ className="px-4 py-2 bg-white border border-emerald-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-600/20"
  >
  <option value="All">All Statuses</option>
  <option value="pending">Pending</option>
@@ -163,7 +163,7 @@ const PayoutsList = () => {
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse min-w-[800px]">
  <thead>
- <tr className="bg-pink-50/50 border-b border-pink-200 ">
+ <tr className="bg-emerald-50/50 border-b border-emerald-200 ">
  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Partner Details</th>
  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Bank Info</th>
  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
@@ -180,12 +180,12 @@ const PayoutsList = () => {
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: i * 0.05 }}
  key={w._id} 
- className="border-b border-slate-50 hover:bg-pink-50/50 :bg-slate-800/20 transition-colors"
+ className="border-b border-slate-50 hover:bg-emerald-50/50 :bg-slate-800/20 transition-colors"
  >
  {/* Partner Details */}
  <td className="p-4">
  <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-full bg-brand-500/10 text-brand-500 flex items-center justify-center font-bold text-sm">
+ <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
  {w.deliveryPartner?.name?.charAt(0).toUpperCase()}
  </div>
  <div>
@@ -203,7 +203,7 @@ const PayoutsList = () => {
 
  {/* Amount */}
  <td className="p-4">
- <p className="text-lg font-black text-brand-500">₹{w.amount}</p>
+ <p className="text-lg font-black text-emerald-600">₹{w.amount}</p>
  </td>
 
  {/* Status */}
@@ -222,7 +222,7 @@ const PayoutsList = () => {
  <td className="p-4">
  <button 
  onClick={() => handleOpenAnalytics(w)}
- className="text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors bg-brand-50 text-brand-600 hover:bg-brand-100 :bg-brand-500/20"
+ className="text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100 :bg-emerald-600/20"
  >
  <FileText className="w-3.5 h-3.5" />
  Review & Analytics
@@ -260,7 +260,7 @@ const PayoutsList = () => {
  className="relative bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
  >
  {/* Modal Header */}
- <div className="p-6 border-b border-pink-200 flex justify-between items-center bg-pink-50/50 ">
+ <div className="p-6 border-b border-emerald-200 flex justify-between items-center bg-emerald-50/50 ">
  <div>
  <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
  Payout Review: {selectedRequest.deliveryPartner?.name}
@@ -269,10 +269,10 @@ const PayoutsList = () => {
  </span>
  </h2>
  <p className="text-sm text-slate-500 mt-1">
- Requested Amount: <span className="font-bold text-brand-500">₹{selectedRequest.amount}</span>
+ Requested Amount: <span className="font-bold text-emerald-600">₹{selectedRequest.amount}</span>
  </p>
  </div>
- <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-pink-100 :bg-slate-800 rounded-full transition-colors">
+ <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-emerald-100 :bg-slate-800 rounded-full transition-colors">
  <X className="w-5 h-5 text-slate-500" />
  </button>
  </div>
@@ -282,12 +282,12 @@ const PayoutsList = () => {
  
  {/* Analytics Summary */}
  {loadingAnalytics ? (
- <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>
+ <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>
  ) : analytics ? (
  <>
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
  {/* Bank Details */}
- <div className="md:col-span-1 bg-pink-50 p-5 rounded-2xl border border-pink-200 ">
+ <div className="md:col-span-1 bg-emerald-50 p-5 rounded-2xl border border-emerald-200 ">
  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bank Details</h4>
  <div className="space-y-2 text-sm">
  <p><span className="text-slate-500">Bank:</span> <span className="font-semibold text-slate-800 ">{selectedRequest.bankDetails?.bankName}</span></p>
@@ -307,9 +307,9 @@ const PayoutsList = () => {
  <p className="text-emerald-500 text-xs font-bold uppercase tracking-wider mb-1">Generated Revenue</p>
  <p className="text-3xl font-black text-slate-800 ">₹{analytics.totalRevenue}</p>
  </div>
- <div className="bg-brand-500/10 border border-brand-500/20 p-5 rounded-2xl flex flex-col justify-center">
- <p className="text-brand-500 text-xs font-bold uppercase tracking-wider mb-1">Total Payout Accrued</p>
- <p className="text-3xl font-black text-brand-500">₹{analytics.totalPayout}</p>
+ <div className="bg-emerald-600/10 border border-emerald-600/20 p-5 rounded-2xl flex flex-col justify-center">
+ <p className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">Total Payout Accrued</p>
+ <p className="text-3xl font-black text-emerald-600">₹{analytics.totalPayout}</p>
  </div>
  </div>
  </div>
@@ -317,9 +317,9 @@ const PayoutsList = () => {
  {/* Detailed Delivery Table */}
  <div>
  <h4 className="text-lg font-bold text-slate-800 mb-4">Delivery History</h4>
- <div className="border border-pink-200 rounded-2xl overflow-hidden">
+ <div className="border border-emerald-200 rounded-2xl overflow-hidden">
  <table className="w-full text-left text-sm">
- <thead className="bg-pink-50 border-b border-pink-200 ">
+ <thead className="bg-emerald-50 border-b border-emerald-200 ">
  <tr>
  <th className="p-3 font-semibold text-slate-500">Order ID</th>
  <th className="p-3 font-semibold text-slate-500">Route</th>
@@ -330,7 +330,7 @@ const PayoutsList = () => {
  </thead>
  <tbody className="divide-y divide-slate-100 ">
  {analytics.deliveryDetails?.map(d => (
- <tr key={d.orderId} className="hover:bg-pink-50 :bg-slate-800/50">
+ <tr key={d.orderId} className="hover:bg-emerald-50 :bg-slate-800/50">
  <td className="p-3 font-mono text-xs text-slate-500">{d.orderId.substring(d.orderId.length - 6).toUpperCase()}</td>
  <td className="p-3">
  <div className="flex flex-col gap-1">
@@ -338,7 +338,7 @@ const PayoutsList = () => {
  <span className="w-2 h-2 rounded-full bg-blue-500"></span> {d.storeName}
  </div>
  <div className="flex items-center gap-1.5 text-slate-500 text-xs">
- <span className="w-2 h-2 rounded-full bg-brand-500"></span> {d.customerAddress}
+ <span className="w-2 h-2 rounded-full bg-emerald-600"></span> {d.customerAddress}
  </div>
  </div>
  </td>
@@ -367,10 +367,10 @@ const PayoutsList = () => {
 
  {/* Modal Footer / Actions */}
  {selectedRequest.status === 'pending' && (
- <div className="p-6 border-t border-pink-200 bg-pink-50 flex justify-end gap-3">
+ <div className="p-6 border-t border-emerald-200 bg-emerald-50 flex justify-end gap-3">
  <button 
  onClick={() => handleUpdateStatus('rejected')}
- className="px-5 py-2.5 bg-white border border-pink-200 text-rose-500 font-bold rounded-xl hover:bg-rose-50 :bg-rose-500/10 transition-colors flex items-center gap-2"
+ className="px-5 py-2.5 bg-white border border-emerald-200 text-rose-500 font-bold rounded-xl hover:bg-rose-50 :bg-rose-500/10 transition-colors flex items-center gap-2"
  >
  <XCircle className="w-4 h-4" /> Reject Payout
  </button>

@@ -3,7 +3,8 @@ import {
   validateCoupon,
   getCoupons,
   createCoupon,
-  deleteCoupon
+  deleteCoupon,
+  updateCoupon
 } from '../controllers/couponController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -14,6 +15,7 @@ router.post('/validate', protect, validateCoupon);
 
 // Admin Coupon CRUD operations
 router.post('/', protect, restrictTo('admin'), createCoupon);
+router.put('/:id', protect, restrictTo('admin'), updateCoupon);
 router.delete('/:id', protect, restrictTo('admin'), deleteCoupon);
 
 export default router;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../services/api.js';
 import { 
- DollarSign, ShoppingCart, Users, Salad, X, Search, Filter, 
+ IndianRupee, ShoppingCart, Users, Salad, X, Search, Filter, 
  MapPin, CreditCard, ChevronRight, Truck, Package, CheckCircle2, Navigation, Wallet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Trash2, Edit2 } from 'lucide-react';
 import CustomersList from './CustomersList.jsx';
 import PayoutsList from './PayoutsList.jsx';
 
@@ -58,6 +59,9 @@ const Dashboard = () => {
  productsCount: 8
  });
 
+ const [currentPage, setCurrentPage] = useState(1);
+ const itemsPerPage = 5;
+
  const [selectedOrder, setSelectedOrder] = useState(null);
  const [selectedRider, setSelectedRider] = useState('');
 
@@ -69,13 +73,13 @@ const Dashboard = () => {
  setLoading(true);
  try {
  const [ordersRes, usersRes, productsRes] = await Promise.all([
- API.get('/orders/admin/all').catch(() => ({ data: BACKUP_ORDERS })),
+ API.get('/orders/admin/all').catch(() => ({ data: [] })),
  API.get('/users').catch(() => ({ data: [] })),
  API.get('/products').catch(() => ({ data: [] }))
  ]);
  
- const fetchedOrders = ordersRes.data && ordersRes.data.length > 0 ? ordersRes.data : BACKUP_ORDERS;
- setOrders(fetchedOrders);
+    const fetchedOrders = ordersRes.data || [];
+    setOrders(fetchedOrders);
  
  const allUsers = usersRes.data || [];
  const allProducts = productsRes.data || [];
@@ -109,6 +113,17 @@ const Dashboard = () => {
  setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
  }
  };
+
+ const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) return;
+    try {
+      await API.delete(`/orders/${orderId}`);
+      setOrders(prev => prev.filter(o => o._id !== orderId));
+    } catch (err) {
+      console.error('Failed to delete order', err);
+      alert('Failed to delete order');
+    }
+  };
 
  const handleAssignRider = async () => {
  if (!selectedRider || !selectedOrder) return;
@@ -147,7 +162,7 @@ const Dashboard = () => {
  case 'preparing': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
  case 'out-for-delivery': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
  case 'delivered': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
- default: return 'bg-pink-500/10 text-slate-500 border-slate-500/20';
+ default: return 'bg-emerald-500/10 text-slate-500 border-slate-500/20';
  }
  };
 
@@ -155,7 +170,7 @@ const Dashboard = () => {
  <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
  
  {/* Top Tabs */}
- <div className="flex bg-pink-100 p-1.5 rounded-xl w-full sm:w-fit overflow-x-auto no-scrollbar relative mb-4 gap-1">
+ <div className="flex bg-emerald-100 p-1.5 rounded-xl w-full sm:w-fit overflow-x-auto no-scrollbar relative mb-4 gap-1">
  <button
  onClick={() => setActiveTab('overview')}
  className={`whitespace-nowrap px-6 py-2.5 text-sm font-bold relative z-10 transition-colors ${activeTab === 'overview' ? 'text-slate-900 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)]' : 'text-slate-500 hover:text-slate-700 :text-slate-300'}`}
@@ -196,7 +211,7 @@ const Dashboard = () => {
  {/* Stat Cards Grid */}
  <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
  {[
- { label: 'Gross Revenue', value: `₹${stats.revenue}`, icon: DollarSign, color: 'text-brand-600', bg: 'bg-brand-50' },
+ { label: 'Gross Revenue', value: `₹${stats.revenue}`, icon: IndianRupee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
  { label: 'Total Orders', value: stats.ordersCount, icon: ShoppingCart, color: 'text-emerald-600', bg: 'bg-emerald-50' },
  { label: 'Active Customers', value: stats.usersCount, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
  { label: 'Delivery Partners', value: stats.deliveryCount, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -205,7 +220,7 @@ const Dashboard = () => {
  <motion.div 
  key={i}
  whileHover={{ y: -2 }}
- className="bg-white border border-pink-200 rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all flex flex-col justify-between"
+ className="bg-white border border-emerald-200 rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all flex flex-col justify-between"
  >
  <div className="flex justify-between items-start mb-4">
  <div className={`p-3 ${stat.bg} ${stat.color} rounded-xl`}>
@@ -221,8 +236,8 @@ const Dashboard = () => {
  </section>
 
  {/* Visual Analytics Canvas Chart Panel */}
- <section className="bg-white border border-pink-200/60 rounded-3xl p-6 shadow-sm">
- <div className="flex justify-between items-center border-b border-pink-200 pb-4 mb-4">
+ <section className="bg-white border border-emerald-200/60 rounded-3xl p-6 shadow-sm">
+ <div className="flex justify-between items-center border-b border-emerald-200 pb-4 mb-4">
  <h3 className="text-lg font-black text-slate-800 ">Revenue Analytics (Last 7 Days)</h3>
  </div>
  
@@ -239,7 +254,7 @@ const Dashboard = () => {
  {bar.val}
  </div>
  <div 
- className="bg-brand-500/80 w-full max-w-[40px] rounded-t-xl transition-all duration-500 group-hover:bg-brand-500 group-hover:shadow-[0_0_15px_rgba(244,63,94,0.5)]" 
+ className="bg-emerald-600/80 w-full max-w-[40px] rounded-t-xl transition-all duration-500 group-hover:bg-emerald-600 group-hover:shadow-[0_0_15px_rgba(244,63,94,0.5)]" 
  style={{ height: bar.h }}
  ></div>
  <span className="text-[10px] text-slate-400 font-bold uppercase">{bar.day}</span>
@@ -249,13 +264,13 @@ const Dashboard = () => {
  </section>
 
  {/* Active Orders Queue Table */}
- <section className="bg-white border border-pink-200 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+ <section className="bg-white border border-emerald-200 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
  
  {/* Header & Filters */}
- <div className="p-6 border-b border-pink-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+ <div className="p-6 border-b border-emerald-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
  <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
  Recent Orders
- <span className="bg-pink-100 text-slate-600 text-[11px] font-bold px-2 py-1 rounded-md">{orders.length} TOTAL</span>
+ <span className="bg-emerald-100 text-slate-600 text-[11px] font-bold px-2 py-1 rounded-md">{orders.length} TOTAL</span>
  </h3>
 
  <div className="flex flex-col sm:flex-row gap-3">
@@ -267,7 +282,7 @@ const Dashboard = () => {
  placeholder="Search orders..."
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
- className="w-full sm:w-64 pl-10 pr-4 py-2 bg-pink-50 border border-transparent focus:border-brand-500 rounded-lg text-sm outline-none transition-colors"
+ className="w-full sm:w-64 pl-10 pr-4 py-2 bg-emerald-50 border border-transparent focus:border-emerald-600 rounded-lg text-sm outline-none transition-colors"
  />
  </div>
  {/* Filter */}
@@ -276,7 +291,7 @@ const Dashboard = () => {
  <select 
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value)}
- className="w-full sm:w-48 pl-9 pr-4 py-2.5 bg-white border border-pink-200 rounded-xl text-xs outline-none focus:border-brand-500 transition-colors appearance-none font-semibold text-slate-700 "
+ className="w-full sm:w-48 pl-9 pr-4 py-2.5 bg-white border border-emerald-200 rounded-xl text-xs outline-none focus:border-emerald-600 transition-colors appearance-none font-semibold text-slate-700 "
  >
  <option value="All">All Statuses</option>
  <option value="Placed">Placed (New)</option>
@@ -288,67 +303,122 @@ const Dashboard = () => {
  </div>
  </div>
 
- {loading ? (
- <div className="p-12 text-center text-slate-400 font-medium animate-pulse">Loading orders data...</div>
- ) : filteredOrders.length === 0 ? (
- <div className="p-12 text-center text-slate-400 font-medium">No orders found matching your filters.</div>
- ) : (
- <div className="overflow-x-auto w-full">
- <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
- <thead className="bg-pink-50 ">
- <tr className="border-b border-pink-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
- <th className="py-4 px-6">Order ID & Time</th>
- <th className="py-4 px-6">Customer Info</th>
- <th className="py-4 px-6">Amount</th>
- <th className="py-4 px-6">Status</th>
- <th className="py-4 px-6 text-right">Action</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-100 font-medium text-slate-700 ">
- {filteredOrders.map((o) => (
- <tr key={o._id} className="hover:bg-pink-50/80 :bg-slate-800/40 transition-colors group">
- <td className="py-4 px-6">
- <div className="font-mono text-xs font-bold text-slate-900 ">{o._id}</div>
- <div className="text-[10px] text-slate-400 mt-1">
- {new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}
- </div>
- </td>
- <td className="py-4 px-6">
- <div className="font-bold text-slate-900 flex items-center gap-2">
- {o.user?.name}
- </div>
- <div className="text-[10px] text-slate-400 mt-0.5">{o.user?.email}</div>
- </td>
- <td className="py-4 px-6">
- <div className="font-black text-brand-500">₹{o.billDetails?.grandTotal}</div>
- <div className="text-[10px] text-slate-400 uppercase font-bold mt-0.5 border border-pink-200 inline-block px-1 rounded bg-pink-100 ">
- {o.paymentDetails?.method}
- </div>
- </td>
- <td className="py-4 px-6">
- <span className={`text-[10px] uppercase font-black px-2.5 py-1 rounded-full border ${getStatusColor(o.status)}`}>
- {o.status}
- </span>
- {o.riderName && (
- <div className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1 font-semibold">
- <Truck className="w-3 h-3" /> {o.riderName.split(' ')[1]}
- </div>
- )}
- </td>
- <td className="py-4 px-6 text-right">
- <button 
- onClick={() => { setSelectedOrder(o); setSelectedRider(''); }}
- className="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-100 hover:bg-slate-200 :bg-slate-700 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-sm"
- >
- Manage <ChevronRight className="w-3 h-3" />
- </button>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- )}
+      {loading ? (
+        <div className="p-12 text-center text-slate-400 font-medium animate-pulse">Loading orders data...</div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="p-12 text-center text-slate-400 font-medium">No orders found matching your filters.</div>
+      ) : (() => {
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+        const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+        return (
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
+              <thead className="bg-emerald-50 ">
+                <tr className="border-b border-emerald-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <th className="py-4 px-6">Order ID & Time</th>
+                  <th className="py-4 px-6">Customer Info</th>
+                  <th className="py-4 px-6">Amount</th>
+                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700 ">
+                {currentItems.map((o) => (
+                  <tr key={o._id} className="hover:bg-emerald-50/80 :bg-slate-800/40 transition-colors group">
+                    <td className="py-4 px-6">
+                      <div className="font-mono text-xs font-bold text-slate-900 ">{o._id}</div>
+                      <div className="text-[10px] text-slate-400 mt-1">
+                        {new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="font-bold text-slate-900 flex items-center gap-2">
+                        {o.user?.name}
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{o.user?.email}</div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="font-black text-emerald-600">₹{o.billDetails?.grandTotal}</div>
+                      <div className="text-[10px] text-slate-400 uppercase font-bold mt-0.5 border border-emerald-200 inline-block px-1 rounded bg-emerald-100 ">
+                        {o.paymentDetails?.method}
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className={`text-[10px] uppercase font-black px-2.5 py-1 rounded-full border ${getStatusColor(o.status)}`}>
+                        {o.status}
+                      </span>
+                      {o.riderName && (
+                        <div className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1 font-semibold">
+                          <Truck className="w-3 h-3" /> {o.riderName.split(' ')[1]}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => { setSelectedOrder(o); setSelectedRider(''); }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg text-xs font-bold transition-all shadow-sm"
+                          title="Manage Order"
+                        >
+                          <Edit2 className="w-3 h-3" /> Manage
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteOrder(o._id)}
+                          className="inline-flex items-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-500 rounded-lg transition-all shadow-sm"
+                          title="Delete Order"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {/* Pagination Footer */}
+            {totalPages > 0 && (
+              <div className="flex justify-between items-center px-6 py-4 border-t border-emerald-200/60 bg-emerald-50/30">
+                <div className="text-xs font-bold text-slate-500">
+                  Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)} of {filteredOrders.length}
+                </div>
+                <div className="flex items-center gap-1">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-4 h-4 rotate-180" />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button 
+                      key={page} 
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-md text-xs font-bold flex items-center justify-center transition-colors ${
+                        page === currentPage ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
  </section>
 
  {/* Premium Sliding Drawer Modal for Order Details */}
@@ -363,10 +433,10 @@ const Dashboard = () => {
  <motion.div 
  initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
- className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col border-l border-pink-200 "
+ className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col border-l border-emerald-200 "
  >
  {/* Drawer Header */}
- <div className="px-6 py-5 border-b border-pink-200 flex justify-between items-center bg-pink-50/50 ">
+ <div className="px-6 py-5 border-b border-emerald-200 flex justify-between items-center bg-emerald-50/50 ">
  <div>
  <h3 className="text-lg font-black text-slate-900 ">Order Details</h3>
  <p className="text-xs text-slate-400 font-mono mt-0.5">{selectedOrder._id}</p>
@@ -386,11 +456,11 @@ const Dashboard = () => {
  <div>
  <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-4">Live Tracking</h4>
  <div className="relative pl-3 space-y-6">
- <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-pink-100 "></div>
+ <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-emerald-100 "></div>
  
  {/* Placed */}
  <div className="relative flex items-start gap-4">
- <div className={`w-3 h-3 rounded-full mt-1 z-10 ${['placed', 'preparing', 'out-for-delivery', 'delivered'].includes(selectedOrder.status) ? 'bg-brand-500 ring-4 ring-brand-500/20' : 'bg-slate-300'}`}></div>
+ <div className={`w-3 h-3 rounded-full mt-1 z-10 ${['placed', 'preparing', 'out-for-delivery', 'delivered'].includes(selectedOrder.status) ? 'bg-emerald-600 ring-4 ring-emerald-600/20' : 'bg-slate-300'}`}></div>
  <div>
  <p className="text-sm font-bold text-slate-800 ">Order Placed</p>
  <p className="text-[10px] text-slate-400 mt-0.5">Customer successfully paid</p>
@@ -405,7 +475,7 @@ const Dashboard = () => {
  {selectedOrder.status === 'placed' && (
  <button 
  onClick={() => handleUpdateStatus(selectedOrder._id, 'preparing')}
- className="mt-2 text-[10px] font-bold px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg shadow-md transition-all"
+ className="mt-2 text-[10px] font-bold px-3 py-1.5 bg-emerald-600 hover:bg-emerald-600 text-white rounded-lg shadow-md transition-all"
  >
  Accept & Start Preparing
  </button>
@@ -421,12 +491,12 @@ const Dashboard = () => {
  
  {/* Rider Assignment Block */}
  {selectedOrder.status === 'preparing' && (
- <div className="mt-3 p-3 bg-pink-50 border border-pink-200 rounded-xl space-y-2">
+ <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Assign Partner</label>
  <select 
  value={selectedRider}
  onChange={(e) => setSelectedRider(e.target.value)}
- className="w-full px-3 py-2 rounded-lg border border-pink-200 bg-white text-xs outline-none text-slate-700 "
+ className="w-full px-3 py-2 rounded-lg border border-emerald-200 bg-white text-xs outline-none text-slate-700 "
  >
  <option value="">Select an online rider...</option>
  {MOCK_RIDERS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -434,7 +504,7 @@ const Dashboard = () => {
  <button 
  onClick={handleAssignRider}
  disabled={!selectedRider}
- className="w-full py-2 bg-slate-900 disabled:bg-slate-300 :bg-slate-700 disabled:text-slate-500 hover:bg-brand-500 :bg-brand-500 hover:text-white text-white text-[10px] font-black rounded-lg transition-all uppercase tracking-wider"
+ className="w-full py-2 bg-slate-900 disabled:bg-slate-300 :bg-slate-700 disabled:text-slate-500 hover:bg-emerald-600 :bg-emerald-600 hover:text-white text-white text-[10px] font-black rounded-lg transition-all uppercase tracking-wider"
  >
  Dispatch Order
  </button>
@@ -460,10 +530,10 @@ const Dashboard = () => {
  </div>
 
  {/* Customer Details */}
- <div className="p-4 bg-pink-50 border border-pink-200 rounded-2xl">
+ <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3">Customer Information</h4>
  <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-full bg-brand-500/10 text-brand-500 flex items-center justify-center font-black text-lg uppercase">
+ <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-black text-lg uppercase">
  {selectedOrder.user?.name?.charAt(0) || 'U'}
  </div>
  <div>
@@ -474,22 +544,22 @@ const Dashboard = () => {
  </div>
 
  {/* Bill Summary */}
- <div className="p-4 border border-pink-200 rounded-2xl">
+ <div className="p-4 border border-emerald-200 rounded-2xl">
  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3">Payment Summary</h4>
  <div className="space-y-2 text-xs font-semibold">
  <div className="flex justify-between">
  <span className="text-slate-500 flex items-center gap-1"><CreditCard className="w-3.5 h-3.5"/> Payment Method</span>
- <span className="uppercase text-slate-800 border px-1.5 py-0.5 rounded border-pink-200 ">{selectedOrder.paymentDetails?.method}</span>
+ <span className="uppercase text-slate-800 border px-1.5 py-0.5 rounded border-emerald-200 ">{selectedOrder.paymentDetails?.method}</span>
  </div>
  {selectedOrder.paymentDetails?.paymentId && (
- <div className="flex justify-between pt-2 border-t border-pink-200 mt-2">
+ <div className="flex justify-between pt-2 border-t border-emerald-200 mt-2">
  <span className="text-slate-500">Transaction ID</span>
  <span className="font-mono text-[10px] text-slate-800 ">{selectedOrder.paymentDetails.paymentId}</span>
  </div>
  )}
- <div className="flex justify-between pt-2 border-t border-pink-200 mt-2">
+ <div className="flex justify-between pt-2 border-t border-emerald-200 mt-2">
  <span className="text-slate-800 font-bold">Total Amount</span>
- <span className="font-black text-brand-500 text-sm">₹{selectedOrder.billDetails?.grandTotal}</span>
+ <span className="font-black text-emerald-600 text-sm">₹{selectedOrder.billDetails?.grandTotal}</span>
  </div>
  </div>
  </div>

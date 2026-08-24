@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Order from '../models/Order.js';
 
 // @desc    Update user profile picture (avatar)
 // @route   PUT /api/users/profile/avatar
@@ -136,6 +137,17 @@ export const updateProfile = async (req, res) => {
     
     // Return sanitized user object
     const updatedUser = await User.findById(req.user._id).select('-password -otp -searchHistory');
+    
+    // Emit notification to Admin
+    if (global.io) {
+      global.io.emit('adminNotification', {
+        title: 'Profile Updated',
+        message: `User ${updatedUser.name} (${updatedUser.email}) just updated their profile details.`,
+        type: 'info',
+        date: new Date()
+      });
+    }
+
     res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update profile', error: error.message });
@@ -217,3 +229,62 @@ export const updatePassword = async (req, res) => {
   }
 };
 
+// @desc    Toggle product in wishlist
+// @route   POST /api/users/wishlist/toggle
+// @access  Private
+export const toggleWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { productId } = req.body;
+    if (!productId) return res.status(400).json({ message: 'Product ID is required' });
+
+    const index = user.wishlist.indexOf(productId);
+    if (index > -1) {
+      user.wishlist.splice(index, 1);
+    } else {
+      user.wishlist.push(productId);
+    }
+
+    await user.save();
+    res.status(200).json(user.wishlist);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to toggle wishlist', error: error.message });
+  }
+};
+
+// @desc    Get user's populated wishlist
+// @route   GET /api/users/wishlist
+// @access  Private
+export const getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate('wishlist');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json(user.wishlist);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch wishlist', error: error.message });
+  }
+};
+
+// @desc    Get detailed user information (Admin)
+// @route   GET /api/users/:id/details
+// @access  Private (Admin)
+export const getUserDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-password -otp -searchHistory')
+      .populate('wishlist');
+    
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const orders = await Order.find({ user: user._id }).sort({ createdAt: -1 }).populate('store');
+
+    res.status(200).json({
+      user,
+      orders
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch user details', error: error.message });
+  }
+};

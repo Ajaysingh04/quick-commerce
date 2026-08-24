@@ -2,6 +2,7 @@ import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import Store from '../models/Store.js';
 import Coupon from '../models/Coupon.js';
+import Settings from '../models/Settings.js';
 import Stripe from 'stripe';
 import Razorpay from 'razorpay';
 import dotenv from 'dotenv';
@@ -63,9 +64,22 @@ export const createRazorpayIntent = async (req, res) => {
       if (store) distance = store.distance || 2;
     }
     const deliveryFee = subtotal >= 500 ? 0 : 40;
-    const tax = Math.round(subtotal * 0.05);
     const codCharge = paymentMethod === 'cod' ? Math.ceil(distance) * 5 : 0;
-    const grandTotal = subtotal + deliveryFee + tax + codCharge - discount;
+    const extraDistanceSurcharge = distance > 5 ? Math.ceil(distance - 5) * 4.75 : 0;
+    
+    // Fetch custom charges from settings
+    const settings = await Settings.findOne();
+    const customCharges = settings?.customCharges?.filter(c => c.isActive && (c.season === 'all' || c.season === settings.activeSeason)) || [];
+    let customChargesTotal = 0;
+    customCharges.forEach(charge => {
+      if (charge.type === 'percentage') {
+        customChargesTotal += Math.round(subtotal * (charge.value / 100));
+      } else {
+        customChargesTotal += charge.value;
+      }
+    });
+
+    const grandTotal = subtotal + deliveryFee + codCharge + extraDistanceSurcharge + customChargesTotal - discount;
 
     if (razorpay) {
       const rzpOrder = await razorpay.orders.create({
@@ -169,12 +183,29 @@ export const createOrder = async (req, res) => {
     }
     
     const deliveryFee = subtotal >= 500 ? 0 : 40; // Free delivery above 500
-    const tax = Math.round(subtotal * 0.05); // 5% GST
     
     // Calculate COD Charge (5 rupees per km)
     const codCharge = paymentMethod === 'cod' ? Math.ceil(distance) * 5 : 0;
+    const extraDistanceSurcharge = distance > 5 ? Math.ceil(distance - 5) * 4.75 : 0;
     
-    const grandTotal = subtotal + deliveryFee + tax + codCharge - discount;
+    // Calculate Custom Charges (incl GST)
+    const settings = await Settings.findOne();
+    const activeCustomCharges = settings?.customCharges?.filter(c => c.isActive && (c.season === 'all' || c.season === settings.activeSeason)) || [];
+    let customChargesTotal = 0;
+    const appliedCharges = [];
+    
+    activeCustomCharges.forEach(charge => {
+      let amt = 0;
+      if (charge.type === 'percentage') {
+        amt = Math.round(subtotal * (charge.value / 100));
+      } else {
+        amt = charge.value;
+      }
+      customChargesTotal += amt;
+      appliedCharges.push({ name: charge.name, amount: amt });
+    });
+
+    const grandTotal = subtotal + deliveryFee + codCharge + extraDistanceSurcharge + customChargesTotal - discount;
 
     // 4. Create Order database record
     const order = await Order.create({
@@ -185,8 +216,10 @@ export const createOrder = async (req, res) => {
       billDetails: {
         subtotal,
         deliveryFee,
-        tax,
+        tax: 0, // Migrated to appliedCharges
         codCharge,
+        extraDistanceSurcharge,
+        appliedCharges,
         discount,
         grandTotal
       },
@@ -246,6 +279,11 @@ export const createOrder = async (req, res) => {
       global.io.to('delivery_partners').emit('newOrderAvailable', populatedOrder);
       // Emit to admin dashboard
       global.io.emit('newOrderReceived', populatedOrder);
+      global.io.emit('adminNotification', {
+        title: 'New Order Received',
+        message: `Order #${populatedOrder._id.toString().slice(-6).toUpperCase()} received from ${populatedOrder.user?.name || 'Customer'}.`,
+        date: new Date().toISOString()
+      });
       
       // Emit specifically to the store owner if connected
       if (populatedOrder.store?.owner) {
@@ -568,6 +606,28 @@ export const verifyPayment = async (req, res) => {
     } else {
       return res.status(400).json({ message: "Invalid signature sent!" });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete an order
+// @route   DELETE /api/orders/:id
+// @access  Private/Admin
+export const deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    await order.deleteOne();
+
+    if (global.io) {
+      global.io.emit('adminOrderDelete', { orderId: req.params.id });
+    }
+
+    res.json({ message: 'Order deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,195 +1,262 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../../services/api.js';
-import { Plus, Check, ShieldAlert, Ticket, ToggleLeft, ToggleRight } from 'lucide-react';
-
-const BACKUP_COUPONS = [
- { _id: '1', code: 'BITE50', discountPercent: 50, maxDiscount: 250, minOrderValue: 200, isActive: true },
- { _id: '2', code: 'WELCOME100', discountPercent: 20, maxDiscount: 100, minOrderValue: 0, isActive: true },
- { _id: '3', code: 'WEEKEND30', discountPercent: 30, maxDiscount: 150, minOrderValue: 300, isActive: true }
-];
+import { Plus, Check, ShieldAlert, Edit2, ToggleLeft, ToggleRight, Loader2, X } from 'lucide-react';
 
 const CouponManage = () => {
- const [coupons, setCoupons] = useState(BACKUP_COUPONS);
- const [code, setCode] = useState('');
- const [discountPercent, setDiscountPercent] = useState('');
- const [maxDiscount, setMaxDiscount] = useState('');
- const [minOrderValue, setMinOrderValue] = useState('');
- 
- const [success, setSuccess] = useState('');
- const [error, setError] = useState('');
- const [loading, setLoading] = useState(false);
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Form State
+  const [couponId, setCouponId] = useState(null);
+  const [code, setCode] = useState('');
+  const [discountPercent, setDiscountPercent] = useState('');
+  const [maxDiscount, setMaxDiscount] = useState('');
+  const [minOrderValue, setMinOrderValue] = useState('');
+  const [validTo, setValidTo] = useState('');
+  
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
- const handleCreateCoupon = async (e) => {
- e.preventDefault();
- setError('');
- setSuccess('');
- setLoading(true);
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
 
- try {
- const payload = {
- code: code.toUpperCase(),
- discountPercent: parseFloat(discountPercent),
- maxDiscount: maxDiscount ? parseFloat(maxDiscount) : undefined,
- minOrderValue: minOrderValue ? parseFloat(minOrderValue) : 0,
- validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days default
- };
+  const fetchCoupons = async () => {
+    setLoading(true);
+    try {
+      const res = await API.get('/coupons');
+      setCoupons(res.data);
+    } catch (err) {
+      console.error('Failed to fetch coupons', err);
+      // Fallback
+      setCoupons([
+        { _id: '1', code: 'FRESH50', discountPercent: 50, maxDiscount: 250, minOrderValue: 200, isActive: true },
+        { _id: '2', code: 'WELCOME100', discountPercent: 20, maxDiscount: 100, minOrderValue: 0, isActive: true },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const res = await API.post('/admin/coupons', payload); // Admin route POST /api/admin/coupons
- setCoupons(prev => [...prev, res.data]);
- setSuccess(`Coupon "${code.toUpperCase()}" launched successfully!`);
- resetForm();
- } catch (err) {
- console.warn('API error, saving coupon details locally:', err);
- 
- const mockCoupon = {
- _id: `mock_cp_${Date.now()}`,
- code: code.toUpperCase(),
- discountPercent: parseFloat(discountPercent),
- maxDiscount: maxDiscount ? parseFloat(maxDiscount) : undefined,
- minOrderValue: minOrderValue ? parseFloat(minOrderValue) : 0,
- isActive: true
- };
+  const handleSaveCoupon = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setSaving(true);
 
- setCoupons(prev => [...prev, mockCoupon]);
- setSuccess(`Simulated: Coupon "${code.toUpperCase()}" added locally.`);
- resetForm();
- } finally {
- setLoading(false);
- }
- };
+    try {
+      const payload = {
+        code: code.toUpperCase(),
+        discountPercent: parseFloat(discountPercent),
+        maxDiscount: maxDiscount ? parseFloat(maxDiscount) : undefined,
+        minOrderValue: minOrderValue ? parseFloat(minOrderValue) : 0,
+        validTo: validTo ? new Date(validTo) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      };
 
- const resetForm = () => {
- setCode('');
- setDiscountPercent('');
- setMaxDiscount('');
- setMinOrderValue('');
- };
+      if (couponId) {
+        // Update existing
+        const res = await API.put(`/coupons/${couponId}`, payload);
+        setCoupons(prev => prev.map(c => c._id === couponId ? res.data : c));
+        setSuccess(`Coupon "${code.toUpperCase()}" updated successfully!`);
+      } else {
+        // Create new
+        const res = await API.post('/coupons', payload);
+        setCoupons(prev => [...prev, res.data]);
+        setSuccess(`Coupon "${code.toUpperCase()}" launched successfully!`);
+      }
+      
+      resetForm();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save coupon.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
- const handleToggleStatus = async (couponId, currentStatus) => {
- try {
- await API.delete(`/admin/coupons/${couponId}`); // Admin route to toggle/deactivate coupon
- setCoupons(prev => prev.map(c => c._id === couponId ? { ...c, isActive: !currentStatus } : c));
- } catch (err) {
- setCoupons(prev => prev.map(c => c._id === couponId ? { ...c, isActive: !currentStatus } : c));
- }
- };
+  const resetForm = () => {
+    setCouponId(null);
+    setCode('');
+    setDiscountPercent('');
+    setMaxDiscount('');
+    setMinOrderValue('');
+    setValidTo('');
+  };
 
- return (
- <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
- 
- {/* Left Form */}
- <div className="bg-white rounded-3xl p-6 border border-pink-200/60 shadow-premium h-fit">
- <h3 className="text-lg font-black border-b border-pink-200 pb-3 mb-4 flex items-center gap-2">
- <Plus className="w-5 h-5 text-brand-500" /> Launch Coupon
- </h3>
+  const handleEdit = (cp) => {
+    setCouponId(cp._id);
+    setCode(cp.code);
+    setDiscountPercent(cp.discountPercent || '');
+    setMaxDiscount(cp.maxDiscount || '');
+    setMinOrderValue(cp.minOrderValue || '');
+    if (cp.validTo) {
+      const dateStr = new Date(cp.validTo).toISOString().split('T')[0];
+      setValidTo(dateStr);
+    } else {
+      setValidTo('');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
- {success && <p className="text-[11px] font-bold text-emerald-500 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 mb-4 flex items-center gap-1"><Check className="w-4 h-4" /> {success}</p>}
- {error && <p className="text-[11px] font-bold text-rose-500 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 mb-4 flex items-center gap-1"><ShieldAlert className="w-4 h-4" /> {error}</p>}
+  const handleToggleStatus = async (couponIdToToggle, currentStatus) => {
+    try {
+      // Toggle logic using PUT updateCoupon
+      const res = await API.put(`/coupons/${couponIdToToggle}`, { isActive: !currentStatus });
+      setCoupons(prev => prev.map(c => c._id === couponIdToToggle ? res.data : c));
+    } catch (err) {
+      console.warn('Simulating status toggle locally');
+      setCoupons(prev => prev.map(c => c._id === couponIdToToggle ? { ...c, isActive: !currentStatus } : c));
+    }
+  };
 
- <form onSubmit={handleCreateCoupon} className="space-y-4">
- <div>
- <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Coupon Code</label>
- <input 
- type="text" 
- required
- placeholder="e.g. FESTIVE20"
- value={code}
- onChange={(e) => setCode(e.target.value)}
- className="w-full px-4 py-3 rounded-xl border border-pink-200 bg-transparent outline-none focus:border-brand-500 text-sm uppercase font-mono font-bold"
- />
- </div>
+  return (
+    <div className="flex flex-col gap-8 animate-in fade-in">
+      
+      {/* Top Form */}
+      <div className="w-full bg-white rounded-3xl p-6 border border-emerald-200/60 shadow-premium">
+        <div className="flex justify-between items-center border-b border-emerald-200 pb-3 mb-4">
+          <h3 className="text-lg font-black flex items-center gap-2">
+            {couponId ? <Edit2 className="w-5 h-5 text-emerald-600" /> : <Plus className="w-5 h-5 text-emerald-600" />}
+            {couponId ? 'Edit Coupon' : 'Launch Coupon'}
+          </h3>
+          {couponId && (
+            <button onClick={resetForm} className="text-xs font-bold text-slate-400 hover:text-slate-600 flex items-center gap-1">
+              <X className="w-3 h-3" /> Cancel
+            </button>
+          )}
+        </div>
 
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Discount %</label>
- <input 
- type="number" 
- required
- max="100"
- min="1"
- placeholder="20"
- value={discountPercent}
- onChange={(e) => setDiscountPercent(e.target.value)}
- className="w-full px-4 py-3 rounded-xl border border-pink-200 bg-transparent outline-none focus:border-brand-500 text-sm font-bold"
- />
- </div>
- <div>
- <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Max Cap (₹)</label>
- <input 
- type="number" 
- placeholder="150"
- value={maxDiscount}
- onChange={(e) => setMaxDiscount(e.target.value)}
- className="w-full px-4 py-3 rounded-xl border border-pink-200 bg-transparent outline-none focus:border-brand-500 text-sm font-bold"
- />
- </div>
- </div>
+        {success && <p className="text-[11px] font-bold text-emerald-500 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 mb-4 flex items-center gap-1"><Check className="w-4 h-4" /> {success}</p>}
+        {error && <p className="text-[11px] font-bold text-rose-500 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 mb-4 flex items-center gap-1"><ShieldAlert className="w-4 h-4" /> {error}</p>}
 
- <div>
- <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Min Order Value (₹)</label>
- <input 
- type="number" 
- required
- placeholder="250"
- value={minOrderValue}
- onChange={(e) => setMinOrderValue(e.target.value)}
- className="w-full px-4 py-3 rounded-xl border border-pink-200 bg-transparent outline-none focus:border-brand-500 text-sm font-bold"
- />
- </div>
+        <form onSubmit={handleSaveCoupon} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Coupon Code</label>
+            <input 
+              type="text" 
+              required
+              placeholder="e.g. FESTIVE20"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm uppercase font-mono font-bold"
+            />
+          </div>
 
- <button 
- type="submit"
- disabled={loading}
- className="w-full py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-center flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-sm"
- >
- Create Coupon
- </button>
- </form>
- </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Discount %</label>
+              <input 
+                type="number" 
+                required
+                max="100"
+                min="1"
+                placeholder="20"
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Max Cap (₹)</label>
+              <input 
+                type="number" 
+                placeholder="150"
+                value={maxDiscount}
+                onChange={(e) => setMaxDiscount(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+              />
+            </div>
+          </div>
 
- {/* Right List */}
- <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-pink-200/60 shadow-premium">
- <h3 className="text-lg font-black border-b border-pink-200 pb-3 mb-4">Promo Campaign Pools</h3>
+            <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Min Order Value (₹)</label>
+            <input 
+              type="number" 
+              required
+              placeholder="250"
+              value={minOrderValue}
+              onChange={(e) => setMinOrderValue(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+            />
+          </div>
 
- <div className="overflow-x-auto w-full">
- <table className="w-full text-left text-sm border-collapse">
- <thead>
- <tr className="border-b border-pink-200 text-xs font-bold uppercase tracking-wider text-slate-400">
- <th className="py-3 px-4">Coupon Code</th>
- <th className="py-3 px-4">Discount</th>
- <th className="py-3 px-4">Min Spend</th>
- <th className="py-3 px-4">Active Status</th>
- <th className="py-3 px-4 text-right">Actions</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-100 font-semibold">
- {coupons.map((cp) => (
- <tr key={cp._id} className="hover:bg-pink-50 :bg-slate-850">
- <td className="py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-brand-500">{cp.code}</td>
- <td className="py-3.5 px-4">{cp.discountPercent}% {cp.maxDiscount ? `(Up to ₹${cp.maxDiscount})` : ''}</td>
- <td className="py-3.5 px-4">₹{cp.minOrderValue}</td>
- <td className="py-3.5 px-4">
- <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${cp.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
- {cp.isActive ? 'Active' : 'Expired'}
- </span>
- </td>
- <td className="py-3.5 px-4 text-right">
- <button 
- onClick={() => handleToggleStatus(cp._id, cp.isActive)}
- className="p-1.5 text-slate-400 hover:text-brand-500"
- >
- {cp.isActive ? <ToggleRight className="w-6 h-6 text-brand-500" /> : <ToggleLeft className="w-6 h-6" />}
- </button>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- </div>
+            <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Valid Until</label>
+            <input 
+              type="date" 
+              value={validTo}
+              onChange={(e) => setValidTo(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold text-slate-700"
+            />
+          </div>
 
- </div>
- );
+          <button 
+            type="submit"
+            disabled={saving}
+            className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-sm"
+          >
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : (couponId ? 'Update Coupon' : 'Create Coupon')}
+          </button>
+        </form>
+      </div>
+
+      {/* Bottom List */}
+      <div className="w-full bg-white rounded-3xl p-6 border border-emerald-200/60 shadow-premium">
+        <h3 className="text-lg font-black border-b border-emerald-200 pb-3 mb-4">Active Promo Campaigns</h3>
+
+        {loading ? (
+          <div className="py-10 text-center text-slate-400 font-bold animate-pulse">Loading coupons...</div>
+        ) : coupons.length === 0 ? (
+          <div className="py-10 text-center text-slate-400 font-bold">No coupons found. Launch one!</div>
+        ) : (
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <th className="py-3 px-4">Coupon Code</th>
+                  <th className="py-3 px-4">Discount</th>
+                  <th className="py-3 px-4">Min Spend</th>
+                  <th className="py-3 px-4">Active Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-emerald-100 font-semibold">
+                {coupons.map((cp) => (
+                  <tr key={cp._id} className={`hover:bg-emerald-50 transition-colors ${couponId === cp._id ? 'bg-emerald-50/50' : ''}`}>
+                    <td className="py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-emerald-600">{cp.code}</td>
+                    <td className="py-3.5 px-4">{cp.discountPercent}% {cp.maxDiscount ? `(Up to ₹${cp.maxDiscount})` : ''}</td>
+                    <td className="py-3.5 px-4">₹{cp.minOrderValue || 0}</td>
+                    <td className="py-3.5 px-4">
+                      <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${cp.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 text-slate-500'}`}>
+                        {cp.isActive ? 'Active' : 'Expired/Paused'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right flex justify-end gap-2">
+                      <button 
+                        onClick={() => handleEdit(cp)}
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded transition-colors"
+                        title="Edit Coupon"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleToggleStatus(cp._id, cp.isActive)}
+                        className={`p-1.5 rounded transition-colors ${cp.isActive ? 'text-emerald-600 hover:bg-rose-50 hover:text-rose-500' : 'text-slate-400 hover:bg-emerald-50 hover:text-emerald-600'}`}
+                        title="Toggle Status"
+                      >
+                        {cp.isActive ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
 };
 
 export default CouponManage;

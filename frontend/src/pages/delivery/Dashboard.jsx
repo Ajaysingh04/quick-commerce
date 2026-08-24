@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import API from '../../services/api.js';
-import { Bike, DollarSign, Star, TrendingUp, TrendingDown, Clock, Shield, Award, ChevronRight, X, PhoneCall, Mail, MessageSquare, Send, ArrowLeft, Navigation, MapPin } from 'lucide-react';
+import { Bike, IndianRupee, Star, TrendingUp, TrendingDown, Clock, Shield, Award, ChevronRight, X, PhoneCall, Mail, MessageSquare, Send, ArrowLeft, Navigation, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = () => {
@@ -223,7 +223,7 @@ const Dashboard = () => {
  {/* Quick Stats Grid */}
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
  {[
- { label: "Today's Earnings", value: '₹640', icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+ { label: "Today's Earnings", value: '₹640', icon: IndianRupee, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
  { label: 'Deliveries Done', value: '8', icon: Bike, color: 'text-brand-400', bg: 'bg-brand-500/10' },
  { label: 'Time Online', value: '4.5h', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10' },
  { label: 'Current Rating', value: '4.9', icon: Star, color: 'text-yellow-400', bg: 'bg-yellow-500/10' }
@@ -364,7 +364,7 @@ const Dashboard = () => {
  
  <div className="space-y-4 relative z-10">
  <div className="flex items-start gap-4 p-4 bg-white border border-gray-100 shadow-sm rounded-2xl border border-gray-200">
- <DollarSign className="text-emerald-400 mt-0.5" size={20} />
+ <IndianRupee className="text-emerald-400 mt-0.5" size={20} />
  <div>
  <h3 className="font-bold text-slate-900 text-sm">5% Earnings Boost</h3>
  <p className="text-xs text-slate-600">Earn extra on every completed delivery.</p>

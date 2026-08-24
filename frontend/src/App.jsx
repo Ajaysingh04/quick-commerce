@@ -11,6 +11,8 @@ import DeliveryLayout from './layouts/DeliveryLayout.jsx';
 
 import Home from './pages/user/Home.jsx';
 import Shop from './pages/user/Shop.jsx';
+import AllProducts from './pages/user/AllProducts.jsx';
+import AllStores from './pages/user/AllStores.jsx';
 import CategoryProducts from './pages/user/CategoryProducts.jsx';
 import Offers from './pages/user/Offers.jsx';
 import About from './pages/user/About.jsx';
@@ -25,12 +27,16 @@ import AdminDashboard from './pages/admin/Dashboard.jsx';
 import OrderManage from './pages/admin/OrderManage.jsx';
 import StoreDashboard from './pages/admin/StoreDashboard.jsx';
 import ProductManage from './pages/admin/ProductManage.jsx';
+import CategoryManage from './pages/admin/CategoryManage.jsx';
 import StoreManage from './pages/admin/StoreManage.jsx';
 import CouponManage from './pages/admin/CouponManage.jsx';
 import ReviewManage from './pages/admin/ReviewManage.jsx';
 import UserManage from './pages/admin/UserManage.jsx';
+import BannerManage from './pages/admin/BannerManage.jsx';
+import PageManage from './pages/admin/PageManage.jsx';
 import AdminProfile from './pages/admin/AdminProfile.jsx';
 import SystemSettings from './pages/admin/SystemSettings.jsx';
+import SupportTickets from './pages/admin/SupportTickets.jsx';
 
 import DeliveryDashboard from './pages/delivery/Dashboard.jsx';
 import ActiveDeliveries from './pages/delivery/ActiveDeliveries.jsx';
@@ -59,6 +65,7 @@ import AuthSync from './pages/shared/AuthSync.jsx';
 import StaticPage from './pages/shared/StaticPage.jsx';
 
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
+import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 
 function App() {
  return (
@@ -72,6 +79,8 @@ function App() {
  <Route path="/" element={<UserLayout />}>
  <Route index element={<Home />} />
  <Route path="shop" element={<Shop />} />
+ <Route path="products" element={<AllProducts />} />
+ <Route path="stores" element={<AllStores />} />
  <Route path="category/:id" element={<CategoryProducts />} />
  <Route path="offers" element={<Offers />} />
  <Route path="about" element={<About />} />
@@ -89,6 +98,8 @@ function App() {
  <Route path="tracking" element={<StaticPage />} />
  <Route path="partner/register" element={<StaticPage />} />
  <Route path="delivery/register" element={<StaticPage />} />
+ <Route path="terms" element={<StaticPage />} />
+ <Route path="privacy" element={<StaticPage />} />
  
  {/* Protected Customer Routes */}
  <Route path="checkout" element={
@@ -132,10 +143,14 @@ function App() {
  <Route index element={<AdminDashboard />} />
  <Route path="orders" element={<OrderManage />} />
  <Route path="products" element={<ProductManage />} />
+ <Route path="categories" element={<CategoryManage />} />
  <Route path="stores" element={<StoreManage />} />
  <Route path="coupons" element={<CouponManage />} />
  <Route path="reviews" element={<ReviewManage />} />
  <Route path="users" element={<UserManage />} />
+ <Route path="banners" element={<BannerManage />} />
+ <Route path="pages" element={<PageManage />} />
+ <Route path="support" element={<SupportTickets />} />
  <Route path="profile" element={<AdminProfile />} />
  <Route path="analytics" element={<StoreDashboard />} />
  <Route path="settings" element={<SystemSettings />} />
@@ -184,6 +199,7 @@ function App() {
  <Route path="/signup/*" element={<AuthPage />} />
  <Route path="/verify-otp" element={<OTPVerify />} />
  <Route path="/auth-sync" element={<AuthSync />} />
+ <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback signUpForceRedirectUrl="/auth-sync" signInForceRedirectUrl="/auth-sync" />} />
  
  <Route path="/staff/join/:token" element={<JoinStaff />} />
 

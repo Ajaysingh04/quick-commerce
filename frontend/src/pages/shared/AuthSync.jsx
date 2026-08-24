@@ -86,8 +86,8 @@ const AuthSync = () => {
 
  if (errorMsg) {
  return (
- <div className="min-h-screen flex flex-col items-center justify-center bg-pink-50 p-6 text-center">
- <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-rose-100 ">
+ <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+ <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border border-emerald-100 ">
  <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
  <i className="fas fa-exclamation-triangle"></i>
  </div>
@@ -96,7 +96,7 @@ const AuthSync = () => {
  <div className="flex gap-3 justify-center">
  <button 
  onClick={() => window.location.reload()} 
- className="px-6 py-2 bg-brand-500 text-white font-medium rounded-lg hover:bg-brand-600 transition-colors"
+ className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-500/20"
  >
  Try Again
  </button>
@@ -105,7 +105,7 @@ const AuthSync = () => {
  localStorage.removeItem('token');
  window.location.href = '/login';
  }} 
- className="px-6 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition-colors"
+ className="px-6 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
  >
  Back to Login
  </button>
@@ -116,9 +116,16 @@ const AuthSync = () => {
  }
 
  return (
- <div className="min-h-screen flex flex-col items-center justify-center bg-pink-50 gap-4">
- <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
- <p className="text-slate-500 font-medium animate-pulse">Syncing your account securely...</p>
+ <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-6">
+   <div className="relative flex items-center justify-center">
+     <div className="absolute inset-0 w-20 h-20 bg-emerald-500 rounded-full opacity-20 animate-ping"></div>
+     <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin z-10 shadow-lg"></div>
+     <div className="absolute inset-0 flex items-center justify-center z-20">
+       <div className="w-8 h-8 bg-emerald-500 rounded-full"></div>
+     </div>
+   </div>
+   <h2 className="text-xl font-black text-slate-800 tracking-tight">Authenticating</h2>
+   <p className="text-sm font-bold text-slate-400 animate-pulse bg-slate-100 px-4 py-1.5 rounded-full">Syncing securely with RoseDash...</p>
  </div>
  );
 };

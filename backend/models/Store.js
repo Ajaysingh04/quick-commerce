@@ -11,6 +11,8 @@ const storeSchema = new mongoose.Schema({
   distance: { type: Number }, // in km from user coordinates
   isActive: { type: Boolean, default: true },
   featured: { type: Boolean, default: false },
+  category: { type: String, default: 'Grocery & Essentials' }, // Used for featured tags
+  costForTwo: { type: Number, default: 0 },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   staff: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

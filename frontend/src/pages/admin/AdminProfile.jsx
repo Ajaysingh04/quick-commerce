@@ -125,23 +125,23 @@ const AdminProfile = () => {
  exit={{ opacity: 0, y: -10 }}
  className="space-y-6"
  >
- <div className="bg-white rounded-3xl p-8 border border-pink-200/60 shadow-xl relative overflow-hidden">
- <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+ <div className="bg-white rounded-3xl p-8 border border-emerald-200/60 shadow-xl relative overflow-hidden">
+ <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
  
  <h2 className="text-xl font-black text-slate-800 mb-6 relative z-10 flex items-center gap-2">
- <User className="text-brand-500" /> Personal Information
+ <User className="text-emerald-600" /> Personal Information
  </h2>
  
  <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8 relative z-10">
  <div className="relative group">
- <div className="w-28 h-28 rounded-full bg-pink-100 border-4 border-white flex items-center justify-center text-4xl font-black text-brand-500 overflow-hidden shadow-lg">
+ <div className="w-28 h-28 rounded-full bg-emerald-100 border-4 border-white flex items-center justify-center text-4xl font-black text-emerald-600 overflow-hidden shadow-lg">
  {profilePhoto ? (
  <img src={profilePhoto} alt="Admin" className="w-full h-full object-cover" />
  ) : (
  name.charAt(0)
  )}
  </div>
- <label className={`absolute bottom-0 right-0 p-2 bg-brand-500 text-white rounded-full transition-colors shadow-lg shadow-brand-500/20 ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-brand-600'}`}>
+ <label className={`absolute bottom-0 right-0 p-2 bg-emerald-600 text-white rounded-full transition-colors shadow-lg shadow-emerald-600/20 ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-emerald-600'}`}>
  <Camera size={16} />
  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'profile')} disabled={uploading} />
  </label>
@@ -155,7 +155,7 @@ const AdminProfile = () => {
  type="text" 
  value={name}
  onChange={(e) => setName(e.target.value)}
- className="w-full px-4 py-3 rounded-xl border border-pink-200 bg-pink-50/50 outline-none focus:border-brand-500 text-sm font-semibold text-slate-800 transition-colors"
+ className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-emerald-50/50 outline-none focus:border-emerald-600 text-sm font-semibold text-slate-800 transition-colors"
  />
  </div>
  <div className="space-y-1.5">
@@ -164,7 +164,7 @@ const AdminProfile = () => {
  type="email" 
  value={email}
  onChange={(e) => setEmail(e.target.value)}
- className="w-full px-4 py-3 rounded-xl border border-pink-200 bg-pink-50/50 outline-none focus:border-brand-500 text-sm font-semibold text-slate-800 transition-colors"
+ className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-emerald-50/50 outline-none focus:border-emerald-600 text-sm font-semibold text-slate-800 transition-colors"
  />
  </div>
  </div>
@@ -172,7 +172,7 @@ const AdminProfile = () => {
  <div className="pt-4">
  <button 
  onClick={handleUpdateProfile}
- className="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-rose-500 hover:from-brand-600 hover:to-rose-600 text-white font-bold text-sm shadow-lg shadow-brand-500/20 flex items-center gap-2 transition-all hover:scale-[1.02]"
+ className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-rose-500 hover:from-emerald-600 hover:to-rose-600 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center gap-2 transition-all hover:scale-[1.02]"
  >
  <Save size={18} /> Save Changes
  </button>
@@ -204,13 +204,13 @@ const AdminProfile = () => {
  exit={{ opacity: 0, y: -10 }}
  className="space-y-6"
  >
- <div className="bg-white rounded-3xl p-8 border border-pink-200/60 shadow-xl">
+ <div className="bg-white rounded-3xl p-8 border border-emerald-200/60 shadow-xl">
  <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
  <Settings2 className="text-blue-500" /> Platform Configurations
  </h2>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
- <div className="p-5 bg-pink-50 rounded-2xl border border-pink-200 ">
+ <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200 ">
  <label className="block text-sm font-bold text-slate-800 mb-1">Free Delivery Threshold</label>
  <p className="text-xs text-slate-500 mb-4">Minimum order value for free delivery.</p>
  <div className="relative">
@@ -219,12 +219,12 @@ const AdminProfile = () => {
  type="number" 
  value={freeDeliveryThreshold}
  onChange={(e) => setFreeDeliveryThreshold(parseInt(e.target.value))}
- className="w-full pl-8 pr-4 py-3 rounded-xl border border-pink-200 bg-white outline-none focus:border-brand-500 text-sm font-bold text-slate-800 "
+ className="w-full pl-8 pr-4 py-3 rounded-xl border border-emerald-200 bg-white outline-none focus:border-emerald-600 text-sm font-bold text-slate-800 "
  />
  </div>
  </div>
 
- <div className="p-5 bg-pink-50 rounded-2xl border border-pink-200 ">
+ <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200 ">
  <label className="block text-sm font-bold text-slate-800 mb-1">Max Delivery Radius</label>
  <p className="text-xs text-slate-500 mb-4">Maximum operational radius per store.</p>
  <div className="relative">
@@ -232,7 +232,7 @@ const AdminProfile = () => {
  type="number" 
  value={maxRadius}
  onChange={(e) => setMaxRadius(parseInt(e.target.value))}
- className="w-full pl-4 pr-12 py-3 rounded-xl border border-pink-200 bg-white outline-none focus:border-brand-500 text-sm font-bold text-slate-800 "
+ className="w-full pl-4 pr-12 py-3 rounded-xl border border-emerald-200 bg-white outline-none focus:border-emerald-600 text-sm font-bold text-slate-800 "
  />
  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">KM</span>
  </div>
@@ -241,7 +241,7 @@ const AdminProfile = () => {
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
  {/* Logo Upload Block */}
- <div className="p-5 bg-pink-50 rounded-2xl border border-pink-200 flex flex-col justify-between">
+ <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200 flex flex-col justify-between">
  <div className="mb-4">
  <h3 className="text-sm font-bold text-slate-800 mb-1">Dashboard Logo</h3>
  <p className="text-xs text-slate-500">Update the main logo in the sidebar.</p>
@@ -254,7 +254,7 @@ const AdminProfile = () => {
  <ImageIcon size={20} className="text-slate-400" />
  )}
  </div>
- <label className={`px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-brand-500/20 ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+ <label className={`px-4 py-2 bg-emerald-600 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-emerald-600/20 ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
  {uploading ? 'Uploading...' : 'Upload Logo'}
  <input type="file" accept="image/png, image/jpeg, image/svg+xml" className="hidden" onChange={(e) => handleImageUpload(e, 'logo')} disabled={uploading} />
  </label>
@@ -262,7 +262,7 @@ const AdminProfile = () => {
  </div>
 
  {/* Favicon Upload Block */}
- <div className="p-5 bg-pink-50 rounded-2xl border border-pink-200 flex flex-col justify-between">
+ <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200 flex flex-col justify-between">
  <div className="mb-4">
  <h3 className="text-sm font-bold text-slate-800 mb-1">Site Favicon</h3>
  <p className="text-xs text-slate-500">Update the small icon shown in the browser tab.</p>
@@ -321,7 +321,7 @@ const AdminProfile = () => {
  exit={{ opacity: 0, y: -10 }}
  className="space-y-6"
  >
- <div className="bg-white rounded-3xl p-8 border border-pink-200/60 shadow-xl">
+ <div className="bg-white rounded-3xl p-8 border border-emerald-200/60 shadow-xl">
  <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
  <ShieldCheck className="text-emerald-500" /> Security Controls
  </h2>
@@ -339,7 +339,7 @@ const AdminProfile = () => {
  placeholder="Enter new password"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
- className="w-full pl-10 pr-12 py-3 rounded-xl border border-pink-200 bg-pink-50/50 outline-none focus:border-emerald-500 text-sm font-semibold text-slate-800 "
+ className="w-full pl-10 pr-12 py-3 rounded-xl border border-emerald-200 bg-emerald-50/50 outline-none focus:border-emerald-500 text-sm font-semibold text-slate-800 "
  />
  <button 
  onClick={() => setShowPassword(!showPassword)}
@@ -355,7 +355,7 @@ const AdminProfile = () => {
  </div>
  </div>
  
- <div className="pt-6 border-t border-pink-200 ">
+ <div className="pt-6 border-t border-emerald-200 ">
  <div className="flex items-center justify-between">
  <div>
  <h3 className="text-sm font-bold text-slate-800 ">Two-Factor Authentication (2FA)</h3>
@@ -382,7 +382,7 @@ const AdminProfile = () => {
  exit={{ opacity: 0, y: -10 }}
  className="space-y-6"
  >
- <div className="bg-white rounded-3xl p-8 border border-pink-200/60 shadow-xl">
+ <div className="bg-white rounded-3xl p-8 border border-emerald-200/60 shadow-xl">
  <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
  <Activity className="text-amber-500" /> Admin Audit Logs
  </h2>
@@ -395,7 +395,7 @@ const AdminProfile = () => {
  { msg: 'System Maintenance Mode toggled OFF', ip: '192.168.1.45', time: 'Yesterday, 4:00 PM', type: 'system' },
  { msg: 'Failed login attempt detected', ip: '45.22.19.102', time: 'Yesterday, 2:15 PM', type: 'alert' },
  ].map((log, i) => (
- <div key={i} className="flex flex-col sm:flex-row justify-between sm:items-center p-4 rounded-2xl bg-pink-50 border border-pink-200 gap-2">
+ <div key={i} className="flex flex-col sm:flex-row justify-between sm:items-center p-4 rounded-2xl bg-emerald-50 border border-emerald-200 gap-2">
  <div className="flex items-center gap-3">
  <div className={`w-2 h-2 rounded-full ${
  log.type === 'auth' ? 'bg-emerald-500' : 
@@ -435,7 +435,7 @@ const AdminProfile = () => {
  </div>
 
  {/* Custom Tabs Navigation */}
- <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl border border-pink-200/60 shadow-sm w-fit">
+ <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl border border-emerald-200/60 shadow-sm w-fit">
  {tabs.map(tab => (
  <button
  key={tab.id}
@@ -443,10 +443,10 @@ const AdminProfile = () => {
  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
  activeTab === tab.id 
  ? 'bg-slate-900 text-white shadow-md' 
- : 'text-slate-500 hover:text-slate-800 :text-white hover:bg-pink-50 :bg-slate-800/50'
+ : 'text-slate-500 hover:text-slate-800 :text-white hover:bg-emerald-50 :bg-slate-800/50'
  }`}
  >
- <tab.icon size={16} className={activeTab === tab.id ? 'text-brand-500' : ''} />
+ <tab.icon size={16} className={activeTab === tab.id ? 'text-emerald-600' : ''} />
  {tab.label}
  </button>
  ))}

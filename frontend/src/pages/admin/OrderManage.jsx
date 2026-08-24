@@ -1,49 +1,69 @@
-import { useState } from 'react';
-import { Search, Bell, Calendar, ChevronDown, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Bell, Calendar, ChevronDown, Settings, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useSelector } from 'react-redux';
-
-const MOCK_ORDERS = [
-  { _id: '#2632', user: { name: 'Brooklyn Zoe', avatar: 'https://i.pravatar.cc/150?u=1' }, address: '302 Snider Street, RUTLAND, VT, 05701', date: '31 Jul 2020', price: '$64.00', status: 'Pending' },
-  { _id: '#2633', user: { name: 'John McCormick', avatar: 'https://i.pravatar.cc/150?u=2' }, address: '1096 Wiseman Street, CALMAR, IA, 52132', date: '01 Aug 2020', price: '$35.00', status: 'Dispatch' },
-  { _id: '#2634', user: { name: 'Sandra Pugh', avatar: 'https://i.pravatar.cc/150?u=3' }, address: '1640 Thorn Street, SALE CITY, GA, 98106', date: '02 Aug 2020', price: '$74.00', status: 'Completed' },
-  { _id: '#2635', user: { name: 'Vernie Hart', avatar: 'https://i.pravatar.cc/150?u=4' }, address: '3898 Oak Drive, DOVER, DE, 19906', date: '02 Aug 2020', price: '$82.00', status: 'Pending' },
-  { _id: '#2636', user: { name: 'Mark Clark', avatar: 'https://i.pravatar.cc/150?u=5' }, address: '1915 Augusta Park, NASSAU, NY, 12062', date: '03 Aug 2020', price: '$39.00', status: 'Dispatch' },
-  { _id: '#2637', user: { name: 'Rebekah Foster', avatar: 'https://i.pravatar.cc/150?u=6' }, address: '3445 Park Boulevard, BIOLA, CA, 93606', date: '03 Aug 2020', price: '$67.00', status: 'Pending' },
-];
+import API from '../../services/api.js';
 
 const OrderManage = () => {
-  const [orders] = useState(MOCK_ORDERS);
+  const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('All orders');
-  const [hoveredRow, setHoveredRow] = useState('#2633'); // Default hover simulation like the image
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   const { user } = useSelector(state => state.auth);
 
   const tabs = ['All orders', 'Dispatch', 'Pending', 'Completed'];
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await API.get('/orders/admin/all');
+      setOrders(res.data);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (id, newStatus) => {
+    try {
+      await API.put(`/orders/${id}/status`, { status: newStatus });
+      setOrders(prev => prev.map(order => 
+        order._id === id ? { ...order, status: newStatus } : order
+      ));
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+    }
+  };
+
+  const deleteOrder = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) return;
+    try {
+      await API.delete(`/orders/${id}`);
+      setOrders(prev => prev.filter(order => order._id !== id));
+    } catch (error) {
+      console.error('Failed to delete order:', error);
+      alert('Failed to delete order');
+    }
+  };
+
   return (
     <div className="h-full flex flex-col font-sans max-w-7xl mx-auto w-full pt-4">
       
-      {/* Top Header Area (Integrated into content view now) */}
+      {/* Top Header Area */}
       <div className="flex justify-between items-start mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Order</h2>
-          <p className="text-sm font-semibold text-slate-500 mt-2">28 orders found</p>
-        </div>
-        <div className="flex items-center gap-6">
-          <button className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-          </button>
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-            <Search className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2 cursor-pointer ml-2">
-            <img 
-              src={user?.imageUrl || 'https://i.pravatar.cc/150?u=admin'} 
-              alt="Admin" 
-              className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
-            />
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </div>
+          <p className="text-sm font-semibold text-slate-500 mt-2">{orders.length} orders found</p>
         </div>
       </div>
 
@@ -57,12 +77,12 @@ const OrderManage = () => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-3 text-sm font-bold transition-all relative ${
-                activeTab === tab ? 'text-[#e31837]' : 'text-slate-400 hover:text-slate-600'
+                activeTab === tab ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               {tab}
               {activeTab === tab && (
-                <span className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-[#e31837] rounded-t-full"></span>
+                <span className="absolute bottom-[-1px] left-0 w-full h-0.5 bg-emerald-600 rounded-t-full"></span>
               )}
             </button>
           ))}
@@ -71,10 +91,7 @@ const OrderManage = () => {
         {/* Date Filter */}
         <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg border border-gray-100 shadow-sm text-sm font-bold text-slate-600">
           <Calendar className="w-4 h-4 text-slate-400 mr-2" />
-          <span>31 Jul 2020</span>
-          <span className="text-slate-400 font-medium mx-2">To</span>
-          <Calendar className="w-4 h-4 text-slate-400 mr-2" />
-          <span>03 Aug 2020</span>
+          <span>Today</span>
         </div>
       </div>
 
@@ -91,96 +108,186 @@ const OrderManage = () => {
         </div>
 
         {/* Table Rows */}
-        <div className="space-y-3">
-          {orders.map((order) => {
-            const isHovered = hoveredRow === order._id;
-            
-            return (
-              <div 
-                key={order._id}
-                onMouseEnter={() => setHoveredRow(order._id)}
-                className={`grid grid-cols-12 gap-4 px-6 py-4 rounded-2xl items-center transition-all cursor-pointer relative ${
-                  isHovered 
-                    ? 'bg-[#e31837] text-white shadow-lg shadow-blue-500/30 scale-[1.01] z-10' 
-                    : 'bg-white text-slate-600 border border-gray-100'
-                }`}
-              >
-                <div className={`col-span-1 text-xs font-bold ${isHovered ? 'text-white' : 'text-slate-800'}`}>
-                  {order._id}
-                </div>
-                
-                <div className="col-span-3 flex items-center gap-3">
-                  <img src={order.user.avatar} alt={order.user.name} className="w-8 h-8 rounded-full border border-white/50 bg-gray-200" />
-                  <span className={`text-sm font-bold ${isHovered ? 'text-white' : 'text-slate-800'}`}>{order.user.name}</span>
-                </div>
-                
-                <div className="col-span-4 text-xs font-semibold truncate pr-4">
-                  {order.address}
-                </div>
-                
-                <div className="col-span-2 text-xs font-semibold">
-                  {order.date}
-                </div>
-                
-                <div className={`col-span-1 text-sm font-bold ${isHovered ? 'text-white' : 'text-slate-800'}`}>
-                  {order.price}
-                </div>
-                
-                <div className="col-span-1 flex items-center justify-between">
-                  {/* Status Indicator */}
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      order.status === 'Pending' ? 'bg-rose-500' :
-                      order.status === 'Dispatch' ? 'bg-emerald-500' :
-                      'bg-slate-400'
-                    }`}></div>
-                    <span className={`text-xs font-bold ${
-                      isHovered ? 'text-white/90' :
-                      order.status === 'Pending' ? 'text-rose-500' :
-                      order.status === 'Dispatch' ? 'text-emerald-500' :
-                      'text-slate-400'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
+        <div className="space-y-3 pb-24">
+          {loading ? (
+            <div className="text-center py-10 text-slate-500 font-bold animate-pulse">Loading orders...</div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-10 text-slate-500 font-bold">No orders found.</div>
+          ) : (() => {
+            const filteredOrders = orders.filter(order => {
+              let displayStatus = 'Pending';
+              if (order.status === 'out-for-delivery') displayStatus = 'Dispatch';
+              else if (order.status === 'delivered') displayStatus = 'Completed';
+              else if (order.status === 'cancelled') displayStatus = 'Cancelled';
+              else displayStatus = 'Pending';
 
-                  {/* Action Icons */}
-                  <div className="flex items-center gap-2">
-                    <button className={`p-1.5 rounded-full transition-colors ${isHovered ? 'hover:bg-white/20 text-white' : 'hover:bg-slate-100 text-slate-800'}`}>
-                      <Settings className="w-4 h-4" />
-                    </button>
-                    <button className={`p-1 rounded bg-white border transition-colors ${isHovered ? 'border-transparent text-blue-600' : 'border-gray-200 text-slate-500 hover:bg-slate-50'}`}>
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
+              if (activeTab === 'All orders') return true;
+              return displayStatus === activeTab;
+            });
+            
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+            return (
+              <>
+                {currentItems.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500 font-bold">No orders in this tab.</div>
+                ) : (
+                  currentItems.map((order) => {
+              const isHovered = hoveredRow === order._id;
+              const shortId = '#' + order._id.substring(order._id.length - 5);
+              const userName = order.user?.name || 'Guest User';
+              const userAvatar = order.user?.avatar || `https://ui-avatars.com/api/?name=${userName}&background=random`;
+              const address = order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.city}` : 'N/A';
+              const dateObj = new Date(order.createdAt);
+              const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+              const price = `₹${order.billDetails?.grandTotal || 0}`;
+              
+              // Map DB status to UI status
+              let displayStatus = 'Pending';
+              if (order.status === 'out-for-delivery') displayStatus = 'Dispatch';
+              else if (order.status === 'delivered') displayStatus = 'Completed';
+              else if (order.status === 'cancelled') displayStatus = 'Cancelled';
+              else displayStatus = 'Pending'; // for placed, confirmed, preparing, ready
+
+              return (
+                <div 
+                  key={order._id}
+                  onMouseEnter={() => setHoveredRow(order._id)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                  className={`grid grid-cols-12 gap-4 px-6 py-4 rounded-2xl items-center transition-all cursor-pointer relative ${
+                    isHovered 
+                      ? 'bg-emerald-600 text-white shadow-lg shadow-blue-500/30 scale-[1.01] z-10' 
+                      : 'bg-white text-slate-600 border border-gray-100'
+                  }`}
+                >
+                  <div className={`col-span-1 text-xs font-bold ${isHovered ? 'text-white' : 'text-slate-800'} uppercase`}>
+                    {shortId}
                   </div>
+                  
+                  <div className="col-span-3 flex items-center gap-3">
+                    <img src={userAvatar} alt={userName} className="w-8 h-8 rounded-full border border-white/50 bg-gray-200" />
+                    <span className={`text-sm font-bold ${isHovered ? 'text-white' : 'text-slate-800'}`}>{userName}</span>
+                  </div>
+                  
+                  <div className="col-span-4 text-xs font-semibold truncate pr-4">
+                    {address}
+                  </div>
+                  
+                  <div className="col-span-2 text-xs font-semibold">
+                    {formattedDate}
+                  </div>
+                  
+                  <div className={`col-span-1 text-sm font-bold ${isHovered ? 'text-white' : 'text-slate-800'}`}>
+                    {price}
+                  </div>
+                  
+                  <div className="col-span-1 flex items-center justify-between relative">
+                    {/* Status Indicator */}
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${
+                        displayStatus === 'Pending' ? 'bg-emerald-500' :
+                        displayStatus === 'Dispatch' ? 'bg-amber-500' :
+                        displayStatus === 'Completed' ? 'bg-emerald-500' :
+                        'bg-slate-400'
+                      }`}></div>
+                      <span className={`text-xs font-bold ${
+                        isHovered ? 'text-white/90' :
+                        displayStatus === 'Pending' ? 'text-rose-500' :
+                        displayStatus === 'Dispatch' ? 'text-amber-500' :
+                        displayStatus === 'Completed' ? 'text-emerald-500' :
+                        'text-slate-400'
+                      }`}>
+                        {displayStatus}
+                      </span>
+                    </div>
+
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-2">
+                      <div className="relative group">
+                        <button className={`p-1 rounded bg-white border transition-colors ${isHovered ? 'border-transparent text-blue-600' : 'border-gray-200 text-slate-500 hover:bg-slate-50'}`}>
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                        
+                        {/* Dropdown Menu on Hover */}
+                        <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order._id, 'placed'); }}
+                            className="w-full text-left px-4 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-50"
+                          >
+                            Mark as Pending
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order._id, 'out-for-delivery'); }}
+                            className="w-full text-left px-4 py-2 text-sm font-semibold text-amber-500 hover:bg-amber-50"
+                          >
+                            Mark as Dispatch
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order._id, 'delivered'); }}
+                            className="w-full text-left px-4 py-2 text-sm font-semibold text-emerald-500 hover:bg-emerald-50"
+                          >
+                            Mark as Completed
+                          </button>
+                          <div className="border-t border-gray-100 my-1"></div>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); deleteOrder(order._id); }}
+                            className="w-full text-left px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 flex items-center justify-between"
+                          >
+                            Delete <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }))}
+            
+            {/* Pagination Footer */}
+            {totalPages > 0 && (
+              <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-200">
+                <div className="text-xs font-bold text-slate-500">
+                  Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)} of {filteredOrders.length}
+                </div>
+                <div className="flex items-center gap-1">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button 
+                      key={page} 
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-md text-xs font-bold flex items-center justify-center transition-colors ${
+                        page === currentPage ? 'bg-[#f0f4ff] text-emerald-600' : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            )}
+            </>
             );
-          })}
+          })()}
         </div>
       </div>
-
-      {/* Pagination Footer */}
-      <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-200">
-        <div className="text-xs font-bold text-slate-500">
-          Showing 06-12 of 28
-        </div>
-        <div className="flex items-center gap-1">
-          <button className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-          {[1, 2, 3, 4, 5].map((page) => (
-            <button 
-              key={page} 
-              className={`w-8 h-8 rounded-md text-xs font-bold flex items-center justify-center transition-colors ${
-                page === 2 ? 'bg-[#f0f4ff] text-[#e31837]' : 'text-slate-500 hover:bg-slate-100'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          <button className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition-colors"><ChevronRight className="w-4 h-4" /></button>
-        </div>
-      </div>
-
     </div>
   );
 };

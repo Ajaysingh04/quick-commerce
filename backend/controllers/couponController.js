@@ -104,3 +104,39 @@ export const deleteCoupon = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Update Coupon
+// @route   PUT /api/admin/coupons/:id
+// @access  Private/Admin
+export const updateCoupon = async (req, res) => {
+  const { code, discountPercent, maxDiscount, minOrderValue, validFrom, validTo, isActive } = req.body;
+
+  try {
+    const coupon = await Coupon.findById(req.params.id);
+    if (!coupon) {
+      return res.status(404).json({ message: 'Coupon not found' });
+    }
+
+    if (code) {
+      // Check if new code already exists on another coupon
+      const couponExists = await Coupon.findOne({ code: code.toUpperCase(), _id: { $ne: req.params.id } });
+      if (couponExists) {
+        return res.status(400).json({ message: 'Coupon code already exists' });
+      }
+      coupon.code = code.toUpperCase();
+    }
+    
+    if (discountPercent !== undefined) coupon.discountPercent = parseFloat(discountPercent);
+    if (maxDiscount !== undefined) coupon.maxDiscount = parseFloat(maxDiscount);
+    if (minOrderValue !== undefined) coupon.minOrderValue = parseFloat(minOrderValue);
+    if (validFrom) coupon.validFrom = new Date(validFrom);
+    if (validTo) coupon.validTo = new Date(validTo);
+    if (isActive !== undefined) coupon.isActive = isActive;
+
+    await coupon.save();
+
+    res.json(coupon);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

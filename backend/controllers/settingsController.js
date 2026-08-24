@@ -21,7 +21,7 @@ export const getSettings = async (req, res) => {
 // @access  Private/Admin
 export const updateSettings = async (req, res) => {
   try {
-    const { siteTitle, adminHeaderText, adminHeaderColor, faviconUrl, logoUrl, primaryColor } = req.body;
+    const { siteTitle, adminHeaderText, adminHeaderColor, faviconUrl, logoUrl, primaryColor, contactEmail, contactPhone, contactAddress, socialLinks, globalNotice } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
@@ -34,6 +34,11 @@ export const updateSettings = async (req, res) => {
     if (faviconUrl !== undefined) settings.faviconUrl = faviconUrl;
     if (logoUrl !== undefined) settings.logoUrl = logoUrl;
     if (primaryColor !== undefined) settings.primaryColor = primaryColor;
+    if (contactEmail !== undefined) settings.contactEmail = contactEmail;
+    if (contactPhone !== undefined) settings.contactPhone = contactPhone;
+    if (contactAddress !== undefined) settings.contactAddress = contactAddress;
+    if (socialLinks !== undefined) settings.socialLinks = socialLinks;
+    if (globalNotice !== undefined) settings.globalNotice = globalNotice;
 
     await settings.save();
     res.status(200).json(settings);

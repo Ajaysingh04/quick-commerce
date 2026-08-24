@@ -15,7 +15,9 @@ const productSchema = new mongoose.Schema({
   discount: { type: String },
   sku: { type: String, index: true },
   brand: { type: String, default: '' },
-  arModelUrl: { type: String, default: '' }
+  arModelUrl: { type: String, default: '' },
+  isPopular: { type: Boolean, default: false },
+  isVeg: { type: Boolean, default: true }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
