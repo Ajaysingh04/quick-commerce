@@ -228,10 +228,11 @@ export const logout = async (req, res) => {
       }
     }
 
+    const isProd = process.env.NODE_ENV === 'production';
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'strict'
     });
 
     res.json({ message: 'Logged out successfully' });
