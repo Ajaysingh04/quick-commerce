@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaGoogle } from 'react-icons/fa';
 import { Eye, EyeOff } from 'lucide-react';
-import { useSignIn, useSignUp } from '@clerk/clerk-react';
+import { useSignIn, useSignUp, useAuth } from '@clerk/clerk-react';
 
 const AuthPage = () => {
   const location = useLocation();
@@ -12,6 +12,7 @@ const AuthPage = () => {
   // Clerk Hooks
   const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
+  const { signOut } = useAuth();
 
   // Form States
   const [signInEmail, setSignInEmail] = useState('');
@@ -81,7 +82,13 @@ const AuthPage = () => {
       }
     } catch (err) {
       console.error("Google Auth Error:", err);
-      setError("Google Login failed. Please check console for details.");
+      const errMsg = err.message || (err.errors && err.errors[0]?.longMessage) || '';
+      if (errMsg.toLowerCase().includes("already signed in")) {
+        await signOut();
+        setError("Clearing previous incomplete session... Please click Google Login again.");
+      } else {
+        setError("Google Login failed. Please check console for details.");
+      }
     }
   };
 
