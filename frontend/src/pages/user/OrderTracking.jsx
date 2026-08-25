@@ -27,11 +27,7 @@ const OrderTracking = () => {
     if (!orderId) return;
     
     const getSocketUrl = () => {
-      const envUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
-      if (envUrl.includes('localhost') && window.location.hostname !== 'localhost') {
-        return `http://${window.location.hostname}:5000`;
-      }
-      return envUrl;
+      return import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
     };
 
     const socket = io(getSocketUrl());

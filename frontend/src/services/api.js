@@ -3,11 +3,7 @@ import { store } from '../store/index.js';
 import { setCredentials, logout } from '../store/authSlice.js';
 
 const getApiUrl = () => {
- const envUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim();
- if (envUrl.includes('localhost') && window.location.hostname !== 'localhost') {
- return `http://${window.location.hostname}:5000/api`;
- }
- return envUrl;
+  return (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim();
 };
 
 const API = axios.create({
@@ -44,7 +40,7 @@ API.interceptors.response.use(
  try {
  // Run refresh request
  const res = await axios.post(
- `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/refresh`,
+ `${getApiUrl()}/auth/refresh`,
  {},
  { withCredentials: true }
  );
