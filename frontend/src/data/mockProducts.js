@@ -1,5 +1,4 @@
 import imgFloorCleaner from '../assets/Floor Cleaner.jpg';
-import imgGrocery from '../assets/grocery.jpg';
 import imgToiletCleaner from '../assets/Toilet Cleaner.jpg';
 import imgScrubPad from '../assets/Scrub Pad.jpg';
 import imgGarbageBags from '../assets/Garbage Bags.jpg';
@@ -233,6 +232,7 @@ import imgMuttonPaya from '../assets/Mutton Paya (Trotters).jpg';
 import imgMuttonRibs from '../assets/Mutton Ribs.jpg';
 import imgTigerPrawns from '../assets/Tiger Prawns.jpg';
 
+const imgGrocery = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&h=500&fit=crop';
 
 export const PRODUCTS = [
   {

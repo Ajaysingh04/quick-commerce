@@ -93,10 +93,10 @@ const AdminLayout = () => {
       </div>
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-[260px] bg-emerald-600 text-white shrink-0 shadow-xl rounded-br-[40px] z-20 overflow-hidden py-8">
+      <aside className="hidden md:flex flex-col w-[260px] h-screen sticky top-0 bg-emerald-600 text-white shrink-0 shadow-xl rounded-br-[40px] z-20 overflow-hidden py-8">
         
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 px-8 mb-12 group cursor-pointer" title="Back to Home">
+        <Link to="/" className="flex items-center gap-3 px-8 mb-8 group cursor-pointer shrink-0" title="Back to Home">
           <img src={settings?.logoUrl || '/logo.png'} alt="Logo" className="h-10 object-contain" onError={(e) => e.target.style.display = 'none'} />
           <span className="font-black text-2xl tracking-tighter text-white">
             {settings.adminHeaderText || settings.siteTitle || 'RoseDash'}
@@ -104,7 +104,7 @@ const AdminLayout = () => {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex-1 flex flex-col gap-2 pl-4">
+        <nav className="flex-1 flex flex-col gap-2 pl-4 overflow-y-auto scrollbar-hide shrink-0 pb-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
             // Match exactly or startswith if it's a subroute
@@ -134,18 +134,18 @@ const AdminLayout = () => {
               </div>
             );
           })}
-        </nav>
 
-        {/* Logout Button */}
-        <div className="px-8 mt-auto pt-10 pb-4">
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/10 text-white font-bold text-sm rounded-xl hover:bg-white/20 transition-colors"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </button>
-        </div>
+          {/* Logout Button right below Settings */}
+          <div className="relative pl-4 mt-2 mb-8">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-4 px-6 py-4 transition-all z-10 relative text-rose-200 hover:text-white hover:bg-rose-500/20 rounded-l-full cursor-pointer text-left"
+            >
+              <LogOut className="w-5 h-5 text-rose-300" />
+              <span className="font-semibold text-sm tracking-wide">Logout</span>
+            </button>
+          </div>
+        </nav>
       </aside>
 
       {/* Main Core Area Wrapper */}

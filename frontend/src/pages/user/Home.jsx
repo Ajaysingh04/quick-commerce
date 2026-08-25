@@ -4,10 +4,11 @@ import { io } from 'socket.io-client';
 import { ChevronRight, Smartphone, Store, Truck, ShieldCheck, ThumbsUp } from 'lucide-react';
 import ProductCard from '../../components/common/ProductCard';
 import { useSettings } from '../../context/SettingsContext';
-
-import imgHero from '../../assets/grocery.jpg';
 import imgMonsoonSale from '../../assets/monsoon.jpg';
 import { PRODUCTS } from '../../data/mockProducts';
+
+// fallback image for hero
+const imgHero = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop';
 
 
 
