@@ -214,6 +214,18 @@ export const bulkCreateProducts = async (req, res) => {
     // We need all stores mapped by name for easy lookup
     const existingStores = await Store.find({});
     const storeMap = {};
+    
+    // Ensure at least one store exists for bulk fallback
+    if (existingStores.length === 0) {
+      const defaultStore = await Store.create({ 
+        name: 'Main Store', 
+        bannerImage: '/assets/store_default.jpg',
+        deliveryTime: 30,
+        isActive: true
+      });
+      existingStores.push(defaultStore);
+    }
+    
     existingStores.forEach(s => {
       storeMap[s.name.toLowerCase().trim()] = s._id;
     });
