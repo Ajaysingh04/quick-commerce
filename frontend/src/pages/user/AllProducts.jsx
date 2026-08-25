@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Search } from 'lucide-react';
 import API from '../../services/api.js';
 import ProductCard from '../../components/common/ProductCard';
 
 const AllProducts = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialQuery = searchParams.get('q') || '';
+
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [loading, setLoading] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState(null);
   
@@ -21,6 +25,13 @@ const AllProducts = () => {
   const [selectedColor, setSelectedColor] = useState('All');
   const [selectedMaterial, setSelectedMaterial] = useState('All');
   const [selectedOffer, setSelectedOffer] = useState('All');
+
+  useEffect(() => {
+    const query = new URLSearchParams(location.search).get('q');
+    if (query !== null) {
+      setSearchQuery(query);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     API.get('/products')

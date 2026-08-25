@@ -73,6 +73,16 @@ const UserLayout = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const [globalSearch, setGlobalSearch] = useState('');
+  
+  const handleGlobalSearch = (e) => {
+    e.preventDefault();
+    if (globalSearch.trim()) {
+      navigate(`/products?q=${encodeURIComponent(globalSearch.trim())}`);
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   const [locationName, setLocationName] = useState(localStorage.getItem('userLocation') || 'Connaught Place');
   const [isLocating, setIsLocating] = useState(false);
   
@@ -155,11 +165,17 @@ const UserLayout = () => {
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md items-center bg-gray-50 border border-gray-200 rounded-full overflow-hidden px-4 py-1.5">
+          <form onSubmit={handleGlobalSearch} className="hidden md:flex flex-1 max-w-md items-center bg-gray-50 border border-gray-200 rounded-full overflow-hidden px-4 py-1.5">
             <Search className="w-4 h-4 text-gray-400 mr-2" />
-            <input type="text" placeholder="Search groceries, dairy, snacks..." className="bg-transparent w-full outline-none text-sm text-gray-700" />
-            <button className="text-[#0a4733] p-1"><Search className="w-4 h-4" /></button>
-          </div>
+            <input 
+              type="text" 
+              placeholder="Search groceries, dairy, snacks..." 
+              className="bg-transparent w-full outline-none text-sm text-gray-700" 
+              value={globalSearch}
+              onChange={(e) => setGlobalSearch(e.target.value)}
+            />
+            <button type="submit" className="text-[#0a4733] p-1"><Search className="w-4 h-4" /></button>
+          </form>
 
           {/* Right Icons */}
           <div className="flex items-center gap-4 lg:gap-6 min-w-max">
@@ -229,10 +245,16 @@ const UserLayout = () => {
       {/* Mobile Menu Panel */}
       {isMobileMenuOpen && (
         <nav className="md:hidden w-full bg-white border-t border-gray-200 shadow-lg flex flex-col p-4 gap-3 z-30 relative">
-          <div className="bg-gray-100 rounded-md h-10 flex items-center px-3 mb-4">
+          <form onSubmit={handleGlobalSearch} className="bg-gray-100 rounded-md h-10 flex items-center px-3 mb-4">
              <Search className="w-4 h-4 text-gray-500 mr-2" />
-             <input type="text" placeholder="Search..." className="bg-transparent outline-none text-sm w-full" />
-          </div>
+             <input 
+               type="text" 
+               placeholder="Search..." 
+               className="bg-transparent outline-none text-sm w-full" 
+               value={globalSearch}
+               onChange={(e) => setGlobalSearch(e.target.value)}
+             />
+          </form>
           {isAuthenticated ? (
             <>
               <div className="flex items-center gap-2 py-2 border-b border-gray-200 text-gray-700 font-bold">
