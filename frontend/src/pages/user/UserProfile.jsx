@@ -696,16 +696,33 @@ const UserProfile = () => {
                 <div className="bg-slate-900 text-white p-6 rounded-[2rem] space-y-3 text-sm shadow-xl shadow-slate-900/20">
                   <div className="flex justify-between font-medium opacity-80">
                     <span>Subtotal</span>
-                    <span>₹{selectedOrder.billDetails?.itemTotal || 0}</span>
+                    <span>₹{selectedOrder.billDetails?.subtotal || 0}</span>
                   </div>
                   <div className="flex justify-between font-medium opacity-80">
                     <span>Delivery Fee</span>
                     <span>₹{selectedOrder.billDetails?.deliveryFee || 0}</span>
                   </div>
-                  <div className="flex justify-between font-medium opacity-80">
-                    <span>Taxes & Charges</span>
-                    <span>₹{selectedOrder.billDetails?.taxAndCharges || 0}</span>
-                  </div>
+                  {(() => {
+                    const extraCharges = (selectedOrder.billDetails?.tax || 0) + 
+                                         (selectedOrder.billDetails?.codCharge || 0) + 
+                                         (selectedOrder.billDetails?.extraDistanceSurcharge || 0) + 
+                                         (selectedOrder.billDetails?.appliedCharges?.reduce((a, c) => a + c.amount, 0) || 0);
+                    if (extraCharges > 0) {
+                      return (
+                        <div className="flex justify-between font-medium opacity-80">
+                          <span>Taxes & Charges</span>
+                          <span>₹{extraCharges}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  {selectedOrder.billDetails?.discount > 0 && (
+                    <div className="flex justify-between font-bold text-emerald-400">
+                      <span>Coupon Discount</span>
+                      <span>-₹{selectedOrder.billDetails?.discount}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-black text-2xl pt-4 border-t border-white/20 mt-2">
                     <span>Total</span>
                     <span className="text-brand-400">₹{selectedOrder.billDetails?.grandTotal || 0}</span>

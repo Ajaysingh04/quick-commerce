@@ -6,7 +6,7 @@ import { setCredentials } from '../../store/authSlice.js';
 import API from '../../services/api.js';
 
 const AuthSync = () => {
- const { getToken, isLoaded: authLoaded, signOut } = useAuth();
+ const { getToken, isLoaded: authLoaded, signOut, isSignedIn } = useAuth();
  const { user, isLoaded: userLoaded } = useUser();
  const navigate = useNavigate();
  const dispatch = useDispatch();
@@ -32,9 +32,14 @@ const AuthSync = () => {
  return;
  }
  
- if (!user) {
- console.log("No user authenticated, redirecting to login");
+ if (!isSignedIn) {
+ console.log("Not signed in, redirecting to login");
  navigate('/login');
+ return;
+ }
+
+ if (!user) {
+ console.log("Waiting for user object to populate...");
  return;
  }
  

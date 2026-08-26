@@ -12,7 +12,7 @@ const AuthPage = () => {
   // Clerk Hooks
   const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
-  const { signOut } = useAuth();
+  const { isLoaded: isAuthLoaded, userId, signOut } = useAuth();
 
   // Form States
   const [signInEmail, setSignInEmail] = useState('');
@@ -39,6 +39,12 @@ const AuthPage = () => {
   const [fpStep, setFpStep] = useState(1);
   const [fpCode, setFpCode] = useState('');
   const [fpNewPassword, setFpNewPassword] = useState('');
+
+  useEffect(() => {
+    if (isAuthLoaded && userId) {
+      navigate('/'); 
+    }
+  }, [isAuthLoaded, userId, navigate]);
 
   useEffect(() => {
     if (location.pathname === '/signup') {
@@ -173,21 +179,27 @@ const AuthPage = () => {
     try {
       const nameParts = signUpName.trim().split(' ');
       const firstName = nameParts[0] || 'User';
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ' ';
       
-      const result = await signUp.create({
+      const signUpData = {
         emailAddress: signUpEmail,
         password: signUpPassword,
         firstName: firstName,
-        lastName: lastName
-      });
+      };
+      
+      if (nameParts.length > 1) {
+        signUpData.lastName = nameParts.slice(1).join(' ');
+      }
+      
+      const result = await signUp.create(signUpData);
       if (result.status === "complete") {
         await setSignUpActive({ session: result.createdSessionId });
         navigate('/auth-sync');
       } else {
         console.log("Incomplete SignUp:", result);
         setIsLoading(false);
-        if(result.unverifiedEmailAddress) {
+        
+        // Clerk returns missing_requirements when email needs verification
+        if (result.status === 'missing_requirements' || result.unverifiedFields?.includes('email_address')) {
            await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
            setSuccessMsg("Account created successfully! Check your email for the verification code.");
            setSignUpStep(2);
@@ -202,6 +214,31 @@ const AuthPage = () => {
       else if (err.message) errMsg = err.message;
       else if (typeof err === 'string') errMsg = err;
       setError(errMsg);
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifySignUp = async (e) => {
+    e.preventDefault();
+    if (!isSignUpLoaded) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code: signUpCode
+      });
+      
+      if (completeSignUp.status === 'complete') {
+        await setSignUpActive({ session: completeSignUp.createdSessionId });
+        navigate('/auth-sync');
+      } else {
+        console.log("Incomplete verification:", completeSignUp);
+        setError("Verification incomplete. Please try again.");
+      }
+    } catch (err) {
+      console.error("Verification Error:", err);
+      setError(err.errors?.[0]?.longMessage || "Invalid verification code");
+    } finally {
       setIsLoading(false);
     }
   };

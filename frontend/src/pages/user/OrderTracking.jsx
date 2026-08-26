@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { MapPin, CheckCircle, Flame, Bike, Home, Clock, Navigation, ArrowLeft, Package, Receipt, ChevronRight, Download } from 'lucide-react';
+import { MapPin, CheckCircle, Flame, Bike, Home, Clock, Navigation, ArrowLeft, Package, ChevronRight, Download, X, FileText, IndianRupee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2pdf from 'html2pdf.js';
+import { useSettings } from '../../context/SettingsContext.jsx';
 
 const OrderTracking = () => {
+  const { settings } = useSettings();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
 
@@ -17,6 +19,7 @@ const OrderTracking = () => {
   
   // Review Modal State
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showSlipModal, setShowSlipModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
@@ -206,9 +209,14 @@ const OrderTracking = () => {
             <ArrowLeft className="w-4 h-4" /> Back to Home
           </Link>
           
-          <button onClick={handleDownloadPdf} className="inline-flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition-colors border border-emerald-100">
-            <Download className="w-4 h-4" /> Download Slip
+        <div className="flex gap-3">
+          <button onClick={() => setShowSlipModal(true)} className="inline-flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl transition-colors border border-emerald-100">
+            <FileText className="w-4 h-4" /> View Slip
           </button>
+          <button onClick={handleDownloadPdf} className="inline-flex items-center gap-2 text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-sm px-4 py-2 rounded-xl transition-colors border border-slate-200">
+            <Download className="w-4 h-4" /> Download
+          </button>
+        </div>
         </motion.div>
 
         {/* Tracking Header */}
@@ -330,7 +338,7 @@ const OrderTracking = () => {
           <motion.div custom={3} variants={stepVariants} initial="hidden" animate="visible">
             <div className="bg-white rounded-[2rem] border border-emerald-100 shadow-xl shadow-emerald-900/5 overflow-hidden flex flex-col h-full">
               <div className="p-6 border-b border-emerald-50 flex items-center gap-3 bg-slate-50/50">
-                <Receipt className="w-6 h-6 text-emerald-600" />
+                <IndianRupee className="w-6 h-6 text-emerald-600" />
                 <h3 className="text-lg font-black text-slate-800">Order Summary</h3>
               </div>
               
@@ -357,27 +365,36 @@ const OrderTracking = () => {
                     <div className="space-y-2 text-sm font-semibold text-slate-600">
                       <div className="flex justify-between">
                         <span>Subtotal</span>
-                        <span className="text-slate-800">₹{orderDetails.billDetails?.subtotal}</span>
+                        <span className="text-slate-800">₹{orderDetails.billDetails?.subtotal || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Delivery Fee</span>
-                        <span className="text-slate-800">₹{orderDetails.billDetails?.deliveryFee}</span>
+                        <span className="text-slate-800">₹{orderDetails.billDetails?.deliveryFee || 0}</span>
                       </div>
-                      {orderDetails.billDetails?.codCharge > 0 && (
-                        <div className="flex justify-between">
-                          <span>COD Charge</span>
-                          <span className="text-slate-800">₹{orderDetails.billDetails?.codCharge}</span>
-                        </div>
-                      )}
+                      {(() => {
+                        const extraCharges = (orderDetails.billDetails?.tax || 0) + 
+                                             (orderDetails.billDetails?.codCharge || 0) + 
+                                             (orderDetails.billDetails?.extraDistanceSurcharge || 0) + 
+                                             (orderDetails.billDetails?.appliedCharges?.reduce((a, c) => a + c.amount, 0) || 0);
+                        if (extraCharges > 0) {
+                          return (
+                            <div className="flex justify-between">
+                              <span>Taxes & Charges</span>
+                              <span className="text-slate-800">₹{extraCharges}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       {orderDetails.billDetails?.discount > 0 && (
-                        <div className="flex justify-between text-emerald-600">
+                        <div className="flex justify-between text-emerald-600 font-bold">
                           <span>Coupon Discount</span>
                           <span>-₹{orderDetails.billDetails?.discount}</span>
                         </div>
                       )}
                       <div className="flex justify-between pt-4 border-t border-slate-100 text-lg">
                         <span className="font-black text-slate-800">Grand Total</span>
-                        <span className="font-black text-emerald-600">₹{orderDetails.billDetails?.grandTotal}</span>
+                        <span className="font-black text-emerald-600">₹{orderDetails.billDetails?.grandTotal || 0}</span>
                       </div>
                     </div>
 
@@ -462,96 +479,163 @@ const OrderTracking = () => {
         )}
       </AnimatePresence>
 
-      {/* PROFESSIONAL HIDDEN INVOICE TEMPLATE FOR PDF */}
-      <div id="invoice-content" style={{ display: 'none', padding: '40px', fontFamily: '"Inter", sans-serif', color: '#1e293b', backgroundColor: '#ffffff' }}>
-        {orderDetails && (
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #10b981', paddingBottom: '20px', marginBottom: '30px' }}>
-              <div>
-                <h1 style={{ color: '#0f172a', margin: '0 0 5px 0', fontSize: '32px', fontWeight: '900', letterSpacing: '-1px' }}>RoseDash</h1>
-                <p style={{ margin: '0', color: '#10b981', fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '2px' }}>Order Receipt</p>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#64748b', fontWeight: 'bold' }}>Order ID: <span style={{ color: '#0f172a' }}>{orderId}</span></p>
-                <p style={{ margin: '0', fontSize: '14px', color: '#64748b' }}>Date: {new Date(orderDetails.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-              </div>
-            </div>
-
-            {/* Store & Customer Info */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
-              <div style={{ flex: '1', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', marginRight: '10px' }}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Fulfilled By</h3>
-                <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#0f172a', fontSize: '16px' }}>{orderDetails.store?.name || 'RoseDash Dark Store'}</p>
-                <p style={{ margin: '0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>Authorized Retailer<br/>Quality Verified</p>
-              </div>
-              <div style={{ flex: '1', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', marginLeft: '10px' }}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Delivered To</h3>
-                <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#0f172a', fontSize: '16px' }}>{orderDetails.user?.name || 'Customer'}</p>
-                <p style={{ margin: '0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
-                  {orderDetails.deliveryAddress?.street}<br/>
-                  {orderDetails.deliveryAddress?.city}, {orderDetails.deliveryAddress?.state} {orderDetails.deliveryAddress?.zipCode}
-                </p>
-              </div>
-            </div>
-            
-            {/* Items Table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '30px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#10b981', color: 'white' }}>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', borderRadius: '8px 0 0 8px', fontSize: '14px' }}>Item Description</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'center', fontSize: '14px' }}>Qty</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', fontSize: '14px' }}>Unit Price</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderRadius: '0 8px 8px 0', fontSize: '14px' }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orderDetails.items?.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '15px', fontWeight: 'bold', color: '#334155' }}>{item.product?.name}</td>
-                    <td style={{ padding: '15px', textAlign: 'center', color: '#64748b', fontWeight: 'bold' }}>{item.quantity}</td>
-                    <td style={{ padding: '15px', textAlign: 'right', color: '#64748b' }}>₹{item.price}</td>
-                    <td style={{ padding: '15px', textAlign: 'right', fontWeight: 'bold', color: '#0f172a' }}>₹{item.price * item.quantity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {/* Totals Section */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <div style={{ width: '300px', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
-                  <span style={{ fontWeight: 'bold' }}>Subtotal:</span>
-                  <span>₹{orderDetails.billDetails?.subtotal}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
-                  <span style={{ fontWeight: 'bold' }}>Delivery Fee:</span>
-                  <span>₹{orderDetails.billDetails?.deliveryFee}</span>
-                </div>
-                {orderDetails.billDetails?.discount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', marginBottom: '12px', fontSize: '14px' }}>
-                    <span style={{ fontWeight: 'bold' }}>Discount Applied:</span>
-                    <span>-₹{orderDetails.billDetails?.discount}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: '900', fontSize: '20px', borderTop: '2px dashed #cbd5e1', paddingTop: '15px', marginTop: '15px' }}>
-                  <span>Grand Total:</span>
-                  <span style={{ color: '#10b981' }}>₹{orderDetails.billDetails?.grandTotal}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div style={{ marginTop: '50px', textAlign: 'center', color: '#94a3b8', fontSize: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-              <p style={{ margin: '0 0 5px 0' }}>Thank you for shopping with RoseDash!</p>
-              <p style={{ margin: '0' }}>For support, contact us at support@rosedash.com</p>
+      {/* SLIP / INVOICE CONTENT */}
+      {orderDetails && (
+        <>
+          {/* Hidden element for PDF rendering */}
+          <div id="invoice-content" style={{ display: 'none', padding: '40px', fontFamily: '"Inter", sans-serif', color: '#1e293b', backgroundColor: '#ffffff' }}>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <InvoiceJSX orderDetails={orderDetails} orderId={orderId} settings={settings} />
             </div>
           </div>
-        )}
-      </div>
-
+          
+          {/* Modal for Viewing the Slip */}
+          <AnimatePresence>
+            {showSlipModal && (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
+              >
+                <motion.div 
+                  initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                  className="bg-slate-200 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                >
+                  <div className="flex justify-between items-center p-6 border-b border-slate-300 bg-white shadow-sm z-10">
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><IndianRupee className="w-6 h-6 text-emerald-600"/> Order Slip</h3>
+                    <div className="flex gap-2">
+                      <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors">
+                        <Download className="w-4 h-4"/> Download
+                      </button>
+                      <button onClick={() => setShowSlipModal(false)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors">
+                        <X className="w-5 h-5"/>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-100 custom-scrollbar flex justify-center items-start">
+                    <div className="bg-white shadow-xl rounded-xl w-full max-w-[800px] font-sans text-slate-800" style={{ padding: '40px' }}>
+                       <InvoiceJSX orderDetails={orderDetails} orderId={orderId} />
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
     </motion.div>
   );
 };
+
+// Extracted JSX for Invoice to avoid duplication
+const InvoiceJSX = ({ orderDetails, orderId, settings }) => (
+  <div style={{ position: 'relative' }}>
+    {/* Watermark Seal */}
+    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', opacity: 0.05, pointerEvents: 'none', zIndex: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <span style={{ fontSize: '140px', fontWeight: '900', color: '#10b981', whiteSpace: 'nowrap', lineHeight: '1' }}>{settings?.siteTitle ? settings.siteTitle.toUpperCase() : 'ROSEDASH'}</span>
+      <span style={{ fontSize: '40px', fontWeight: 'bold', color: '#10b981', letterSpacing: '10px', whiteSpace: 'nowrap' }}>OFFICIAL SLIP</span>
+    </div>
+    
+    <div style={{ position: 'relative', zIndex: 1 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #10b981', paddingBottom: '20px', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {settings?.logoUrl && <img src={settings.logoUrl} alt="Logo" style={{ height: '48px', objectFit: 'contain' }} />}
+          <div>
+            <h1 style={{ color: '#0f172a', margin: '0 0 5px 0', fontSize: '32px', fontWeight: '900', letterSpacing: '-1px' }}>{settings?.siteTitle || 'RoseDash'}</h1>
+            <p style={{ margin: '0', color: '#10b981', fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '2px' }}>Order Receipt</p>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+        <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#64748b', fontWeight: 'bold' }}>Order ID: <span style={{ color: '#0f172a' }}>{orderId}</span></p>
+        <p style={{ margin: '0', fontSize: '14px', color: '#64748b' }}>Date: {new Date(orderDetails.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      </div>
+    </div>
+
+    {/* Store & Customer Info */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', gap: '20px' }}>
+      <div style={{ flex: '1', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Fulfilled By</h3>
+        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#0f172a', fontSize: '16px' }}>{orderDetails.store?.name || 'RoseDash Dark Store'}</p>
+        <p style={{ margin: '0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>Authorized Retailer<br/>Quality Verified</p>
+      </div>
+      <div style={{ flex: '1', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Delivered To</h3>
+        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#0f172a', fontSize: '16px' }}>{orderDetails.user?.name || 'Customer'}</p>
+        <p style={{ margin: '0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
+          {orderDetails.deliveryAddress?.street}<br/>
+          {orderDetails.deliveryAddress?.city}, {orderDetails.deliveryAddress?.state} {orderDetails.deliveryAddress?.zipCode}
+        </p>
+      </div>
+    </div>
+    
+    {/* Items Table */}
+    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '30px' }}>
+      <thead>
+        <tr style={{ backgroundColor: '#10b981', color: 'white' }}>
+          <th style={{ padding: '12px 15px', textAlign: 'left', borderRadius: '8px 0 0 8px', fontSize: '14px' }}>Item Description</th>
+          <th style={{ padding: '12px 15px', textAlign: 'center', fontSize: '14px' }}>Qty</th>
+          <th style={{ padding: '12px 15px', textAlign: 'right', fontSize: '14px' }}>Unit Price</th>
+          <th style={{ padding: '12px 15px', textAlign: 'right', borderRadius: '0 8px 8px 0', fontSize: '14px' }}>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {orderDetails.items?.map((item, idx) => (
+          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+            <td style={{ padding: '15px', fontWeight: 'bold', color: '#334155' }}>{item.product?.name}</td>
+            <td style={{ padding: '15px', textAlign: 'center', color: '#64748b', fontWeight: 'bold' }}>{item.quantity}</td>
+            <td style={{ padding: '15px', textAlign: 'right', color: '#64748b' }}>₹{item.price}</td>
+            <td style={{ padding: '15px', textAlign: 'right', fontWeight: 'bold', color: '#0f172a' }}>₹{item.price * item.quantity}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    
+    {/* Totals Section */}
+    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ width: '300px', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
+          <span style={{ fontWeight: 'bold' }}>Subtotal:</span>
+          <span>₹{orderDetails.billDetails?.subtotal || 0}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
+          <span style={{ fontWeight: 'bold' }}>Delivery Fee:</span>
+          <span>₹{orderDetails.billDetails?.deliveryFee || 0}</span>
+        </div>
+        {(() => {
+          const extraCharges = (orderDetails.billDetails?.tax || 0) + 
+                               (orderDetails.billDetails?.codCharge || 0) + 
+                               (orderDetails.billDetails?.extraDistanceSurcharge || 0) + 
+                               (orderDetails.billDetails?.appliedCharges?.reduce((a, c) => a + c.amount, 0) || 0);
+          if (extraCharges > 0) {
+            return (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
+                <span style={{ fontWeight: 'bold' }}>Taxes & Charges:</span>
+                <span>₹{extraCharges}</span>
+              </div>
+            );
+          }
+          return null;
+        })()}
+        {orderDetails.billDetails?.discount > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', marginBottom: '12px', fontSize: '14px' }}>
+            <span style={{ fontWeight: 'bold' }}>Discount Applied:</span>
+            <span>-₹{orderDetails.billDetails?.discount}</span>
+          </div>
+        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: '900', fontSize: '20px', borderTop: '2px dashed #cbd5e1', paddingTop: '15px', marginTop: '15px' }}>
+          <span>Grand Total:</span>
+          <span style={{ color: '#10b981' }}>₹{orderDetails.billDetails?.grandTotal || 0}</span>
+        </div>
+      </div>
+    </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: '50px', textAlign: 'center', color: '#94a3b8', fontSize: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+        <p style={{ margin: '0 0 5px 0' }}>Thank you for shopping with {settings?.siteTitle || 'RoseDash'}!</p>
+        <p style={{ margin: '0' }}>For support, contact us at {settings?.contactEmail || 'support@rosedash.com'}</p>
+      </div>
+    </div>
+  </div>
+);
 
 export default OrderTracking;

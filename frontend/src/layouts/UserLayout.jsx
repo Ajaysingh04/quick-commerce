@@ -30,7 +30,12 @@ const UserLayout = () => {
       dispatch(logout());
       dispatch(clearCart());
     }
-  }, [isLoaded, isSignedIn, isAuthenticated, dispatch]);
+    
+    // Auto-sync if Clerk is signed in but Redux lost state (e.g. after refresh)
+    if (isLoaded && isSignedIn && !isAuthenticated && location.pathname !== '/auth-sync') {
+      navigate('/auth-sync');
+    }
+  }, [isLoaded, isSignedIn, isAuthenticated, dispatch, navigate, location.pathname]);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
