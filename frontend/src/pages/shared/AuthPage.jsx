@@ -40,6 +40,10 @@ const AuthPage = () => {
   const [fpCode, setFpCode] = useState('');
   const [fpNewPassword, setFpNewPassword] = useState('');
 
+  // MFA State
+  const [isMfa, setIsMfa] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+
   useEffect(() => {
     if (isAuthLoaded && userId) {
       navigate('/'); 
@@ -114,6 +118,16 @@ const AuthPage = () => {
       if (result.status === "complete") {
         await setSignInActive({ session: result.createdSessionId });
         navigate('/auth-sync');
+      } else if (result.status === "needs_second_factor") {
+        setIsLoading(false);
+        setIsMfa(true);
+        const hasEmailCode = result.supportedSecondFactors?.find(f => f.strategy === "email_code");
+        if (hasEmailCode) {
+           await signIn.prepareSecondFactor({ strategy: "email_code" });
+           setSuccessMsg("Check your email for the 2FA login code.");
+        } else {
+           setSuccessMsg("Enter your Authenticator (TOTP) code or Backup code.");
+        }
       } else {
         console.log("Incomplete SignIn:", result);
         setIsLoading(false);
@@ -126,6 +140,30 @@ const AuthPage = () => {
       else if (err.message) errMsg = err.message;
       else if (typeof err === 'string') errMsg = err;
       setError(errMsg);
+      setIsLoading(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e) => {
+    e.preventDefault();
+    if (!mfaCode) return setError("Please enter the code");
+    setError('');
+    setIsLoading(true);
+    try {
+      const hasEmailCode = signIn.supportedSecondFactors?.find(f => f.strategy === "email_code");
+      const result = await signIn.attemptSecondFactor({
+        strategy: hasEmailCode ? "email_code" : "totp",
+        code: mfaCode
+      });
+      if (result.status === "complete") {
+        await setSignInActive({ session: result.createdSessionId });
+        navigate('/auth-sync');
+      } else {
+        setError(`MFA failed: ${result.status}`);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError(err.errors?.[0]?.longMessage || "Invalid MFA code");
       setIsLoading(false);
     }
   };
@@ -305,7 +343,24 @@ const AuthPage = () => {
             ? 'translate-x-full z-[1]' 
             : 'z-[2]'
         }`}>
-          {isForgotPassword ? (
+          {isMfa ? (
+            <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleMfaSubmit}>
+              <h1 className="text-3xl font-black text-gray-800 tracking-wide text-center">2FA Required</h1>
+              <span className="text-xs text-gray-500 font-medium text-center my-4">
+                Enter the verification code to complete sign in.
+              </span>
+              
+              {error && !isActive && <div className="text-red-500 text-xs text-center mt-2 font-medium">{error}</div>}
+              {successMsg && !isActive && <div className="text-green-500 text-xs text-center mt-2 font-medium">{successMsg}</div>}
+
+              <input type="text" placeholder="Enter 6-digit Code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} className="w-full px-4 py-3 my-2 text-sm bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#e31837] transition-shadow text-center tracking-widest font-bold" />
+              
+              <button type="submit" disabled={isLoading} className="px-12 py-3 mt-4 bg-[#e31837] text-white text-sm font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-red-500/30 hover:bg-[#c8102e] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? 'Wait...' : 'Verify Code'}
+              </button>
+              <button type="button" onClick={() => { setIsMfa(false); setError(''); setSuccessMsg(''); setMfaCode(''); }} className="my-4 text-xs font-semibold text-gray-500 hover:text-[#e31837] transition-colors">Back to Sign In</button>
+            </form>
+          ) : isForgotPassword ? (
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={fpStep === 1 ? handleSendResetCode : handleResetPassword}>
               <h1 className="text-3xl font-black text-gray-800 tracking-wide text-center">Reset Password</h1>
               <span className="text-xs text-gray-500 font-medium text-center my-4">
