@@ -26,7 +26,7 @@ const AuthPage = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const [signUpStep, setSignUpStep] = useState(1);
+  const [signUpStep, setSignUpStep] = useState(0); // 0: Role Selection, 1: Details, 2: Verification
   const [signUpCode, setSignUpCode] = useState('');
 
   // Password Visibility States
@@ -53,8 +53,10 @@ const AuthPage = () => {
   useEffect(() => {
     if (location.pathname === '/signup') {
       setIsActive(true);
+      setSignUpStep(0); // Reset to role selection
     } else {
       setIsActive(false);
+      localStorage.removeItem('auth_role'); // Clear role intent for sign in
     }
   }, [location.pathname]);
 
@@ -294,7 +296,37 @@ const AuthPage = () => {
             ? 'translate-x-full opacity-100 z-[5] animate-move' 
             : 'opacity-0 z-[1]'
         }`}>
-          {signUpStep === 1 ? (
+          {signUpStep === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full px-10 bg-white">
+              <h1 className="text-3xl font-black text-gray-800 tracking-wide text-center">Join Us</h1>
+              <p className="text-xs text-gray-500 font-medium text-center my-4 mb-8">
+                How would you like to partner with us?
+              </p>
+              <div className="w-full space-y-4">
+                <button 
+                  onClick={() => { localStorage.setItem('auth_role', 'user'); setSignUpStep(1); }}
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-[#e31837] hover:bg-rose-50 transition-all text-left flex flex-col group"
+                >
+                  <span className="font-bold text-gray-800 group-hover:text-[#e31837]">Customer</span>
+                  <span className="text-xs text-gray-500 mt-1">Shop and order instantly</span>
+                </button>
+                <button 
+                  onClick={() => { localStorage.setItem('auth_role', 'partner'); setSignUpStep(1); }}
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-[#e31837] hover:bg-rose-50 transition-all text-left flex flex-col group"
+                >
+                  <span className="font-bold text-gray-800 group-hover:text-[#e31837]">Store Partner</span>
+                  <span className="text-xs text-gray-500 mt-1">Sell your products on RoseDash</span>
+                </button>
+                <button 
+                  onClick={() => { localStorage.setItem('auth_role', 'delivery'); setSignUpStep(1); }}
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-[#e31837] hover:bg-rose-50 transition-all text-left flex flex-col group"
+                >
+                  <span className="font-bold text-gray-800 group-hover:text-[#e31837]">Delivery Rider</span>
+                  <span className="text-xs text-gray-500 mt-1">Deliver orders and earn money</span>
+                </button>
+              </div>
+            </div>
+          ) : signUpStep === 1 ? (
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleSignUp}>
               <h1 className="text-3xl font-black text-gray-800 tracking-wide">Create Account</h1>
               <div className="flex gap-4 my-6">

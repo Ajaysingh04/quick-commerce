@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IndianRupee, History, TrendingUp, TrendingDown, Calendar, Wallet, X, Building2 } from 'lucide-react';
+import { IndianRupee, History, TrendingUp, TrendingDown, Calendar, Wallet, X, Building2, Target, CheckCircle2 } from 'lucide-react';
 import API from '../../services/api';
 
 const EarningsChart = () => {
@@ -62,9 +63,6 @@ const EarningsChart = () => {
  );
 };
 
-import { useSelector } from 'react-redux';
-import { useEffect } from 'react';
-
 const Earnings = () => {
  const { user } = useSelector(state => state.auth);
 
@@ -76,6 +74,18 @@ const Earnings = () => {
  const [totalEarnings, setTotalEarnings] = useState(0);
  const [totalDeliveries, setTotalDeliveries] = useState(0);
  const [transactions, setTransactions] = useState([]);
+ 
+ const [currentPage, setCurrentPage] = useState(1);
+ const itemsPerPage = 5;
+ 
+ // Daily Goal State
+ const [dailyGoal, setDailyGoal] = useState(1000);
+ const [showGoalModal, setShowGoalModal] = useState(false);
+ const [tempGoal, setTempGoal] = useState(1000);
+ 
+ // Mock today's earnings (could be fetched)
+ const todayEarnings = 480; 
+ const goalProgress = Math.min((todayEarnings / dailyGoal) * 100, 100);
  
  const fetchEarnings = async () => {
  try {
@@ -191,6 +201,48 @@ const Earnings = () => {
  </div>
  </div>
 
+ {/* Daily Goal Tracker */}
+ <div className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] p-8 overflow-hidden relative group">
+ <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-br from-[#c8102e]/5 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+ <div className="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+ <div className="flex items-center gap-6 w-full md:w-auto">
+ <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center border border-rose-100 shrink-0">
+ <Target size={32} className="text-[#c8102e]" />
+ </div>
+ <div>
+ <h3 className="text-xl font-black text-slate-900 mb-1">Daily Earnings Goal</h3>
+ <p className="text-sm font-medium text-slate-500">
+ You've earned <span className="font-bold text-slate-900">₹{todayEarnings}</span> so far today.
+ </p>
+ </div>
+ </div>
+ 
+ <div className="w-full md:w-1/3 flex flex-col gap-2">
+ <div className="flex justify-between items-end text-sm font-bold">
+ <span className="text-slate-900">₹{todayEarnings}</span>
+ <button onClick={() => { setTempGoal(dailyGoal); setShowGoalModal(true); }} className="text-[#c8102e] text-xs hover:underline bg-[#e31837]/10 px-2 py-1 rounded-md">
+ Goal: ₹{dailyGoal}
+ </button>
+ </div>
+ <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+ <motion.div 
+ initial={{ width: 0 }}
+ animate={{ width: `${goalProgress}%` }}
+ transition={{ duration: 1, type: 'spring' }}
+ className={`h-full rounded-full relative ${goalProgress >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#c8102e] to-[#e31837]'}`}
+ >
+ <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]" style={{ backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }}></div>
+ </motion.div>
+ </div>
+ {goalProgress >= 100 && (
+ <p className="text-xs text-emerald-500 font-bold flex items-center gap-1 mt-1">
+ <CheckCircle2 size={14} /> Goal Achieved!
+ </p>
+ )}
+ </div>
+ </div>
+ </div>
+
  <EarningsChart />
 
  {/* Transaction History */}
@@ -199,15 +251,17 @@ const Earnings = () => {
  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
  <History size={20} className="text-[#e31837]" /> Recent Transactions
  </h3>
- <button className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
- View All
- </button>
+ {transactions.length > 0 && (
+ <div className="text-sm font-medium text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+ Page {currentPage} of {Math.max(1, Math.ceil(transactions.length / itemsPerPage))}
+ </div>
+ )}
  </div>
 
  <div className="space-y-4">
  {transactions.length === 0 ? (
  <div className="text-center py-8 text-slate-500">No transactions yet</div>
- ) : transactions.map(h => (
+ ) : transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(h => (
  <div key={h.id} className="flex justify-between items-center p-4 bg-slate-50 hover:bg-white border border-gray-200/80 rounded-xl transition-colors border border-gray-200/50">
  <div className="flex items-center gap-4">
  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${h.isCredit ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
@@ -227,68 +281,117 @@ const Earnings = () => {
  </div>
  ))}
  </div>
+
+ {/* Pagination Controls */}
+ {transactions.length > itemsPerPage && (
+ <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-100">
+ <button 
+ onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+ disabled={currentPage === 1}
+ className="px-4 py-2 bg-slate-50 text-slate-600 rounded-lg font-bold text-sm hover:bg-slate-100 disabled:opacity-50 transition-colors"
+ >
+ Previous
+ </button>
+ <button 
+ onClick={() => setCurrentPage(p => Math.min(Math.ceil(transactions.length / itemsPerPage), p + 1))}
+ disabled={currentPage === Math.ceil(transactions.length / itemsPerPage)}
+ className="px-4 py-2 bg-slate-50 text-slate-600 rounded-lg font-bold text-sm hover:bg-slate-100 disabled:opacity-50 transition-colors"
+ >
+ Next Page
+ </button>
+ </div>
+ )}
  </div>
  </div>
 
  {/* Withdraw Modal */}
  <AnimatePresence>
  {showWithdrawModal && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
  <motion.div
  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
- className="absolute inset-0 bg-slate-50/80 backdrop-blur-sm"
+ className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
  onClick={() => setShowWithdrawModal(false)}
  />
  <motion.div
  initial={{ opacity: 0, scale: 0.95, y: 20 }}
  animate={{ opacity: 1, scale: 1, y: 0 }}
  exit={{ opacity: 0, scale: 0.95, y: 20 }}
- className="relative w-full max-w-md bg-white border border-gray-200 border border-gray-200 rounded-3xl overflow-hidden shadow-2xl"
+ className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl flex flex-col max-h-[85vh] z-10"
  >
- <div className="p-6 border-b border-gray-200/50 flex justify-between items-center bg-white border border-gray-200/80">
- <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+ <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white shrink-0 rounded-t-3xl">
+ <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
  <Building2 className="text-[#e31837] w-5 h-5" /> Bank Withdrawal
  </h2>
- <button onClick={() => setShowWithdrawModal(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-600 transition-colors">
+ <button onClick={() => setShowWithdrawModal(false)} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-colors shrink-0">
  <X className="w-5 h-5" />
  </button>
  </div>
 
- <form onSubmit={handleWithdraw} className="p-6 space-y-4">
- <div className="mb-2 bg-[#e31837]/10 border border-[#e31837]/20 p-4 rounded-xl text-center">
- <p className="text-slate-600 text-sm mb-1">Available Balance</p>
- <p className="text-3xl font-black text-slate-900">₹{balance}</p>
+ <form onSubmit={handleWithdraw} className="flex flex-col flex-1 min-h-0">
+ <div className="p-4 space-y-3 overflow-y-auto custom-scrollbar flex-1">
+ <div className="mb-1 bg-[#e31837]/10 border border-[#e31837]/20 p-3 rounded-xl text-center">
+ <p className="text-slate-600 text-xs mb-0.5">Available Balance</p>
+ <p className="text-2xl font-black text-slate-900">₹{balance}</p>
  </div>
 
  <div>
- <label className="block text-sm font-medium text-slate-600 mb-1">Withdrawal Amount (₹)</label>
- <input type="number" required max={balance} value={bankDetails.amount} onChange={e => setBankDetails({ ...bankDetails, amount: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all" placeholder="Enter amount" />
+ <label className="block text-xs font-bold text-slate-600 mb-1">Withdrawal Amount (₹)</label>
+ <input type="number" required max={balance} value={bankDetails.amount} onChange={e => setBankDetails({ ...bankDetails, amount: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all" placeholder="Enter amount" />
  </div>
  <div>
- <label className="block text-sm font-medium text-slate-600 mb-1">Bank Name</label>
- <input type="text" required readOnly={!!user?.bankDetails?.bankName} value={bankDetails.bankName} onChange={e => setBankDetails({ ...bankDetails, bankName: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all read-only:opacity-60" placeholder="e.g. HDFC Bank" />
+ <label className="block text-xs font-bold text-slate-600 mb-1">Bank Name</label>
+ <input type="text" required readOnly={!!user?.bankDetails?.bankName} value={bankDetails.bankName} onChange={e => setBankDetails({ ...bankDetails, bankName: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all read-only:opacity-60" placeholder="e.g. HDFC Bank" />
  </div>
  <div>
- <label className="block text-sm font-medium text-slate-600 mb-1">Account Holder Name</label>
- <input type="text" required readOnly={!!user?.bankDetails?.accountHolderName} value={bankDetails.accountHolderName} onChange={e => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all read-only:opacity-60" placeholder="As per bank records" />
+ <label className="block text-xs font-bold text-slate-600 mb-1">Account Holder Name</label>
+ <input type="text" required readOnly={!!user?.bankDetails?.accountHolderName} value={bankDetails.accountHolderName} onChange={e => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all read-only:opacity-60" placeholder="As per bank records" />
  </div>
- <div className="grid grid-cols-2 gap-4">
+ <div className="grid grid-cols-2 gap-3">
  <div>
- <label className="block text-sm font-medium text-slate-600 mb-1">Account Number</label>
- <input type="text" required readOnly={!!user?.bankDetails?.accountNumber} value={bankDetails.accountNumber} onChange={e => setBankDetails({ ...bankDetails, accountNumber: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all read-only:opacity-60" placeholder="Account No." />
+ <label className="block text-xs font-bold text-slate-600 mb-1">Account Number</label>
+ <input type="text" required readOnly={!!user?.bankDetails?.accountNumber} value={bankDetails.accountNumber} onChange={e => setBankDetails({ ...bankDetails, accountNumber: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all read-only:opacity-60" placeholder="Account No." />
  </div>
  <div>
- <label className="block text-sm font-medium text-slate-600 mb-1">IFSC Code</label>
- <input type="text" required readOnly={!!user?.bankDetails?.ifscCode} value={bankDetails.ifscCode} onChange={e => setBankDetails({ ...bankDetails, ifscCode: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all uppercase read-only:opacity-60" placeholder="IFSC" />
+ <label className="block text-xs font-bold text-slate-600 mb-1">IFSC Code</label>
+ <input type="text" required readOnly={!!user?.bankDetails?.ifscCode} value={bankDetails.ifscCode} onChange={e => setBankDetails({ ...bankDetails, ifscCode: e.target.value })} className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-[#e31837]/20 focus:border-[#e31837] outline-none transition-all uppercase read-only:opacity-60" placeholder="IFSC" />
+ </div>
  </div>
  </div>
 
- <div className="pt-4">
- <button type="submit" disabled={withdrawing} className="w-full py-3.5 bg-[#e31837] hover:bg-[#c8102e] text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_5px_15px_rgba(249,115,22,0.3)]">
+ <div className="p-4 bg-white border-t border-gray-100 shrink-0 rounded-b-3xl">
+ <button type="submit" disabled={withdrawing} className="w-full py-3 bg-[#e31837] hover:bg-[#c8102e] text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_5px_15px_rgba(227,24,55,0.3)]">
  {withdrawing ? 'Processing...' : 'Submit Request'}
  </button>
  </div>
  </form>
+ </motion.div>
+ </div>
+ )}
+ </AnimatePresence>
+
+ {/* Set Goal Modal */}
+ <AnimatePresence>
+ {showGoalModal && (
+ <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+ <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowGoalModal(false)} />
+ <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-10 p-6 text-center">
+ <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+ <Target size={32} className="text-[#c8102e]" />
+ </div>
+ <h2 className="text-xl font-black text-slate-900 mb-2">Set Daily Goal</h2>
+ <p className="text-sm text-slate-500 mb-6 font-medium">Set a realistic target for your daily earnings.</p>
+ 
+ <div className="flex items-center justify-center gap-4 mb-8">
+ <button onClick={() => setTempGoal(Math.max(500, tempGoal - 100))} className="w-12 h-12 bg-slate-50 hover:bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-black text-xl transition-colors">-</button>
+ <div className="text-4xl font-black text-slate-900 tracking-tight w-32">₹{tempGoal}</div>
+ <button onClick={() => setTempGoal(tempGoal + 100)} className="w-12 h-12 bg-slate-50 hover:bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-black text-xl transition-colors">+</button>
+ </div>
+
+ <div className="flex gap-3">
+ <button onClick={() => setShowGoalModal(false)} className="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+ <button onClick={() => { setDailyGoal(tempGoal); setShowGoalModal(false); }} className="flex-1 py-3 bg-[#e31837] text-white font-bold rounded-xl hover:bg-[#c8102e] transition-colors shadow-lg shadow-[#e31837]/30">Set Goal</button>
+ </div>
  </motion.div>
  </div>
  )}

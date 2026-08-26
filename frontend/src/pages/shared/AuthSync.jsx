@@ -49,17 +49,11 @@ const AuthSync = () => {
  // Sync with our backend to ensure MongoDB user exists and to fetch their roles
  let roleIntent = localStorage.getItem('auth_role') || 'customer';
  
- const userEmail = user.primaryEmailAddress?.emailAddress;
- const isAdminEmail = userEmail === 'admin@appsica.com' || userEmail === 'ajayworkon04@gmail.com' || userEmail === 'ajaysingh04@gmail.com';
- const isStrictCustomer = userEmail === 'ajaysinghbanafer1@gmail.com';
- const isStrictDelivery = userEmail === 'ajaysinghbanafer098@gmail.com';
- const isStrictPartner = userEmail === 'appsica086@gmail.com';
- 
+  const userEmail = user.primaryEmailAddress?.emailAddress;
+  const isAdminEmail = userEmail === 'admin@appsica.com' || userEmail === 'ajayworkon04@gmail.com' || userEmail === 'ajaysingh04@gmail.com';
+  
   // Auto-detect role based on strict emails regardless of where they logged in from
   if (isAdminEmail) roleIntent = 'admin';
-  else if (isStrictDelivery) roleIntent = 'delivery';
-  else if (isStrictPartner) roleIntent = 'partner';
-  else if (isStrictCustomer) roleIntent = 'customer';
  
  const res = await API.post('/auth/clerk-sync', {
  clerkId: user.id,

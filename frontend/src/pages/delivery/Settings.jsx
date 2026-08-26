@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, CarFront, Bell, Shield, Smartphone, CreditCard, ChevronRight, Upload, MapPin, EyeOff, Eye, FileText, Camera, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
+import { User, CarFront, Bell, Shield, Smartphone, CreditCard, ChevronRight, Upload, MapPin, EyeOff, Eye, FileText, Camera, ShieldCheck, Loader2, ArrowRight, Globe, LifeBuoy, MessageSquare, PhoneCall } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCredentials } from '../../store/authSlice.js';
 import API from '../../services/api.js';
@@ -24,6 +24,7 @@ const Settings = () => {
  const [autoAccept, setAutoAccept] = useState(user?.deliveryDetails?.preferences?.autoAccept ?? false);
  const [soundAlerts, setSoundAlerts] = useState(user?.deliveryDetails?.preferences?.soundAlerts ?? true);
  const [navigationApp, setNavigationApp] = useState(user?.deliveryDetails?.preferences?.navigationApp || 'in-app');
+ const [language, setLanguage] = useState(user?.deliveryDetails?.preferences?.language || 'en');
  
  // Bank Details State
  const [bankName, setBankName] = useState(user?.bankDetails?.bankName || '');
@@ -50,7 +51,7 @@ const Settings = () => {
  } else if (section === 'vehicle') {
  payload = { deliveryDetails: { vehicleType, licensePlate } };
  } else if (section === 'preferences') {
- payload = { deliveryDetails: { preferences: { pushNotifications: notifications, autoAccept, soundAlerts, navigationApp, twoFactor } } };
+ payload = { deliveryDetails: { preferences: { pushNotifications: notifications, autoAccept, soundAlerts, navigationApp, twoFactor, language } } };
  } else if (section === 'bank') {
  payload = { bankDetails: { bankName, accountHolderName, accountNumber, ifscCode } };
  }
@@ -354,19 +355,37 @@ const Settings = () => {
  </div>
 
  <div className="mt-8 mb-4">
- <h3 className="text-sm font-bold text-slate-900 mb-3">Default Navigation App</h3>
+ <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><MapPin size={18} className="text-[#e31837]" /> Default Navigation App</h3>
  <div className="grid grid-cols-2 gap-4">
  <button 
  onClick={() => setNavigationApp('in-app')}
  className={`p-3 border-2 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors ${navigationApp === 'in-app' ? 'bg-slate-50 border-[#e31837] text-slate-900' : 'bg-slate-50 border-gray-200 text-slate-600 hover:text-slate-900'}`}
  >
- <MapPin size={18} className={navigationApp === 'in-app' ? 'text-[#e31837]' : ''} /> In-App Maps
+ In-App Maps
  </button>
  <button 
  onClick={() => setNavigationApp('google-maps')}
  className={`p-3 border-2 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors ${navigationApp === 'google-maps' ? 'bg-slate-50 border-[#e31837] text-slate-900' : 'bg-slate-50 border-gray-200 text-slate-600 hover:text-slate-900'}`}
  >
- <MapPin size={18} className={navigationApp === 'google-maps' ? 'text-[#e31837]' : ''} /> Google Maps
+ Google Maps
+ </button>
+ </div>
+ </div>
+
+ <div className="mt-8 mb-4">
+ <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><Globe size={18} className="text-[#e31837]" /> App Language</h3>
+ <div className="grid grid-cols-2 gap-4">
+ <button 
+ onClick={() => setLanguage('en')}
+ className={`p-3 border-2 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors ${language === 'en' ? 'bg-slate-50 border-[#e31837] text-slate-900' : 'bg-slate-50 border-gray-200 text-slate-600 hover:text-slate-900'}`}
+ >
+ English (EN)
+ </button>
+ <button 
+ onClick={() => setLanguage('hi')}
+ className={`p-3 border-2 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors ${language === 'hi' ? 'bg-slate-50 border-[#e31837] text-slate-900' : 'bg-slate-50 border-gray-200 text-slate-600 hover:text-slate-900'}`}
+ >
+ Hindi (HI)
  </button>
  </div>
  </div>
@@ -528,6 +547,44 @@ const Settings = () => {
  </div>
  );
 
+ case 'support':
+ return (
+ <div className="bg-white border border-gray-100 shadow-sm rounded-3xl p-6">
+ <h2 className="text-lg font-bold text-slate-900 mb-6">Help & Support</h2>
+ 
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+ <a href="tel:+918000000000" className="p-6 bg-slate-50 border border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-colors flex flex-col items-center justify-center text-center group cursor-pointer">
+ <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform">
+ <PhoneCall className="text-emerald-500" />
+ </div>
+ <h3 className="font-bold text-slate-900">Call Support</h3>
+ <p className="text-xs text-slate-500 mt-1">Available 24x7 for emergencies</p>
+ </a>
+ <a href="https://wa.me/918000000000" target="_blank" rel="noreferrer" className="p-6 bg-slate-50 border border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-colors flex flex-col items-center justify-center text-center group cursor-pointer">
+ <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform">
+ <MessageSquare className="text-emerald-500" />
+ </div>
+ <h3 className="font-bold text-slate-900">Chat with Us</h3>
+ <p className="text-xs text-slate-500 mt-1">Quick answers via WhatsApp</p>
+ </a>
+ </div>
+
+ <h3 className="text-sm font-bold text-slate-900 mb-4">Frequently Asked Questions</h3>
+ <div className="space-y-3">
+ {[
+ { q: "When will I get my payout?", a: "Payouts are processed automatically every Tuesday for the previous week's earnings." },
+ { q: "How is surge pay calculated?", a: "Surge is applied automatically when you deliver in High Demand zones shown on your map." },
+ { q: "What if the customer is unreachable?", a: "Wait at the location for 5 minutes, attempt to call 3 times, then contact Support." }
+ ].map((faq, i) => (
+ <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+ <h4 className="font-bold text-slate-900 text-sm">{faq.q}</h4>
+ <p className="text-xs text-slate-600 mt-1">{faq.a}</p>
+ </div>
+ ))}
+ </div>
+ </div>
+ );
+
  default:
  return null;
  }
@@ -539,6 +596,7 @@ const Settings = () => {
  { id: 'preferences', label: 'App Preferences', icon: Smartphone },
  { id: 'bank', label: 'Bank Details', icon: CreditCard },
  { id: 'security', label: 'Security', icon: Shield },
+ { id: 'support', label: 'Help & Support', icon: LifeBuoy },
  ];
 
  return (

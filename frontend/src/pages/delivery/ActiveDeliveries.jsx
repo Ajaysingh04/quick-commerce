@@ -1,8 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Bike, Phone, Play, Check, MapPin, Navigation, Map, Zap, Camera, ShieldAlert, Timer } from 'lucide-react';
+import { Bike, Phone, Play, Check, MapPin, Navigation, Map, Zap, Camera, ShieldAlert, Timer, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import API from '../../services/api.js';
+
+const storeIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const customerIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const riderIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
 
 // Timer Component for 10-Minute SLA
 const SlaTimer = ({ createdAt }) => {
@@ -38,62 +68,38 @@ const SlaTimer = ({ createdAt }) => {
 };
 
 const DeliveryMiniMap = ({ progress, status }) => {
-  const pathD = "M 40 120 Q 120 40, 200 120 T 360 120";
-  let bikeX = 40 + (320 * progress / 100);
-  let bikeY = 120 - Math.sin((progress / 100) * Math.PI) * 55;
+  const storePos = [28.6139, 77.2090];
+  const custPos = [28.5355, 77.2410];
+  
+  // Interpolate rider position based on progress (0-100)
+  const riderLat = storePos[0] + ((custPos[0] - storePos[0]) * (progress / 100));
+  const riderLng = storePos[1] + ((custPos[1] - storePos[1]) * (progress / 100));
 
   return (
-    <div className="w-full h-56 bg-slate-900 border border-slate-800 rounded-3xl relative overflow-hidden my-4 shadow-inner group">
-      <svg className="w-full h-full" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-          </pattern>
-          <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
+    <div className="w-full h-64 bg-slate-900 border border-slate-800 rounded-3xl relative overflow-hidden my-4 shadow-inner group">
+      <MapContainer 
+        bounds={[storePos, custPos]}
+        boundsOptions={{ padding: [50, 50] }}
+        style={{ height: '100%', width: '100%' }}
+        zoomControl={false}
+        attributionControl={false}
+      >
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
         
-        <path d={pathD} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" strokeLinecap="round" />
-        <path d={pathD} fill="none" stroke="url(#pathGradient)" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="opacity-40" />
-
-        <path 
-          d={pathD} 
-          fill="none" 
-          stroke="url(#pathGradient)" 
-          strokeWidth="5" 
-          strokeDasharray="400"
-          strokeDashoffset={400 - (400 * progress / 100)}
-          strokeLinecap="round" 
-          className="transition-all duration-300 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+        <Marker position={storePos} icon={storeIcon} />
+        <Marker position={custPos} icon={customerIcon} />
+        
+        <Polyline 
+          positions={[storePos, custPos]} 
+          pathOptions={{ color: '#10b981', weight: 4, dashArray: '10, 10' }} 
         />
-
-        {/* Pickup Node */}
-        <g transform="translate(40, 120)">
-          <circle r="16" fill="#0ea5e9" fillOpacity="0.15" className="animate-ping" />
-          <circle r="6" fill="#0ea5e9" stroke="#1e293b" strokeWidth="2" />
-          <text y="-20" textAnchor="middle" fill="#0ea5e9" className="text-[10px] font-black uppercase tracking-wider">Store</text>
-        </g>
-
-        {/* Dropoff Node */}
-        <g transform="translate(360, 120)">
-          <circle r="16" fill="#10b981" fillOpacity="0.15" className="animate-ping" />
-          <circle r="6" fill="#10b981" stroke="#1e293b" strokeWidth="2" />
-          <text y="-20" textAnchor="middle" fill="#10b981" className="text-[10px] font-black uppercase tracking-wider">Cust</text>
-        </g>
-
-        {/* Bike Location */}
+        
         {status === 'out-for-delivery' && (
-          <g transform={`translate(${bikeX}, ${bikeY})`} className="transition-all duration-300">
-            <circle r="20" fill="#fbbf24" fillOpacity="0.2" className="animate-pulse" />
-            <circle r="8" fill="#fbbf24" stroke="#1e293b" strokeWidth="2.5" className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
-          </g>
+          <Marker position={[riderLat, riderLng]} icon={riderIcon} />
         )}
-      </svg>
+      </MapContainer>
       
-      <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white border border-white/10 uppercase tracking-widest shadow-lg">
+      <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white border border-white/10 uppercase tracking-widest shadow-lg z-[400]">
         <span className={`w-2 h-2 rounded-full ${status === 'out-for-delivery' ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]' : 'bg-amber-500'}`}></span>
         {status === 'preparing' ? 'Pickup' : status === 'out-for-delivery' ? 'Dashing' : 'Delivered'}
       </div>
@@ -110,6 +116,9 @@ const ActiveDeliveries = () => {
   const [orderFlow, setOrderFlow] = useState({}); 
   const [orderProgress, setOrderProgress] = useState({});
   const [podPhoto, setPodPhoto] = useState({});
+  
+  const [activePodMethod, setActivePodMethod] = useState({}); // 'camera' | 'otp'
+  const [enteredOtp, setEnteredOtp] = useState({});
 
   const [isOnline, setIsOnline] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -220,10 +229,20 @@ const ActiveDeliveries = () => {
     }, 600);
   };
 
-  const capturePOD = (orderId) => {
-    // Simulate capturing a photo
-    setPodPhoto(prev => ({ ...prev, [orderId]: 'uploaded' }));
-    advanceFlow(orderId, 'pod_uploaded');
+  const handleCameraCapture = (orderId, e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPodPhoto(prev => ({ ...prev, [orderId]: URL.createObjectURL(file) }));
+      advanceFlow(orderId, 'pod_uploaded');
+    }
+  };
+
+  const handleVerifyOtp = (orderId) => {
+    if (enteredOtp[orderId] === '1234') { // Mock OTP validation
+      advanceFlow(orderId, 'pod_uploaded');
+    } else {
+      alert("Invalid OTP! Please ask the customer again.");
+    }
   };
 
   if (!isOnline) {
@@ -367,9 +386,49 @@ const ActiveDeliveries = () => {
                         )}
 
                         {flowState === 'arrived_customer' && (
-                          <button onClick={() => capturePOD(order._id)} className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)] active:scale-95 flex justify-center items-center gap-2">
-                            <Camera size={20} /> Take POD Photo
-                          </button>
+                          <div className="space-y-3">
+                            <p className="text-sm font-bold text-slate-900 text-center">Verify Delivery</p>
+                            {!activePodMethod[order._id] ? (
+                              <div className="grid grid-cols-2 gap-3">
+                                <button 
+                                  onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: 'camera' }))} 
+                                  className="py-4 bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-700 font-bold rounded-2xl transition-all flex flex-col items-center justify-center gap-2"
+                                >
+                                  <Camera size={24} className="text-slate-400" />
+                                  <span className="text-xs">Take Photo</span>
+                                </button>
+                                <button 
+                                  onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: 'otp' }))} 
+                                  className="py-4 bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-700 font-bold rounded-2xl transition-all flex flex-col items-center justify-center gap-2"
+                                >
+                                  <KeyRound size={24} className="text-slate-400" />
+                                  <span className="text-xs">Enter PIN</span>
+                                </button>
+                              </div>
+                            ) : activePodMethod[order._id] === 'camera' ? (
+                              <div className="flex flex-col gap-3">
+                                <label className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)] active:scale-95 flex justify-center items-center gap-2 cursor-pointer">
+                                  <Camera size={20} /> Open Camera
+                                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleCameraCapture(order._id, e)} />
+                                </label>
+                                <button onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: null }))} className="text-xs font-bold text-slate-400">Cancel</button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-2">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Enter 4-digit PIN (Try 1234)" 
+                                    maxLength={4}
+                                    className="flex-1 bg-slate-50 border border-gray-200 text-slate-900 rounded-xl px-4 py-3 text-center tracking-[0.5em] font-black focus:outline-none focus:border-[#e31837]"
+                                    onChange={(e) => setEnteredOtp(prev => ({ ...prev, [order._id]: e.target.value }))}
+                                  />
+                                  <button onClick={() => handleVerifyOtp(order._id)} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl h-full">Verify</button>
+                                </div>
+                                <button onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: null }))} className="text-xs font-bold text-slate-400">Cancel</button>
+                              </div>
+                            )}
+                          </div>
                         )}
 
                         {flowState === 'pod_uploaded' && (

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { io } from 'socket.io-client';
 import API from '../../services/api.js';
+import { MapContainer, TileLayer, Circle, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { Bike, IndianRupee, Star, TrendingUp, TrendingDown, Clock, Shield, Award, ChevronRight, X, Zap, MapPin, Navigation, ArrowRight, Activity, Map, Navigation2 } from 'lucide-react';
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from 'framer-motion';
 
@@ -50,9 +53,11 @@ const SlideToAccept = ({ onAccept, onDecline }) => {
 
 const Dashboard = () => {
   const { user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
   const [showTierModal, setShowTierModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [hideKycAlert, setHideKycAlert] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState('default');
   
   const [incomingOrder, setIncomingOrder] = useState(null);
   const [isOnline, setIsOnline] = useState(() => {
@@ -61,7 +66,20 @@ const Dashboard = () => {
     return saved === null ? true : saved === 'true';
   });
 
+  const defaultIcon = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
   useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
     const handleOnlineState = (event) => {
       const next = event.detail ?? (window.localStorage.getItem('deliveryOnline') ?? 'true') === 'true';
       setIsOnline(next);
@@ -69,6 +87,13 @@ const Dashboard = () => {
     window.addEventListener('deliveryOnlineChanged', handleOnlineState);
     return () => window.removeEventListener('deliveryOnlineChanged', handleOnlineState);
   }, []);
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+    }
+  };
 
   useEffect(() => {
     if (user?.kyc?.status !== 'approved' || !isOnline) return;
@@ -86,6 +111,13 @@ const Dashboard = () => {
         const audio = new Audio('/notification.mp3');
         audio.play().catch(() => {});
       } catch (e) {}
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('New 10-Min Dash!', {
+          body: `Drop-off at ${order.deliveryAddress?.street}. Earn ₹${order.deliveryFee || 45}`,
+          icon: '/logo.png'
+        });
+      }
     });
 
     return () => {
@@ -161,7 +193,7 @@ const Dashboard = () => {
                   </div>
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dropoff</p>
-                    <p className="font-bold text-slate-900 text-sm line-clamp-1">{incomingOrder?.deliveryAddress?.street || 'Customer Location'}</p>
+                    <p className="font-bold text-ltr text-sm line-clamp-1">{incomingOrder?.deliveryAddress?.street || 'Customer Location'}</p>
                     <p className="text-xs font-semibold text-slate-500">{getDeliveryDistance(incomingOrder)} km • 6 mins trip</p>
                   </div>
                 </div>
@@ -216,8 +248,16 @@ const Dashboard = () => {
                 </span> {isOnline ? 'and in a high demand zone.' : ' - go online to receive orders.'}
               </p>
             </div>
-            <div className="hidden md:flex items-center justify-center w-32 h-32 bg-white/5 rounded-3xl backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
-              <Zap size={56} className="text-emerald-400 fill-emerald-400 transform group-hover:scale-110 transition-transform duration-500" />
+            <div className="hidden md:flex flex-col items-center justify-center gap-3 w-32 h-32 bg-white/5 rounded-3xl backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)] p-2">
+              <Zap size={40} className="text-emerald-400 fill-emerald-400 transform group-hover:scale-110 transition-transform duration-500" />
+              {notificationPermission === 'default' && (
+                <button 
+                  onClick={requestNotificationPermission}
+                  className="text-[10px] font-bold bg-white text-slate-900 px-3 py-1.5 rounded-full hover:bg-emerald-50 w-full text-center"
+                >
+                  Enable Alerts
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -269,31 +309,40 @@ const Dashboard = () => {
           </div>
 
           <div className="relative h-64 w-full bg-slate-900 rounded-2xl overflow-hidden border border-slate-800">
-            {/* Realistic Static Map Background */}
-            <div 
-              className="absolute inset-0 opacity-40 mix-blend-screen"
-              style={{
-                backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop')", // Satellite/City Map Aerial view
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'grayscale(100%) contrast(120%) brightness(70%)'
-              }}
-            ></div>
+            <MapContainer 
+              center={[28.6139, 77.2090]} 
+              zoom={11} 
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+              attributionControl={false}
+            >
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+              
+              <Marker position={[28.6139, 77.2090]} icon={defaultIcon}>
+                <Popup>Your Location</Popup>
+              </Marker>
+
+              <Circle center={[28.6448, 77.2167]} radius={2000} pathOptions={{ color: '#e31837', fillColor: '#e31837', fillOpacity: 0.3 }} />
+              <Circle center={[28.5355, 77.2410]} radius={2500} pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.2 }} />
+            </MapContainer>
             
-            {/* Hotzones overlay */}
-            <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-rose-500/30 rounded-full blur-xl animate-pulse"></div>
-            <div className="absolute top-1/4 left-1/4 w-12 h-12 bg-rose-500/60 rounded-full blur-md flex items-center justify-center">
-              <span className="text-white text-[10px] font-black z-10">1.5x</span>
-            </div>
+            <div className="absolute inset-0 border-[4px] border-white/10 rounded-[1rem] pointer-events-none z-[400]"></div>
 
-            <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-orange-500/20 rounded-full blur-xl animate-pulse delay-75"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-16 h-16 bg-orange-500/50 rounded-full blur-md flex items-center justify-center">
-              <span className="text-white text-[10px] font-black z-10">1.2x</span>
-            </div>
-
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-[0_0_15px_rgba(16,185,129,1)] animate-bounce"></div>
-              <p className="text-white text-[10px] font-bold bg-black/50 px-2 py-0.5 rounded-full mt-1">You</p>
+            <div className="absolute bottom-4 left-4 right-4 flex gap-3 z-[400] pointer-events-none">
+              <div className="flex-1 bg-slate-900/90 backdrop-blur-md border border-slate-700 p-3 rounded-2xl shadow-xl pointer-events-auto">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-3 h-3 rounded-full bg-[#c8102e] animate-pulse"></div>
+                  <span className="text-xs font-bold text-white">Connaught Place</span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-bold">Surge: 1.5x • 12 mins away</div>
+              </div>
+              <div className="flex-1 bg-slate-900/90 backdrop-blur-md border border-slate-700 p-3 rounded-2xl shadow-xl pointer-events-auto">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                  <span className="text-xs font-bold text-white">South Extension</span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-bold">Surge: 1.2x • 25 mins away</div>
+              </div>
             </div>
           </div>
         </div>

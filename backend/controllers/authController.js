@@ -348,9 +348,10 @@ export const clerkSync = async (req, res) => {
       }
     }
     
-    // DEV OVERRIDE: Allow role update to access admin/delivery dashboards
-    if (role && role !== user.role) {
-      user.role = role;
+    // Check for hardcoded admin emails during sync to promote automatically
+    const adminEmails = ['admin@appsica.com', 'ajayworkon04@gmail.com', 'ajaysingh04@gmail.com'];
+    if (adminEmails.includes(email) && user.role !== 'admin') {
+      user.role = 'admin';
     }
     
     await user.save();
