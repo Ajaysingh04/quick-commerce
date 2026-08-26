@@ -6,7 +6,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { useSettings } from '../context/SettingsContext.jsx';
 import { 
  LayoutDashboard, MapPin, Wallet, History, Settings, 
- LogOut, Bell, Menu, X, Navigation, Bike, CheckCircle2
+ LogOut, Bell, Menu, X, Navigation, Bike, CheckCircle2, TriangleAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -159,9 +159,12 @@ const DeliveryLayout = () => {
              <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors lg:hidden">
                <Menu size={20} />
              </button>
-             <div className="hidden md:flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-4 py-2 rounded-full font-medium border border-slate-100">
-               <Navigation size={14} className="text-[#e31837]" />
-               <span>Zone: <strong className="text-slate-900 font-bold">Downtown</strong></span>
+             {/* Desktop Right Actions */}
+             <div className="hidden md:flex items-center gap-4">
+               <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-4 py-2 rounded-full font-medium border border-slate-100">
+                 <Navigation size={14} className="text-[#e31837]" />
+                 <span>Zone: <strong className="text-slate-900 font-bold">Downtown</strong></span>
+               </div>
              </div>
            </div>
 
@@ -201,8 +204,16 @@ const DeliveryLayout = () => {
                      className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 shadow-2xl shadow-slate-200/50 rounded-2xl z-50 overflow-hidden"
                    >
                      <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                       <h3 className="font-bold text-slate-900">Notifications</h3>
-                       <span className="text-xs font-bold text-[#e31837] bg-[#e31837]/10 px-2 py-1 rounded-full">2 New</span>
+                       <div className="flex items-center gap-2">
+                         <h3 className="font-bold text-slate-900">Notifications</h3>
+                         <span className="text-[10px] font-bold text-[#e31837] bg-[#e31837]/10 px-2 py-0.5 rounded-full">2 New</span>
+                       </div>
+                       <button 
+                         onClick={() => setShowNotifications(false)}
+                         className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                       >
+                         <X size={16} />
+                       </button>
                      </div>
                      <div className="max-h-[300px] overflow-y-auto">
                        <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4">

@@ -48,6 +48,8 @@ const AdminLayout = () => {
     { name: 'Categories', path: '/admin/categories', icon: Tag },
     { name: 'Inventory', path: '/admin/products', icon: Utensils },
     { name: 'Customers', path: '/admin/users', icon: Users },
+    { name: 'Delivery Partners', path: '/admin/delivery-partners', icon: Users },
+    { name: 'Store Partners', path: '/admin/store-partners', icon: Store },
     { name: 'Offers', path: '/admin/coupons', icon: Tag },
     { name: 'Reviews', path: '/admin/reviews', icon: Star },
     { name: 'Support', path: '/admin/support', icon: MessageSquare },

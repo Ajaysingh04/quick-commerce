@@ -37,6 +37,8 @@ import PageManage from './pages/admin/PageManage.jsx';
 import AdminProfile from './pages/admin/AdminProfile.jsx';
 import SystemSettings from './pages/admin/SystemSettings.jsx';
 import SupportTickets from './pages/admin/SupportTickets.jsx';
+import DeliveryManage from './pages/admin/DeliveryManage.jsx';
+import StorePartnerManage from './pages/admin/StorePartnerManage.jsx';
 
 import DeliveryDashboard from './pages/delivery/Dashboard.jsx';
 import ActiveDeliveries from './pages/delivery/ActiveDeliveries.jsx';
@@ -148,6 +150,8 @@ function App() {
  <Route path="coupons" element={<CouponManage />} />
  <Route path="reviews" element={<ReviewManage />} />
  <Route path="users" element={<UserManage />} />
+ <Route path="delivery-partners" element={<DeliveryManage />} />
+ <Route path="store-partners" element={<StorePartnerManage />} />
  <Route path="banners" element={<BannerManage />} />
  <Route path="pages" element={<PageManage />} />
  <Route path="support" element={<SupportTickets />} />

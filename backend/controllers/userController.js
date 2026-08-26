@@ -48,7 +48,7 @@ export const submitKyc = async (req, res) => {
     const fileUrls = req.fileUrls || {};
 
     user.kyc = {
-      status: 'approved', // Auto-approving for demo purposes
+      status: 'pending_review', // Now requires Admin manual approval
       pan: fileUrls.pan ? fileUrls.pan[0] : user.kyc?.pan,
       aadhar: fileUrls.aadhar ? fileUrls.aadhar[0] : user.kyc?.aadhar,
       license: fileUrls.license ? fileUrls.license[0] : user.kyc?.license,
