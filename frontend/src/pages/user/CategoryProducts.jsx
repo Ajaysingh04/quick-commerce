@@ -16,21 +16,20 @@ const CategoryProducts = () => {
   const fetchCategoryProducts = useCallback(async (catObj) => {
     try {
       const { default: API } = await import('../../services/api.js');
-      const res = await API.get('/products');
+      
+      let endpoint = '/products';
+      if (id !== 'search') {
+        endpoint = `/products?category=${id}`;
+      }
+      
+      const res = await API.get(endpoint);
       
       const fetchedProducts = res.data.map(p => ({
         ...p,
         id: p._id || p.id
       }));
 
-      if (id === 'search') {
-         setProducts(fetchedProducts);
-      } else {
-         setProducts(fetchedProducts.filter(p => 
-            (p.category && (p.category.name === catObj?.name || p.category.toString() === id || p.category === id)) || 
-            (fetchedProducts.length > 0 && false)
-         ));
-      }
+      setProducts(fetchedProducts);
     } catch (error) {
       console.error('Failed to fetch category products', error);
     }

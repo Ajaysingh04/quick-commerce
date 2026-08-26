@@ -31,7 +31,7 @@ const Home = () => {
       const { default: API } = await import('../../services/api.js');
       const [bannersRes, productsRes, categoriesRes, storesRes] = await Promise.all([
         API.get('/banners/active'),
-        API.get('/products'),
+        API.get('/products?limit=100'),
         API.get('/products/categories'),
         API.get('/stores?featured=true')
       ]);

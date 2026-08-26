@@ -31,7 +31,7 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
         clone.style.width = `${imgRect.width}px`;
         clone.style.height = `${imgRect.height}px`;
         clone.style.zIndex = '9999';
-        clone.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+        clone.style.transition = 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
         clone.style.pointerEvents = 'none';
 
         document.body.appendChild(clone);
@@ -47,7 +47,7 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
 
         setTimeout(() => {
           clone.remove();
-        }, 800);
+        }, 400);
       }
     }
 

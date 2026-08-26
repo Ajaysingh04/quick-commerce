@@ -156,9 +156,22 @@ export const getProducts = async (req, res) => {
     if (req.query.all !== 'true') {
       filter.inStock = true;
     }
-    const products = await Product.find(filter)
+
+    // Add category filter for faster queries
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    let query = Product.find(filter)
       .populate('store', 'name')
       .populate('category', 'name');
+
+    // Add limit support
+    if (req.query.limit) {
+      query = query.limit(parseInt(req.query.limit));
+    }
+
+    const products = await query;
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
