@@ -1,62 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { Bike, Phone, Play, Check, Bell } from 'lucide-react';
+import { Bike, Phone, Play, Check, Bell, MapPin, Navigation, Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import API from '../../services/api.js';
 
-// No backup assignments - only real data
-
 const DeliveryMiniMap = ({ progress, status }) => {
- const pathD = "M 30 110 Q 110 30, 180 110 T 330 110";
- let bikeX = 30 + (300 * progress / 100);
- let bikeY = 110 - Math.sin((progress / 100) * Math.PI) * 55;
+ const pathD = "M 40 120 Q 120 40, 200 120 T 360 120";
+ let bikeX = 40 + (320 * progress / 100);
+ let bikeY = 120 - Math.sin((progress / 100) * Math.PI) * 55;
 
  return (
- <div className="w-full h-48 bg-slate-950 border border-slate-800 rounded-2xl relative overflow-hidden my-4 shadow-inner">
- <svg className="w-full h-full" viewBox="0 0 360 160">
+ <div className="w-full h-56 bg-slate-900 border border-slate-800 rounded-3xl relative overflow-hidden my-4 shadow-inner group">
+ <svg className="w-full h-full" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice">
  <defs>
- <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
- <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+ <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+ <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
  </pattern>
+ <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+ <stop offset="0%" stopColor="#e31837" stopOpacity="0.8" />
+ <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
+ </linearGradient>
  </defs>
  <rect width="100%" height="100%" fill="url(#grid)" />
  
- <path d={pathD} fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
- <path d={pathD} fill="none" stroke="#f97316" strokeWidth="1.5" strokeDasharray="4 4" strokeLinecap="round" className="opacity-40" />
+ <path d={pathD} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" strokeLinecap="round" />
+ <path d={pathD} fill="none" stroke="url(#pathGradient)" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="opacity-40" />
 
  <path 
  d={pathD} 
  fill="none" 
- stroke="#f97316" 
- strokeWidth="4" 
- strokeDasharray="360"
- strokeDashoffset={360 - (360 * progress / 100)}
+ stroke="url(#pathGradient)" 
+ strokeWidth="5" 
+ strokeDasharray="400"
+ strokeDashoffset={400 - (400 * progress / 100)}
  strokeLinecap="round" 
- className="transition-all duration-300"
+ className="transition-all duration-300 drop-shadow-[0_0_10px_rgba(227,24,55,0.5)]"
  />
 
- <g transform="translate(30, 110)">
- <circle r="12" fill="#f97316" fillOpacity="0.15" className="animate-ping" />
- <circle r="6" fill="#f97316" stroke="#000" strokeWidth="1.5" />
- <text y="-14" textAnchor="middle" fill="#f97316" className="text-[10px] font-bold uppercase">Store</text>
+ {/* Pickup Node */}
+ <g transform="translate(40, 120)">
+ <circle r="16" fill="#e31837" fillOpacity="0.15" className="animate-ping" />
+ <circle r="6" fill="#e31837" stroke="#1e293b" strokeWidth="2" />
+ <text y="-20" textAnchor="middle" fill="#e31837" className="text-[10px] font-black uppercase tracking-wider">Pickup</text>
  </g>
 
- <g transform="translate(330, 110)">
- <circle r="12" fill="#10b981" fillOpacity="0.15" className="animate-ping" />
- <circle r="6" fill="#10b981" stroke="#000" strokeWidth="1.5" />
- <text y="-14" textAnchor="middle" fill="#10b981" className="text-[10px] font-bold uppercase">Home</text>
+ {/* Dropoff Node */}
+ <g transform="translate(360, 120)">
+ <circle r="16" fill="#10b981" fillOpacity="0.15" className="animate-ping" />
+ <circle r="6" fill="#10b981" stroke="#1e293b" strokeWidth="2" />
+ <text y="-20" textAnchor="middle" fill="#10b981" className="text-[10px] font-black uppercase tracking-wider">Drop</text>
  </g>
 
+ {/* Bike Location */}
  {status === 'out-for-delivery' && (
- <g transform={`translate(${bikeX}, ${bikeY})`}>
- <circle r="18" fill="#fbbf24" fillOpacity="0.2" className="animate-pulse" />
- <circle r="10" fill="#fbbf24" stroke="#000" strokeWidth="1.5" />
+ <g transform={`translate(${bikeX}, ${bikeY})`} className="transition-all duration-300">
+ <circle r="20" fill="#fbbf24" fillOpacity="0.2" className="animate-pulse" />
+ <circle r="8" fill="#fbbf24" stroke="#1e293b" strokeWidth="2.5" className="drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
  </g>
  )}
  </svg>
  
- <div className="absolute top-3 right-3 flex items-center gap-2 bg-slate-50/90 px-3 py-1.5 rounded-full text-xs font-bold text-slate-200 border border-gray-200 uppercase">
- <span className={`w-2 h-2 rounded-full ${status === 'out-for-delivery' ? 'bg-[#e31837] animate-pulse' : 'bg-amber-500'}`}></span>
+ <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white border border-white/10 uppercase tracking-widest shadow-lg">
+ <span className={`w-2 h-2 rounded-full ${status === 'out-for-delivery' ? 'bg-[#e31837] animate-pulse shadow-[0_0_8px_rgba(227,24,55,1)]' : 'bg-amber-500'}`}></span>
  {status === 'preparing' ? 'Preparing' : status === 'out-for-delivery' ? 'En Route' : 'Delivered'}
  </div>
  </div>
@@ -88,7 +93,11 @@ const ActiveDeliveries = () => {
 
  fetchAssignedOrders();
 
- const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
+ const getSocketUrl = () => {
+   return import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+ };
+
+ const socket = io(getSocketUrl());
  
  // Join the delivery partners broadcast room
  socket.emit('joinDeliveryRoom');
@@ -106,10 +115,9 @@ const ActiveDeliveries = () => {
  }
  });
 
- // Listen for any other status updates (e.g. store marks it ready)
+ // Listen for any other status updates
  socket.on('orderStatusUpdated', (data) => {
  setOrders(prev => {
- // If we don't have it, but it just became preparing/ready, fetch all to be safe
  if (!prev.find(o => o._id === data.orderId)) {
  if (['preparing', 'ready'].includes(data.status)) {
  fetchAssignedOrders();
@@ -117,7 +125,6 @@ const ActiveDeliveries = () => {
  return prev;
  }
  
- // Otherwise just update it
  return prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o);
  });
  });
@@ -153,7 +160,10 @@ const ActiveDeliveries = () => {
  };
 
  const handleSimulateGPS = (orderId) => {
- const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
+ const getSocketUrl = () => {
+   return import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+ };
+ const socket = io(getSocketUrl());
  let step = 0;
  const totalSteps = 20;
 
@@ -164,7 +174,13 @@ const ActiveDeliveries = () => {
  const nextProgress = Math.min((step / totalSteps) * 100, 100);
  setOrderProgress(prev => ({ ...prev, [orderId]: nextProgress }));
 
- socket.emit('sendCoordinates', { orderId, lat: 28.61, lng: 77.20 });
+ // Simulate lat/lng moving linearly (dummy logic for visual effect)
+ const startLat = 28.61;
+ const startLng = 77.20;
+ const curLat = startLat + (step * 0.001);
+ const curLng = startLng + (step * 0.001);
+
+ socket.emit('sendCoordinates', { orderId, lat: curLat, lng: curLng });
 
  if (step >= totalSteps) {
  clearInterval(interval);
@@ -177,136 +193,174 @@ const ActiveDeliveries = () => {
  if (!isOnline) {
  return (
  <div className="max-w-4xl mx-auto space-y-6">
- <div className="p-12 bg-white border border-gray-100 shadow-sm border border-gray-200 rounded-2xl text-center flex flex-col items-center gap-4 mt-8">
- <Bike size={48} className="text-slate-600 mb-2 opacity-50" />
- <h2 className="text-xl font-bold text-slate-600">You are offline</h2>
- <p className="text-slate-500">Go online from the Top Bar to view and manage your active deliveries.</p>
+ <div className="p-12 bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] text-center flex flex-col items-center gap-4 mt-8">
+ <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-2">
+    <Bike size={48} className="text-slate-300" />
+ </div>
+ <h2 className="text-2xl font-black text-slate-900">You are offline</h2>
+ <p className="text-slate-500 font-medium">Go online from the Top Navbar to view and manage your active deliveries.</p>
  </div>
  </div>
  );
  }
 
  if (loading) {
- return <div className="p-8 text-center text-slate-600">Loading active deliveries...</div>;
+ return (
+    <div className="max-w-4xl mx-auto flex items-center justify-center p-20">
+      <div className="w-12 h-12 border-4 border-slate-100 border-t-[#e31837] rounded-full animate-spin"></div>
+    </div>
+ );
  }
 
  return (
- <div className="max-w-4xl mx-auto space-y-6">
- <div className="flex justify-between items-center mb-6">
+ <div className="max-w-5xl mx-auto space-y-8">
+ <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
  <div>
- <h1 className="text-2xl font-bold text-slate-900">Active Deliveries</h1>
- <p className="text-sm text-slate-600">Manage and track your current assignments</p>
+ <h1 className="text-3xl font-black text-slate-900 tracking-tight">Active Deliveries</h1>
+ <p className="text-slate-500 font-medium mt-1">Manage and navigate your current assignments</p>
  </div>
- <button onClick={fetchAssignedOrders} className="px-4 py-2 bg-white border border-gray-200 hover:bg-slate-50 text-slate-900 text-sm font-medium rounded-lg transition-colors">
- Refresh Map
+ <button onClick={fetchAssignedOrders} className="px-6 py-3 bg-white border border-slate-200 hover:border-[#e31837]/30 hover:shadow-md text-slate-900 text-sm font-bold rounded-xl transition-all flex items-center gap-2">
+ <Map size={18} className="text-[#e31837]" /> Refresh Map
  </button>
  </div>
 
  {orders.length === 0 ? (
- <div className="p-12 bg-white border border-gray-100 shadow-sm border border-gray-200 rounded-2xl text-center flex flex-col items-center gap-4">
- <Bike size={48} className="text-slate-600 mb-2" />
- <h2 className="text-xl font-bold text-slate-900">No active deliveries</h2>
- <p className="text-slate-600">You currently have no orders assigned. Stay online to receive requests.</p>
+ <div className="p-12 bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] text-center flex flex-col items-center gap-4">
+ <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mb-2 shadow-inner">
+   <Bike size={48} className="text-[#e31837]" />
+ </div>
+ <h2 className="text-2xl font-black text-slate-900">No active deliveries</h2>
+ <p className="text-slate-500 font-medium">You currently have no orders assigned. Stay online to receive requests.</p>
  </div>
  ) : (
- <div className="space-y-6">
+ <div className="space-y-8">
+ <AnimatePresence>
  {orders.map(order => {
  const progress = orderProgress[order._id] || 0;
  return (
  <motion.div 
  key={order._id}
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 shadow-xl"
+ layout
+ initial={{ opacity: 0, scale: 0.95 }}
+ animate={{ opacity: 1, scale: 1 }}
+ exit={{ opacity: 0, scale: 0.9 }}
+ transition={{ duration: 0.4, type: "spring" }}
+ className="bg-white border border-slate-100 shadow-[0_4px_30px_-4px_rgba(0,0,0,0.08)] rounded-[2.5rem] overflow-hidden group hover:shadow-[0_10px_40px_-10px_rgba(227,24,55,0.15)] transition-shadow duration-500"
  >
- <div className="flex flex-col md:flex-row gap-6">
+ <div className="flex flex-col lg:flex-row">
  {/* Info Column */}
- <div className="flex-1 space-y-6">
- <div className="flex items-start justify-between">
- <div className="flex items-center gap-4">
- <img src={order.store?.bannerImage} alt="" className="w-16 h-16 rounded-xl object-cover" />
+ <div className="flex-1 p-8 border-b lg:border-b-0 lg:border-r border-slate-100 relative">
+ {/* Order ID Badge */}
+ <div className="absolute top-8 right-8 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 text-xs font-bold text-slate-500">
+    #{order._id.slice(-6).toUpperCase()}
+ </div>
+
+ <div className="flex items-center gap-5 mb-8">
+ <div className="w-16 h-16 rounded-2xl bg-white border border-slate-100 shadow-sm p-1">
+   <img src={order.store?.bannerImage || '/logo.png'} alt="" className="w-full h-full rounded-xl object-cover" onError={e => e.target.style.display = 'none'} />
+ </div>
  <div>
- <h3 className="text-lg font-bold text-slate-900">{order.store?.name}</h3>
- <p className="text-sm text-slate-600">Order #{order._id.slice(-6).toUpperCase()}</p>
+ <h3 className="text-xl font-black text-slate-900">{order.store?.name}</h3>
+ <div className="flex items-center gap-3 mt-1">
+   <span className="text-sm font-bold text-slate-500">{order.distance || '2.5 km'}</span>
+   <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+   <span className="text-sm font-black text-[#e31837]">₹{order.deliveryFee || order.payout || 40}</span>
  </div>
- </div>
- <div className="text-right">
- <div className="text-xl font-bold text-emerald-400">₹{order.payout}</div>
- <div className="text-sm text-slate-600">{order.distance}</div>
  </div>
  </div>
 
- <div className="space-y-4 text-sm bg-slate-50 p-4 rounded-xl">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2">
- <div className="w-2 h-2 rounded-full bg-[#e31837]" />
- <span className="text-slate-600">Pickup</span>
+ <div className="relative space-y-6">
+ <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-slate-100" />
+ 
+ {/* Pickup */}
+ <div className="flex items-start gap-4 relative z-10">
+ <div className="w-10 h-10 rounded-full bg-[#e31837]/10 flex items-center justify-center shrink-0 border-2 border-white shadow-sm mt-1">
+ <MapPin size={18} className="text-[#e31837]" />
  </div>
- <span className="text-slate-900 font-medium">{order.store?.name}</span>
- <a href={`tel:${order.store?.phone}`} className="p-2 bg-white border border-gray-200 rounded-full hover:bg-slate-50">
- <Phone size={14} className="text-slate-300" />
- </a>
+ <div className="flex-1 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+ <div className="flex justify-between items-start">
+ <div>
+    <p className="text-[10px] uppercase font-bold tracking-wider text-[#e31837] mb-1">Pickup Point</p>
+    <p className="font-bold text-slate-900">{order.store?.name}</p>
  </div>
- <div className="w-px h-4 bg-slate-700 ml-1" />
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2">
- <div className="w-2 h-2 rounded-full bg-emerald-500" />
- <span className="text-slate-600">Dropoff</span>
- </div>
- <div className="text-right">
- <div className="text-slate-900 font-medium">{order.deliveryAddress?.street}</div>
- <div className="text-xs text-slate-600">{order.user?.name}</div>
- </div>
- <a href={`tel:${order.user?.phone}`} className="p-2 bg-white border border-gray-200 rounded-full hover:bg-slate-50">
- <Phone size={14} className="text-slate-300" />
+ <a href={`tel:${order.store?.phone}`} className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-full hover:border-[#e31837]/30 transition-colors text-slate-400 hover:text-[#e31837]">
+ <Phone size={16} />
  </a>
  </div>
  </div>
+ </div>
+ 
+ {/* Dropoff */}
+ <div className="flex items-start gap-4 relative z-10">
+ <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 border-2 border-white shadow-sm mt-1">
+ <Navigation size={18} className="text-emerald-500" />
+ </div>
+ <div className="flex-1 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+ <div className="flex justify-between items-start">
+ <div>
+    <p className="text-[10px] uppercase font-bold tracking-wider text-emerald-500 mb-1">Dropoff Point</p>
+    <p className="font-bold text-slate-900 line-clamp-2">{order.deliveryAddress?.street}, {order.deliveryAddress?.city}</p>
+    <p className="text-xs font-semibold text-slate-500 mt-1">Customer: {order.user?.name}</p>
+ </div>
+ <a href={`tel:${order.user?.phone}`} className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-full hover:border-emerald-500/30 transition-colors text-slate-400 hover:text-emerald-500">
+ <Phone size={16} />
+ </a>
+ </div>
+ </div>
+ </div>
+ </div>
 
- <div className="pt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
- <span className="font-semibold text-slate-300">
- Status: <span className="text-[#e31837] uppercase tracking-wide">{order.status}</span>
- </span>
-
+ <div className="mt-8">
  {['preparing', 'ready'].includes(order.status) && (
  <button 
  onClick={() => {
  handleUpdateStatus(order._id, 'out-for-delivery');
  handleSimulateGPS(order._id);
  }}
- className="px-6 py-2.5 bg-[#e31837] hover:bg-[#c8102e] text-white font-bold rounded-xl transition-colors flex items-center gap-2"
+ className="w-full py-4 bg-slate-900 hover:bg-black text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(0,0,0,0.1)] active:scale-[0.98] flex justify-center items-center gap-2 group/btn"
  >
- <Play size={16} className="fill-current" /> Mark Picked Up & Navigate
+ <Play size={18} className="fill-current group-hover/btn:scale-110 transition-transform" /> Mark Picked Up & Start Nav
  </button>
  )}
 
  {order.status === 'out-for-delivery' && orderProgress[order._id] === undefined && (
  <button 
  onClick={() => handleSimulateGPS(order._id)}
- className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold rounded-xl transition-colors flex items-center gap-2"
+ className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(16,185,129,0.3)] active:scale-[0.98] flex justify-center items-center gap-2 group/btn"
  >
- <Play size={16} className="fill-current" /> Start GPS Navigation
+ <Play size={18} className="fill-current group-hover/btn:scale-110 transition-transform" /> Start GPS Navigation
  </button>
  )}
 
  {order.status === 'delivered' && (
- <span className="text-emerald-400 font-bold flex items-center gap-2 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
- <Check size={18} className="stroke-[3]" /> Delivery Completed
- </span>
+ <div className="w-full py-4 bg-emerald-50 border border-emerald-100 text-emerald-600 font-black rounded-2xl flex justify-center items-center gap-2">
+ <Check size={20} className="stroke-[3]" /> Delivery Completed
+ </div>
  )}
  </div>
  </div>
  
  {/* Map Column */}
- <div className="flex-1 min-w-[300px]">
- {order.status !== 'delivered' && (
- <DeliveryMiniMap progress={progress} status={order.status} />
+ <div className="flex-1 bg-slate-50 relative p-4 flex flex-col justify-center items-center">
+ {order.status !== 'delivered' ? (
+ <div className="w-full h-full flex items-center max-w-sm">
+   <DeliveryMiniMap progress={progress} status={order.status} />
+ </div>
+ ) : (
+ <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center">
+   <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
+     <Check size={48} className="text-emerald-500 stroke-[3]" />
+   </div>
+   <h3 className="text-2xl font-black text-slate-900">Great Job!</h3>
+   <p className="text-slate-500 font-medium mt-2">Payout of ₹{order.deliveryFee || 40} has been added to your earnings.</p>
+ </div>
  )}
  </div>
  </div>
  </motion.div>
  );
  })}
+ </AnimatePresence>
  </div>
  )}
  </div>

@@ -106,8 +106,8 @@ const History = () => {
  onClick={() => setFilter(f)}
  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap capitalize ${
  filter === f 
- ? 'bg-[#e31837] text-white shadow-lg shadow-[#e31837]/20' 
- : 'bg-white border border-gray-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-gray-200'
+ ? 'bg-[#e31837] text-white shadow-[0_4px_15px_rgba(227,24,55,0.3)]' 
+ : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-gray-200'
  }`}
  >
  {f} Deliveries
@@ -123,7 +123,7 @@ const History = () => {
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: i * 0.05 }}
- className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 hover:bg-white border border-gray-200 transition-colors"
+ className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 hover:shadow-lg transition-all group hover:-translate-y-1"
  >
  <div className="flex flex-col md:flex-row justify-between gap-4">
  <div className="flex-1">
@@ -154,8 +154,8 @@ const History = () => {
  </div>
  </div>
 
- <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-6 min-w-[120px]">
- <div className="text-2xl font-black text-emerald-400">
+ <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center pt-4 md:pt-0 md:pl-6 min-w-[120px]">
+ <div className="text-3xl font-black text-emerald-500">
  ₹{order.earnings}
  </div>
  <div className="flex gap-3 text-xs text-slate-600 font-medium mt-1">

@@ -17,13 +17,13 @@ const EarningsChart = () => {
  const maxAmt = 1000;
 
  return (
- <div className="p-6 bg-white border border-gray-100 shadow-sm rounded-3xl space-y-6">
+ <div className="p-8 bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] space-y-6">
  <div className="flex justify-between items-center">
  <div>
  <h3 className="text-lg font-bold text-slate-900">Weekly Performance</h3>
  <p className="text-sm text-slate-600">Your earnings over the last 7 days</p>
  </div>
- <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-sm font-medium">
+ <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100 text-sm font-bold">
  <TrendingUp size={16} />
  <span>+14.5% vs Last Week</span>
  </div>
@@ -134,56 +134,57 @@ const Earnings = () => {
  <motion.div
  initial={{ opacity: 0, scale: 0.95 }}
  animate={{ opacity: 1, scale: 1 }}
- className="col-span-1 md:col-span-1 p-8 bg-gradient-to-br from-[#c8102e] via-[#e31837] to-amber-500 rounded-3xl text-slate-900 shadow-[0_10px_40px_rgba(249,115,22,0.3)] relative overflow-hidden flex flex-col justify-between min-h-[250px]"
+ className="col-span-1 md:col-span-1 p-8 bg-gradient-to-br from-[#c8102e] to-[#e31837] rounded-[2.5rem] text-white shadow-[0_10px_40px_rgba(227,24,55,0.3)] relative overflow-hidden flex flex-col justify-between min-h-[250px]"
  >
- <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+ <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+ <div className="absolute left-0 bottom-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
 
  <div>
- <div className="flex items-center gap-2 text-orange-100 mb-2">
+ <div className="flex items-center gap-2 text-white/80 mb-2 font-bold">
  <Wallet size={20} />
- <h3 className="font-medium text-sm uppercase tracking-wider">Available Balance</h3>
+ <h3 className="text-sm uppercase tracking-wider">Available Balance</h3>
  </div>
  <div className="text-5xl font-black mb-1">₹{balance}</div>
- <p className="text-orange-200 text-sm">Last payout: ₹2,450 on Jul 20</p>
+ <p className="text-white/60 text-sm font-medium">Last payout: ₹2,450 on Jul 20</p>
  </div>
 
  <button
  onClick={() => setShowWithdrawModal(true)}
  disabled={balance === 0}
- className="w-full py-3.5 bg-white text-[#c8102e] font-bold rounded-xl hover:bg-orange-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-6"
+ className="w-full py-4 bg-white text-[#c8102e] font-black rounded-2xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 active:scale-95"
  >
  Withdraw to Bank
  </button>
  </motion.div>
 
  {/* Detailed Breakdown */}
- <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-4">
- <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col justify-center">
- <h4 className="text-slate-600 text-sm mb-2 font-medium">Total Deliveries</h4>
- <div className="text-3xl font-bold text-slate-900 mb-1">{totalDeliveries}</div>
- <div className="flex items-center text-emerald-400 text-sm font-medium gap-1">
+ <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-6">
+ <div className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-center hover:-translate-y-1 transition-transform">
+ <h4 className="text-slate-500 text-sm mb-2 font-bold uppercase tracking-wider">Total Deliveries</h4>
+ <div className="text-4xl font-black text-slate-900 mb-1">{totalDeliveries}</div>
+ <div className="flex items-center text-emerald-500 text-sm font-bold gap-1 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 w-fit">
  Lifetime
  </div>
  </div>
 
- <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col justify-center">
- <h4 className="text-slate-600 text-sm mb-2 font-medium">Total Earnings</h4>
- <div className="text-3xl font-bold text-slate-900 mb-1">₹{totalEarnings}</div>
- <div className="text-slate-500 text-sm font-medium">Lifetime</div>
+ <div className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-center hover:-translate-y-1 transition-transform">
+ <h4 className="text-slate-500 text-sm mb-2 font-bold uppercase tracking-wider">Total Earnings</h4>
+ <div className="text-4xl font-black text-slate-900 mb-1">₹{totalEarnings}</div>
+ <div className="text-slate-500 text-sm font-bold bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 w-fit">Lifetime</div>
  </div>
 
- <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col justify-center">
- <h4 className="text-slate-600 text-sm mb-2 font-medium">Total Tips</h4>
- <div className="text-3xl font-bold text-slate-900 mb-1">₹450</div>
- <div className="flex items-center text-emerald-400 text-sm font-medium gap-1">
+ <div className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-center hover:-translate-y-1 transition-transform">
+ <h4 className="text-slate-500 text-sm mb-2 font-bold uppercase tracking-wider">Total Tips</h4>
+ <div className="text-4xl font-black text-slate-900 mb-1">₹450</div>
+ <div className="flex items-center text-emerald-500 text-sm font-bold gap-1 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 w-fit">
  <TrendingUp size={16} /> +12% from last week
  </div>
  </div>
 
- <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col justify-center">
- <h4 className="text-slate-600 text-sm mb-2 font-medium">Delivery Success Rate</h4>
- <div className="text-3xl font-bold text-slate-900 mb-1">99.2%</div>
- <div className="flex items-center text-rose-400 text-sm font-medium gap-1">
+ <div className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-center hover:-translate-y-1 transition-transform">
+ <h4 className="text-slate-500 text-sm mb-2 font-bold uppercase tracking-wider">Success Rate</h4>
+ <div className="text-4xl font-black text-slate-900 mb-1">99.2%</div>
+ <div className="flex items-center text-rose-500 text-sm font-bold gap-1 bg-rose-50 px-2 py-1 rounded-lg border border-rose-100 w-fit">
  <TrendingDown size={16} /> -0.1% from last week
  </div>
  </div>

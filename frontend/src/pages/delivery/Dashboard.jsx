@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import API from '../../services/api.js';
-import { Bike, IndianRupee, Star, TrendingUp, TrendingDown, Clock, Shield, Award, ChevronRight, X, PhoneCall, Mail, MessageSquare, Send, ArrowLeft, Navigation, MapPin } from 'lucide-react';
+import { Bike, IndianRupee, Star, TrendingUp, TrendingDown, Clock, Shield, Award, ChevronRight, X, PhoneCall, Mail, MessageSquare, Send, ArrowLeft, Navigation, MapPin, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = () => {
@@ -117,63 +117,81 @@ const Dashboard = () => {
  const handleDismissOrder = () => setIncomingOrder(null);
 
  return (
- <div className="max-w-5xl mx-auto space-y-6 pb-12">
+ <div className="max-w-6xl mx-auto space-y-8 pb-12">
  <AnimatePresence>
  {incomingOrder && isOnline && (
  <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: 20 }}
- className="fixed inset-0 z-[70] flex items-end justify-center p-4 sm:items-start sm:justify-end sm:p-6"
+ initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+ animate={{ opacity: 1, backdropFilter: "blur(8px)" }}
+ exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+ className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40"
  >
  <motion.div
- initial={{ scale: 0.96 }}
- animate={{ scale: 1 }}
- exit={{ scale: 0.96 }}
- className="w-full max-w-md rounded-3xl border border-[#e31837]/30 bg-slate-950/95 shadow-2xl backdrop-blur-xl"
+ initial={{ scale: 0.8, y: 50, rotateX: 20 }}
+ animate={{ scale: 1, y: 0, rotateX: 0 }}
+ exit={{ scale: 0.9, y: 30, opacity: 0 }}
+ transition={{ type: "spring", damping: 25, stiffness: 300 }}
+ className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden border border-white/50"
+ style={{ transformPerspective: 1000 }}
  >
- <div className="flex items-start justify-between border-b border-slate-800 p-4 sm:p-5">
- <div>
- <p className="text-[10px] uppercase tracking-[0.3em] text-brand-400">New delivery request</p>
- <h3 className="mt-1 text-lg font-bold text-slate-900">Pickup & drop details</h3>
- </div>
- <button onClick={handleDismissOrder} className="rounded-full p-2 text-slate-600 hover:bg-white border border-gray-200 hover:text-slate-900">
- <X size={18} />
- </button>
- </div>
-
- <div className="space-y-3 p-4 sm:p-5">
- <div className="rounded-2xl border border-slate-800 bg-slate-50/70 p-3">
- <div className="flex items-center gap-2 text-brand-400">
- <MapPin size={16} />
- <p className="text-[10px] uppercase tracking-[0.3em]">Pickup product</p>
- </div>
- <p className="mt-2 text-sm font-semibold text-slate-900">{incomingOrder?.store?.name || 'Pickup location'}</p>
- <p className="mt-1 text-xs text-slate-600">Distance: {getPickupDistance(incomingOrder)} km</p>
+ {/* Pulsing Header */}
+ <div className="bg-gradient-to-r from-[#c8102e] to-[#e31837] p-6 text-white text-center relative overflow-hidden">
+    <div className="absolute inset-0 opacity-10"></div>
+    <motion.div 
+      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} 
+      transition={{ repeat: Infinity, duration: 2 }}
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/20 rounded-full blur-3xl"
+    />
+    <div className="relative z-10 flex flex-col items-center">
+      <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-3 border border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-bounce">
+         <Bike size={32} className="text-white" />
+      </div>
+      <p className="text-[10px] uppercase tracking-[0.3em] text-white/80 font-black mb-1">New Delivery Request</p>
+      <h3 className="text-3xl font-black">Order #{incomingOrder._id?.substring(0, 6).toUpperCase()}</h3>
+    </div>
  </div>
 
- <div className="rounded-2xl border border-slate-800 bg-slate-50/70 p-3">
- <div className="flex items-center gap-2 text-emerald-400">
- <Navigation size={16} />
- <p className="text-[10px] uppercase tracking-[0.3em]">Deliver product</p>
+ <div className="p-6 space-y-4 bg-slate-50">
+ <div className="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm relative overflow-hidden group">
+ <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#e31837]" />
+ <div className="flex items-center gap-3 text-[#e31837] mb-2">
+ <MapPin size={18} />
+ <p className="text-[11px] uppercase font-bold tracking-[0.2em]">Pickup Point</p>
  </div>
- <p className="mt-2 text-sm font-semibold text-slate-900">{formatDeliveryAddress(incomingOrder)}</p>
- <p className="mt-1 text-xs text-slate-600">Distance: {getDeliveryDistance(incomingOrder)} km</p>
+ <p className="text-base font-black text-slate-900">{incomingOrder?.store?.name || 'Pickup location'}</p>
+ <p className="text-xs text-slate-500 font-medium mt-1">{getPickupDistance(incomingOrder)} km away</p>
+ </div>
+
+ <div className="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm relative overflow-hidden">
+ <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+ <div className="flex items-center gap-3 text-emerald-500 mb-2">
+ <Navigation size={18} />
+ <p className="text-[11px] uppercase font-bold tracking-[0.2em]">Dropoff Point</p>
+ </div>
+ <p className="text-base font-black text-slate-900">{formatDeliveryAddress(incomingOrder)}</p>
+ <p className="text-xs text-slate-500 font-medium mt-1">{getDeliveryDistance(incomingOrder)} km total trip</p>
+ </div>
+ 
+ <div className="flex justify-between items-center bg-[#e31837]/5 rounded-2xl p-4 border border-[#e31837]/10">
+    <div className="flex items-center gap-2 text-slate-700 font-bold">
+      <IndianRupee size={20} className="text-[#e31837]" /> Est. Payout
+    </div>
+    <div className="text-2xl font-black text-[#e31837]">₹{incomingOrder?.deliveryFee || 40}</div>
  </div>
  </div>
 
- <div className="flex gap-3 border-t border-slate-800 p-4 sm:p-5">
- <button
- onClick={handleAcceptOrder}
- className="flex-1 rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-brand-400"
- >
- Accept
- </button>
+ <div className="flex gap-4 p-6 bg-white border-t border-slate-100">
  <button
  onClick={handleDismissOrder}
- className="rounded-2xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white border border-gray-200"
+ className="flex-1 rounded-xl bg-slate-100 px-4 py-4 text-sm font-bold text-slate-600 transition hover:bg-slate-200"
  >
- Dismiss
+ Decline
+ </button>
+ <button
+ onClick={handleAcceptOrder}
+ className="flex-[2] rounded-xl bg-gradient-to-r from-[#c8102e] to-[#e31837] px-4 py-4 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-[#e31837]/30 transform active:scale-95 flex items-center justify-center gap-2"
+ >
+ <Zap size={18} className="fill-current" /> Accept Delivery
  </button>
  </div>
  </motion.div>
@@ -183,74 +201,80 @@ const Dashboard = () => {
 
  {/* Welcome Banner */}
  {user?.kyc?.status !== 'approved' ? (
- <div className="bg-rose-500/10 border-2 border-rose-500 rounded-3xl p-6 text-rose-500 relative overflow-hidden shadow-lg mb-6">
+ <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 text-rose-700 relative overflow-hidden shadow-sm mb-6">
  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
  <div>
  <h1 className="text-2xl font-black mb-2 flex items-center gap-2">
- <Shield className="w-6 h-6" /> 
+ <Shield className="w-6 h-6 text-rose-500" /> 
  {user?.kyc?.status === 'pending_review' ? 'KYC Under Review' : 'KYC Verification Required'}
  </h1>
- <p className="text-sm font-semibold">
+ <p className="text-sm font-medium">
  {user?.kyc?.status === 'pending_review' 
  ? 'Your documents are being reviewed by our team. You will be notified once approved.' 
  : 'Please upload your mandatory KYC documents in the Settings > Vehicle & Docs section to start accepting deliveries.'}
  </p>
  </div>
- <div className="hidden md:flex items-center justify-center w-16 h-16 bg-rose-500/20 rounded-2xl">
+ <div className="hidden md:flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-sm border border-rose-100 text-rose-500">
  <X className="w-8 h-8" />
  </div>
  </div>
  </div>
  ) : (
- <div className="bg-gradient-to-r from-brand-600 to-brand-400 rounded-3xl p-8 text-slate-900 relative overflow-hidden shadow-lg mb-6">
- <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+ <div className="bg-slate-900 rounded-[2.5rem] p-8 sm:p-10 text-white relative overflow-hidden shadow-2xl mb-8 group">
+ <div className="absolute right-0 top-0 w-96 h-96 bg-gradient-to-br from-[#e31837]/40 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:scale-110 transition-transform duration-700"></div>
+ <div className="absolute left-0 bottom-0 w-64 h-64 bg-gradient-to-tr from-[#10b981]/20 to-transparent rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
  <div className="relative z-10 flex items-center justify-between">
  <div>
- <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name || 'Rider'}! 👋</h1>
- <p className="text-brand-100 text-lg">You're currently <span className="font-bold text-slate-900">online</span> and ready to accept deliveries.</p>
+ <p className="text-[#e31837] font-black tracking-[0.2em] uppercase text-xs mb-3 flex items-center gap-2">
+  <span className="w-2 h-2 rounded-full bg-[#e31837] animate-pulse"></span> Rider Dashboard
+ </p>
+ <h1 className="text-4xl sm:text-5xl font-black mb-4 tracking-tight">Welcome back, <br className="sm:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{user?.name || 'Rider'}!</span></h1>
+ <p className="text-slate-400 text-lg font-medium">You're currently <span className="text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded-md">ONLINE</span> and ready to earn.</p>
  </div>
- <div className="hidden md:flex items-center justify-center w-20 h-20 bg-white/20 rounded-2xl backdrop-blur-md border border-white/30">
- <Bike size={40} className="text-slate-900 animate-bounce" />
+ <div className="hidden md:flex items-center justify-center w-32 h-32 bg-white/5 rounded-3xl backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(227,24,55,0.2)]">
+ <Bike size={56} className="text-white transform group-hover:translate-x-2 transition-transform duration-500" />
  </div>
  </div>
  </div>
  )}
 
  {/* Quick Stats Grid */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
  {[
- { label: "Today's Earnings", value: '₹640', icon: IndianRupee, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
- { label: 'Deliveries Done', value: '8', icon: Bike, color: 'text-brand-400', bg: 'bg-brand-500/10' },
- { label: 'Time Online', value: '4.5h', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10' },
- { label: 'Current Rating', value: '4.9', icon: Star, color: 'text-yellow-400', bg: 'bg-yellow-500/10' }
+ { label: "Today's Earnings", value: '₹640', icon: IndianRupee, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100', trend: '+12%' },
+ { label: 'Deliveries Done', value: '8', icon: Bike, color: 'text-[#e31837]', bg: 'bg-rose-50', border: 'border-rose-100', trend: null },
+ { label: 'Time Online', value: '4.5h', icon: Clock, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100', trend: null },
+ { label: 'Current Rating', value: '4.9', icon: Star, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', trend: null }
  ].map((stat, i) => (
  <motion.div 
  key={i}
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
- transition={{ delay: i * 0.1 }}
- className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col justify-center shadow-md"
+ transition={{ delay: i * 0.1, type: "spring" }}
+ className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
  >
- <div className="flex justify-between items-start mb-4">
- <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
- <stat.icon size={20} />
+ <div className="flex justify-between items-start mb-6">
+ <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} ${stat.border} border group-hover:scale-110 transition-transform duration-300`}>
+ <stat.icon size={24} />
  </div>
- {i === 0 && <span className="text-xs font-medium text-emerald-400 flex items-center gap-1"><TrendingUp size={14} /> +12%</span>}
+ {stat.trend && <span className="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100"><TrendingUp size={14} /> {stat.trend}</span>}
  </div>
- <h3 className="text-slate-600 text-sm font-medium mb-1">{stat.label}</h3>
- <div className="text-3xl font-bold text-slate-900">{stat.value}</div>
+ <h3 className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">{stat.label}</h3>
+ <div className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</div>
  </motion.div>
  ))}
  </div>
 
  {/* Main Content Area */}
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+ <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
  
  {/* Recent Activity */}
- <div className="col-span-1 md:col-span-2 bg-white border border-gray-100 shadow-sm rounded-3xl p-6">
- <div className="flex justify-between items-center mb-6">
- <h2 className="text-xl font-bold text-slate-900">Recent Deliveries</h2>
- <button className="text-sm text-[#e31837] hover:text-orange-400 font-medium">View All</button>
+ <div className="col-span-1 lg:col-span-2 bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] p-8">
+ <div className="flex justify-between items-center mb-8">
+ <h2 className="text-2xl font-black text-slate-900">Recent Deliveries</h2>
+ <button className="text-sm text-[#e31837] hover:text-[#c8102e] font-bold flex items-center gap-1 group">
+   View All <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+ </button>
  </div>
  
  <div className="space-y-4">
@@ -259,324 +283,81 @@ const Dashboard = () => {
  { id: 'BD-20491', res: 'La Piazza Woodfired', amt: 180, time: '1 hour ago', status: 'completed' },
  { id: 'BD-84729', res: 'Ninja Roll & Asian House', amt: 140, time: '3 hours ago', status: 'completed' }
  ].map(delivery => (
- <div key={delivery.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-gray-200/50 hover:bg-white border border-gray-200 transition-colors cursor-pointer">
- <div className="flex items-center gap-4">
- <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-400">
- <Check size={20} />
+ <div key={delivery.id} className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md hover:border-[#e31837]/20 transition-all cursor-pointer group">
+ <div className="flex items-center gap-5">
+ <div className="w-12 h-12 bg-white border border-slate-200 rounded-full flex items-center justify-center text-emerald-500 shadow-sm group-hover:scale-110 transition-transform">
+ <Check size={20} className="stroke-[3]" />
  </div>
  <div>
- <h4 className="font-bold text-slate-900">{delivery.res}</h4>
- <p className="text-xs text-slate-600">Order {delivery.id} • {delivery.time}</p>
+ <h4 className="font-bold text-slate-900 text-base">{delivery.res}</h4>
+ <p className="text-xs font-medium text-slate-500 mt-1">Order #{delivery.id} • {delivery.time}</p>
  </div>
  </div>
  <div className="text-right">
- <div className="font-bold text-emerald-400">+₹{delivery.amt}</div>
+ <div className="font-black text-lg text-slate-900">+₹{delivery.amt}</div>
+ <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 mt-1">Paid</div>
  </div>
  </div>
  ))}
  </div>
  </div>
 
- {/* Level & Rewards */}
- <div className="col-span-1 space-y-6">
- <div className="bg-white border border-gray-100 shadow-sm rounded-3xl p-6">
- <div className="flex items-center gap-3 mb-6">
- <div className="p-2 bg-yellow-500/10 text-yellow-400 rounded-lg">
- <Award size={24} />
+ {/* Level & Rewards & Quick Actions */}
+ <div className="col-span-1 space-y-8">
+ {/* Tier Card */}
+ <div className="bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-orange-500/20 rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+ <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4"></div>
+ 
+ <div className="flex items-center gap-4 mb-8 relative z-10">
+ <div className="p-3 bg-white/20 backdrop-blur-md text-white rounded-2xl border border-white/30 shadow-inner">
+ <Award size={32} />
  </div>
  <div>
- <h2 className="text-lg font-bold text-slate-900">Gold Tier</h2>
- <p className="text-xs text-slate-600">Pro Rider Status</p>
+ <p className="text-[10px] uppercase font-black tracking-[0.2em] text-white/80 mb-1">Rider Status</p>
+ <h2 className="text-2xl font-black">Gold Tier</h2>
  </div>
  </div>
  
- <div className="space-y-2 mb-6">
- <div className="flex justify-between text-sm font-medium">
- <span className="text-slate-300">86/100 Trips</span>
- <span className="text-orange-400">14 to Platinum</span>
+ <div className="space-y-3 mb-8 relative z-10">
+ <div className="flex justify-between text-sm font-bold">
+ <span className="text-white">86/100 Trips</span>
+ <span className="text-white/80">14 to Platinum</span>
  </div>
- <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
- <div className="h-full bg-gradient-to-r from-[#e31837] to-yellow-400 rounded-full" style={{ width: '86%' }}></div>
+ <div className="w-full h-3 bg-black/20 rounded-full overflow-hidden backdrop-blur-sm border border-white/10">
+ <div className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] relative">
+    <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-white/0 to-white/50 animate-pulse"></div>
+ </div>
  </div>
  </div>
 
  <button 
  onClick={() => setShowTierModal(true)}
- className="w-full py-3 bg-slate-50 hover:bg-white border border-gray-200 text-slate-900 font-medium rounded-xl border border-gray-200 transition-colors flex justify-between items-center px-4"
+ className="w-full py-4 bg-white/20 hover:bg-white text-white hover:text-orange-500 font-black rounded-2xl border border-white/30 transition-all flex justify-between items-center px-6 backdrop-blur-md relative z-10"
  >
- View Tier Benefits <ChevronRight size={16} className="text-slate-600" />
+ View Tier Benefits <ChevronRight size={18} />
  </button>
  </div>
 
  {/* Quick Actions */}
- <div className="bg-white border border-gray-100 shadow-sm rounded-3xl p-6">
- <h2 className="text-lg font-bold text-slate-900 mb-4">Quick Actions</h2>
- <div className="space-y-3">
+ <div className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] p-8">
+ <h2 className="text-xl font-black text-slate-900 mb-6">Quick Support</h2>
+ <div className="space-y-4">
  <button 
  onClick={() => setShowSupportModal(true)}
- className="w-full flex items-center gap-3 p-3 bg-slate-50 hover:bg-white border border-gray-200 rounded-xl transition-colors text-left border border-gray-200/50"
+ className="w-full flex items-center gap-4 p-4 bg-slate-50 hover:bg-white border border-slate-100 hover:border-[#e31837]/30 rounded-2xl transition-all text-left group hover:shadow-md"
  >
- <Shield size={18} className="text-blue-400" />
- <div>
- <div className="text-sm font-bold text-slate-900">Help & Support</div>
- <div className="text-xs text-slate-600">Contact rider care</div>
- </div>
- </button>
- </div>
- </div>
- </div>
- </div>
-
- {/* Tier Benefits Modal */}
- <AnimatePresence>
- {showTierModal && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
- <motion.div 
- initial={{ opacity: 0 }}
- animate={{ opacity: 1 }}
- exit={{ opacity: 0 }}
- className="absolute inset-0 bg-black/60 backdrop-blur-sm"
- onClick={() => setShowTierModal(false)}
- />
- <motion.div 
- initial={{ opacity: 0, scale: 0.95, y: 20 }}
- animate={{ opacity: 1, scale: 1, y: 0 }}
- exit={{ opacity: 0, scale: 0.95, y: 20 }}
- className="relative bg-slate-50 border border-gray-200 rounded-3xl w-full max-w-md p-6 overflow-hidden shadow-2xl"
- >
- <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-yellow-500/20 to-transparent"></div>
- 
- <div className="flex justify-between items-start relative z-10">
- <div className="p-3 bg-yellow-500/20 text-yellow-500 rounded-2xl mb-4">
- <Award size={32} />
- </div>
- <button onClick={() => setShowTierModal(false)} className="p-2 text-slate-600 hover:text-slate-900 bg-white border border-gray-200 rounded-full transition-colors">
- <X size={20} />
- </button>
- </div>
- 
- <h2 className="text-2xl font-bold text-slate-900 mb-1 relative z-10">Gold Tier Benefits</h2>
- <p className="text-sm text-slate-600 mb-6 relative z-10">You are in the top 15% of riders! Enjoy these exclusive perks.</p>
- 
- <div className="space-y-4 relative z-10">
- <div className="flex items-start gap-4 p-4 bg-white border border-gray-100 shadow-sm rounded-2xl border border-gray-200">
- <IndianRupee className="text-emerald-400 mt-0.5" size={20} />
- <div>
- <h3 className="font-bold text-slate-900 text-sm">5% Earnings Boost</h3>
- <p className="text-xs text-slate-600">Earn extra on every completed delivery.</p>
- </div>
- </div>
- <div className="flex items-start gap-4 p-4 bg-white border border-gray-100 shadow-sm rounded-2xl border border-gray-200">
- <Shield className="text-blue-400 mt-0.5" size={20} />
- <div>
- <h3 className="font-bold text-slate-900 text-sm">Free Accidental Insurance</h3>
- <p className="text-xs text-slate-600">Coverage up to ₹5 Lakhs while on duty.</p>
- </div>
- </div>
- <div className="flex items-start gap-4 p-4 bg-white border border-gray-100 shadow-sm rounded-2xl border border-gray-200">
- <PhoneCall className="text-orange-400 mt-0.5" size={20} />
- <div>
- <h3 className="font-bold text-slate-900 text-sm">Priority Support Routing</h3>
- <p className="text-xs text-slate-600">Skip the queue when calling rider care.</p>
- </div>
- </div>
- </div>
- 
- <button 
- onClick={() => setShowTierModal(false)}
- className="w-full mt-6 py-3 bg-[#e31837] hover:bg-[#c8102e] text-white font-bold rounded-xl transition-colors"
- >
- Awesome!
- </button>
- </motion.div>
- </div>
- )}
- </AnimatePresence>
-
- {/* Help & Support Modal */}
- <AnimatePresence>
- {showSupportModal && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
- <motion.div 
- initial={{ opacity: 0 }}
- animate={{ opacity: 1 }}
- exit={{ opacity: 0 }}
- className="absolute inset-0 bg-black/60 backdrop-blur-sm"
- onClick={() => setShowSupportModal(false)}
- />
- <motion.div 
- initial={{ opacity: 0, scale: 0.95, y: 20 }}
- animate={{ opacity: 1, scale: 1, y: 0 }}
- exit={{ opacity: 0, scale: 0.95, y: 20 }}
- className="relative bg-slate-50 border border-gray-200 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
- >
- {showChat ? (
- // --- CHAT INTERFACE ---
- <>
- <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-slate-50 z-10 shrink-0">
- <div className="flex items-center gap-3">
- <button onClick={() => setShowChat(false)} className="p-2 text-slate-600 hover:text-slate-900 transition-colors">
- <ArrowLeft size={20} />
- </button>
- <div className="flex items-center gap-2">
- <div className="w-8 h-8 bg-[#e31837] rounded-full flex items-center justify-center text-slate-900 font-bold text-xs">
- BD
+ <div className="p-3 bg-white rounded-xl shadow-sm group-hover:bg-[#e31837]/10 transition-colors">
+    <Shield size={20} className="text-[#e31837]" />
  </div>
  <div>
- <h2 className="text-sm font-bold text-slate-900 leading-none">Rider Support</h2>
- <span className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
- <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> Typically replies in 2 mins
- </span>
+ <div className="text-sm font-bold text-slate-900 group-hover:text-[#e31837] transition-colors">Help Center</div>
+ <div className="text-xs font-medium text-slate-500 mt-1">Contact rider care instantly</div>
  </div>
- </div>
- </div>
- <button 
- onClick={() => { setShowSupportModal(false); setShowChat(false); }} 
- className="p-2 text-slate-600 hover:text-slate-900 bg-white border border-gray-200 rounded-full transition-colors"
- >
- <X size={20} />
  </button>
  </div>
- 
- {/* Messages Area */}
- <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-950/50 min-h-[300px]">
- {messages.map(msg => (
- <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
- <div className={`max-w-[80%] rounded-2xl p-3 ${msg.sender === 'user' ? 'bg-[#e31837] text-white rounded-br-sm' : 'bg-white border border-gray-200 text-slate-200 rounded-bl-sm border border-gray-200'}`}>
- <p className="text-sm">{msg.text}</p>
- <span className={`text-[9px] block mt-1 ${msg.sender === 'user' ? 'text-orange-200 text-right' : 'text-slate-600'}`}>
- {msg.time}
- </span>
- </div>
- </div>
- ))}
- </div>
-
- {/* Input Area */}
- <div className="p-4 bg-slate-50 border-t border-slate-800 shrink-0">
- <form onSubmit={handleSendMessage} className="relative flex items-center">
- <input 
- type="text" 
- value={inputText}
- onChange={(e) => setInputText(e.target.value)}
- placeholder="Type your message..." 
- className="w-full bg-white border border-gray-200 border border-gray-200 text-slate-900 text-sm rounded-full pl-4 pr-12 py-3 focus:outline-none focus:border-[#e31837] transition-colors"
- />
- <button 
- type="submit" 
- disabled={!inputText.trim()}
- className="absolute right-2 p-2 bg-[#e31837] text-white rounded-full hover:bg-[#c8102e] disabled:opacity-50 disabled:hover:bg-[#e31837] transition-colors"
- >
- <Send size={16} />
- </button>
- </form>
- </div>
- </>
- ) : (
- // --- DEFAULT SUPPORT MENU ---
- <div className="p-6">
- <div className="flex justify-between items-center mb-6">
- <h2 className="text-xl font-bold text-slate-900">Help & Support</h2>
- <button onClick={() => setShowSupportModal(false)} className="p-2 text-slate-600 hover:text-slate-900 bg-white border border-gray-200 rounded-full transition-colors">
- <X size={20} />
- </button>
- </div>
- 
- <div className="grid grid-cols-2 gap-4 mb-6">
- <a href="tel:18005550199" className="flex flex-col items-center justify-center gap-2 p-4 bg-white border border-gray-200 hover:bg-slate-50 rounded-2xl border border-gray-200 transition-colors">
- <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center">
- <PhoneCall size={24} />
- </div>
- <span className="text-sm font-bold text-slate-900">Call Us</span>
- </a>
- <a href="mailto:rider@appsica.com" className="flex flex-col items-center justify-center gap-2 p-4 bg-white border border-gray-200 hover:bg-slate-50 rounded-2xl border border-gray-200 transition-colors">
- <div className="w-12 h-12 bg-[#e31837]/10 text-orange-400 rounded-full flex items-center justify-center">
- <Mail size={24} />
- </div>
- <span className="text-sm font-bold text-slate-900">Email</span>
- </a>
- </div>
-
- <button 
- onClick={() => setShowChat(true)}
- className="w-full flex items-center justify-center gap-3 py-3.5 bg-white border border-gray-200 hover:bg-slate-50 text-slate-900 font-bold rounded-xl transition-colors border border-gray-200"
- >
- <MessageSquare size={18} className="text-slate-600" /> Open Chat Support
- </button>
- </div>
- )}
- </motion.div>
- </div>
- )}
- </AnimatePresence>
-
- {/* Incoming Order Modal */}
- <AnimatePresence>
- {incomingOrder && (
- <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
- <motion.div 
- initial={{ opacity: 0 }} 
- animate={{ opacity: 1 }} 
- exit={{ opacity: 0 }} 
- className="absolute inset-0 bg-slate-50/60 backdrop-blur-sm"
- />
- <motion.div 
- initial={{ opacity: 0, scale: 0.9, y: 20 }} 
- animate={{ opacity: 1, scale: 1, y: 0 }} 
- exit={{ opacity: 0, scale: 0.9, y: 20 }}
- className="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-brand-500/50"
- >
- <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-brand-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg animate-bounce">
- <Bike className="w-10 h-10 text-slate-900" />
- </div>
-
- <div className="text-center mt-12 mb-6">
- <h3 className="text-xs font-black uppercase text-brand-500 tracking-widest mb-1">New Delivery Request</h3>
- <h2 className="text-2xl font-bold text-slate-800 ">Order #{incomingOrder._id?.substring(0, 8)}</h2>
- </div>
-
- <div className="space-y-4 mb-6">
- <div className="flex items-start gap-3 p-3 bg-pink-50 rounded-2xl">
- <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
- <Navigation className="w-4 h-4 text-slate-600 " />
- </div>
- <div>
- <p className="text-xs text-slate-600 font-bold uppercase mb-0.5">Pickup From</p>
- <p className="text-sm font-semibold text-slate-800 ">{incomingOrder.store?.name || 'Store'}</p>
- </div>
- </div>
-
- <div className="flex items-start gap-3 p-3 bg-brand-50 rounded-2xl border border-brand-100 ">
- <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center shrink-0">
- <MapPin className="w-4 h-4 text-brand-600 " />
- </div>
- <div>
- <p className="text-xs text-brand-500 font-bold uppercase mb-0.5">Deliver To</p>
- <p className="text-sm font-semibold text-slate-800 line-clamp-2">
- {incomingOrder.deliveryAddress?.street}, {incomingOrder.deliveryAddress?.city}
- </p>
  </div>
  </div>
  </div>
-
- <div className="flex items-center gap-3">
- <button 
- onClick={() => setIncomingOrder(null)}
- className="flex-1 py-3.5 rounded-xl bg-pink-100 text-slate-600 font-bold transition-colors hover:bg-slate-200 :bg-slate-700"
- >
- Decline
- </button>
- <button 
- onClick={handleAcceptOrder}
- className="flex-[2] py-3.5 rounded-xl bg-brand-500 text-slate-900 font-bold transition-all hover:bg-brand-600 active:scale-95 shadow-lg shadow-brand-500/30"
- >
- Accept Order
- </button>
- </div>
- </motion.div>
- </div>
- )}
- </AnimatePresence>
 
  </div>
  );
