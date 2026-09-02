@@ -5,17 +5,40 @@ import { motion } from 'framer-motion';
 const Analytics = () => {
  const [timeRange, setTimeRange] = useState('This Week');
  
- // Mock Data
- const weeklySales = [
- { day: 'Mon', revenue: 12500, orders: 45 },
- { day: 'Tue', revenue: 14200, orders: 52 },
- { day: 'Wed', revenue: 11800, orders: 41 },
- { day: 'Thu', revenue: 15600, orders: 58 },
- { day: 'Fri', revenue: 22400, orders: 85 },
- { day: 'Sat', revenue: 31500, orders: 120 },
- { day: 'Sun', revenue: 28900, orders: 105 },
- ];
- 
+  // Dynamic Mock Data
+  const getChartData = () => {
+    switch (timeRange) {
+      case 'Today':
+        return [
+          { label: '6 AM', revenue: 1500 }, { label: '9 AM', revenue: 4200 },
+          { label: '12 PM', revenue: 5800 }, { label: '3 PM', revenue: 3100 },
+          { label: '6 PM', revenue: 8600 }, { label: '9 PM', revenue: 6400 }
+        ];
+      case 'This Month':
+        return [
+          { label: 'Week 1', revenue: 85000 }, { label: 'Week 2', revenue: 92000 },
+          { label: 'Week 3', revenue: 78000 }, { label: 'Week 4', revenue: 110000 }
+        ];
+      case 'This Year':
+        return [
+          { label: 'Q1', revenue: 340000 }, { label: 'Q2', revenue: 420000 },
+          { label: 'Q3', revenue: 580000 }, { label: 'Q4', revenue: 720000 }
+        ];
+      case 'This Week':
+      default:
+        return [
+          { label: 'Mon', revenue: 12500 }, { label: 'Tue', revenue: 14200 },
+          { label: 'Wed', revenue: 11800 }, { label: 'Thu', revenue: 15600 },
+          { label: 'Fri', revenue: 22400 }, { label: 'Sat', revenue: 31500 },
+          { label: 'Sun', revenue: 28900 }
+        ];
+    }
+  };
+
+  const chartData = getChartData();
+  const maxRevenue = Math.max(...chartData.map(d => d.revenue));
+  const totalRevenue = chartData.reduce((sum, item) => sum + item.revenue, 0);
+
   const peakHours = [
     { hour: '8 AM', intensity: 80 },
     { hour: '11 AM', intensity: 40 },
@@ -25,8 +48,6 @@ const Analytics = () => {
     { hour: '11 PM', intensity: 60 },
     { hour: '2 AM', intensity: 15 },
   ];
-
- const maxRevenue = Math.max(...weeklySales.map(d => d.revenue));
 
  return (
  <div className="max-w-6xl mx-auto space-y-6">
@@ -66,33 +87,32 @@ const Analytics = () => {
  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{timeRange}</p>
  </div>
  <div className="text-right">
- <p className="text-3xl font-black text-slate-900 ">₹1,36,900</p>
+ <p className="text-3xl font-black text-slate-900 ">₹{totalRevenue.toLocaleString()}</p>
  <p className="text-xs font-bold text-emerald-500 flex items-center justify-end gap-1 mt-1">
- <TrendingUp className="w-3 h-3" /> +14.5% vs last week
+ <TrendingUp className="w-3 h-3" /> {timeRange === 'Today' ? '+5.2%' : '+14.5%'} vs previous
  </p>
  </div>
  </div>
  
  {/* CSS Bar Chart */}
- <div className="h-64 flex items-end justify-between gap-2 mt-4">
- {weeklySales.map((data, idx) => {
- const heightPercentage = (data.revenue / maxRevenue) * 100;
+ <div className="h-64 flex items-end justify-between gap-2 mt-4 relative">
+ {chartData.map((data, idx) => {
+ const heightPercentage = Math.max((data.revenue / maxRevenue) * 100, 5); // min 5% height
+ const isHighlight = data.revenue === maxRevenue;
  return (
- <div key={idx} className="flex flex-col items-center flex-1 group">
+ <div key={idx} className="flex flex-col items-center flex-1 group h-full justify-end">
  <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 mb-2 whitespace-nowrap">
- ₹{(data.revenue/1000).toFixed(1)}k
+ ₹{(data.revenue > 1000 ? (data.revenue/1000).toFixed(1) + 'k' : data.revenue)}
  </div>
- <div className="w-full max-w-[40px] bg-slate-100 rounded-t-xl relative overflow-hidden group-hover:bg-slate-200 :bg-slate-700 transition-colors" style={{ height: '100%' }}>
- <motion.div 
- initial={{ height: 0 }}
- animate={{ height: `${heightPercentage}%` }}
- transition={{ duration: 1, delay: idx * 0.1, type: 'spring' }}
- className={`absolute bottom-0 left-0 right-0 rounded-t-xl ${
- idx === 5 || idx === 6 ? 'bg-[#e31837] shadow-[0_0_15px_rgba(227,24,55,0.4)]' : 'bg-slate-800'
+ <div className="w-full max-w-[40px] bg-slate-100 rounded-t-xl relative overflow-hidden group-hover:bg-slate-200 transition-colors flex flex-col justify-end h-full">
+ <div 
+ style={{ height: `${heightPercentage}%` }}
+ className={`w-full rounded-t-xl transition-all duration-1000 ease-out ${
+ isHighlight ? 'bg-[#e31837] shadow-[0_0_15px_rgba(227,24,55,0.4)]' : 'bg-slate-800'
  }`}
- ></motion.div>
+ ></div>
  </div>
- <span className="text-xs font-bold text-slate-400 mt-3">{data.day}</span>
+ <span className="text-xs font-bold text-slate-400 mt-3">{data.label}</span>
  </div>
  );
  })}
