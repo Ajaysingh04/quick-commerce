@@ -219,6 +219,7 @@ const CouponManage = () => {
               className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold text-slate-700"
             />
           </div>
+          </div>
 
           <button 
             type="submit"
