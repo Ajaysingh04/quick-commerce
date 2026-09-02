@@ -2,6 +2,7 @@ import Order from '../models/Order.js';
 import Store from '../models/Store.js';
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
+import Coupon from '../models/Coupon.js';
 
 // Helper to get partner's store
 const getPartnerStore = async (userId) => {
@@ -236,6 +237,65 @@ export const updateProfile = async (req, res) => {
 
     await store.save();
     res.json(store);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get Promos
+// @route   GET /api/partner/promos
+// @access  Private (Partner)
+export const getPromos = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const coupons = await Coupon.find({ store: store._id }).sort('-createdAt');
+    res.json(coupons);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Add Promo
+// @route   POST /api/partner/promos
+// @access  Private (Partner)
+export const addPromo = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const { code, type, value, expiry, usageLimit } = req.body;
+
+    const couponExists = await Coupon.findOne({ code: code.toUpperCase() });
+    if (couponExists) {
+      return res.status(400).json({ message: 'Coupon code already exists' });
+    }
+
+    const coupon = await Coupon.create({
+      code: code.toUpperCase(),
+      discountType: type,
+      discountValue: value ? parseFloat(value) : undefined,
+      validTo: new Date(expiry),
+      usageLimit: usageLimit ? parseInt(usageLimit) : undefined,
+      store: store._id,
+      isActive: true
+    });
+
+    res.status(201).json(coupon);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete Promo
+// @route   DELETE /api/partner/promos/:id
+// @access  Private (Partner)
+export const deletePromo = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    // Find and delete the promo ensuring it belongs to this partner's store
+    const coupon = await Coupon.findOneAndDelete({ _id: req.params.id, store: store._id });
+    
+    if (!coupon) return res.status(404).json({ message: 'Promo not found or unauthorized' });
+
+    res.json({ message: 'Promo deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

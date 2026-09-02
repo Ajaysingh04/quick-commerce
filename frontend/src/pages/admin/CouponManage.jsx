@@ -9,9 +9,11 @@ const CouponManage = () => {
   // Form State
   const [couponId, setCouponId] = useState(null);
   const [code, setCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState('');
+  const [discountType, setDiscountType] = useState('percentage');
+  const [discountValue, setDiscountValue] = useState('');
   const [maxDiscount, setMaxDiscount] = useState('');
   const [minOrderValue, setMinOrderValue] = useState('');
+  const [usageLimit, setUsageLimit] = useState('');
   const [validTo, setValidTo] = useState('');
   
   const [success, setSuccess] = useState('');
@@ -48,9 +50,11 @@ const CouponManage = () => {
     try {
       const payload = {
         code: code.toUpperCase(),
-        discountPercent: parseFloat(discountPercent),
+        discountType,
+        discountValue: discountValue ? parseFloat(discountValue) : undefined,
         maxDiscount: maxDiscount ? parseFloat(maxDiscount) : undefined,
         minOrderValue: minOrderValue ? parseFloat(minOrderValue) : 0,
+        usageLimit: usageLimit ? parseInt(usageLimit) : undefined,
         validTo: validTo ? new Date(validTo) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       };
 
@@ -77,18 +81,22 @@ const CouponManage = () => {
   const resetForm = () => {
     setCouponId(null);
     setCode('');
-    setDiscountPercent('');
+    setDiscountType('percentage');
+    setDiscountValue('');
     setMaxDiscount('');
     setMinOrderValue('');
+    setUsageLimit('');
     setValidTo('');
   };
 
   const handleEdit = (cp) => {
     setCouponId(cp._id);
     setCode(cp.code);
-    setDiscountPercent(cp.discountPercent || '');
+    setDiscountType(cp.discountType || 'percentage');
+    setDiscountValue(cp.discountValue || cp.discountPercent || '');
     setMaxDiscount(cp.maxDiscount || '');
     setMinOrderValue(cp.minOrderValue || '');
+    setUsageLimit(cp.usageLimit || '');
     if (cp.validTo) {
       const dateStr = new Date(cp.validTo).toISOString().split('T')[0];
       setValidTo(dateStr);
@@ -141,19 +149,30 @@ const CouponManage = () => {
               className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm uppercase font-mono font-bold"
             />
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Discount %</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Discount Type</label>
+              <select 
+                value={discountType} 
+                onChange={(e) => setDiscountType(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+              >
+                <option value="percentage">Percentage (%)</option>
+                <option value="flat">Flat (₹)</option>
+                <option value="bogo">BOGO</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Discount Value</label>
               <input 
                 type="number" 
-                required
-                max="100"
+                required={discountType !== 'bogo'}
+                disabled={discountType === 'bogo'}
                 min="1"
-                placeholder="20"
-                value={discountPercent}
-                onChange={(e) => setDiscountPercent(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+                placeholder={discountType === 'percentage' ? "20" : "150"}
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold disabled:opacity-50"
               />
             </div>
             <div>
@@ -166,19 +185,30 @@ const CouponManage = () => {
                 className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
               />
             </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Usage Limit</label>
+              <input 
+                type="number" 
+                placeholder="Unlimited if empty"
+                value={usageLimit}
+                onChange={(e) => setUsageLimit(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+              />
+            </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Min Order Value (₹)</label>
-            <input 
-              type="number" 
-              required
-              placeholder="250"
-              value={minOrderValue}
-              onChange={(e) => setMinOrderValue(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
-            />
-          </div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Min Order Value (₹)</label>
+              <input 
+                type="number" 
+                required
+                placeholder="250"
+                value={minOrderValue}
+                onChange={(e) => setMinOrderValue(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-transparent outline-none focus:border-emerald-600 text-sm font-bold"
+              />
+            </div>
 
             <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Valid Until</label>
@@ -216,6 +246,7 @@ const CouponManage = () => {
                   <th className="py-3 px-4">Coupon Code</th>
                   <th className="py-3 px-4">Discount</th>
                   <th className="py-3 px-4">Min Spend</th>
+                  <th className="py-3 px-4">Store</th>
                   <th className="py-3 px-4">Active Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -224,8 +255,14 @@ const CouponManage = () => {
                 {coupons.map((cp) => (
                   <tr key={cp._id} className={`hover:bg-emerald-50 transition-colors ${couponId === cp._id ? 'bg-emerald-50/50' : ''}`}>
                     <td className="py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-emerald-600">{cp.code}</td>
-                    <td className="py-3.5 px-4">{cp.discountPercent}% {cp.maxDiscount ? `(Up to ₹${cp.maxDiscount})` : ''}</td>
+                    <td className="py-3.5 px-4">
+                      {cp.discountType === 'percentage' ? `${cp.discountValue || cp.discountPercent}%` : cp.discountType === 'flat' ? `₹${cp.discountValue}` : 'BOGO'} 
+                      {cp.maxDiscount && cp.discountType === 'percentage' ? ` (Up to ₹${cp.maxDiscount})` : ''}
+                    </td>
                     <td className="py-3.5 px-4">₹{cp.minOrderValue || 0}</td>
+                    <td className="py-3.5 px-4 text-xs font-bold text-slate-500">
+                      {cp.store ? cp.store.name : <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded">Platform</span>}
+                    </td>
                     <td className="py-3.5 px-4">
                       <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${cp.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 text-slate-500'}`}>
                         {cp.isActive ? 'Active' : 'Expired/Paused'}

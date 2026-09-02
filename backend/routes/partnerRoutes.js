@@ -12,8 +12,10 @@ import {
   updateProfile,
   getStaff,
   inviteStaff,
-  acceptStaffInvite,
-  getPartnerReviews
+  getPartnerReviews,
+  getPromos,
+  addPromo,
+  deletePromo
 } from '../controllers/partnerController.js';
 import { updateOrderStatus } from '../controllers/orderController.js';
 
@@ -44,10 +46,13 @@ router.put('/menu/:id', updateProduct);
 router.delete('/menu/:id', deleteProduct);
 router.put('/menu/:id/stock', updateProductStock);
 
-// Profile
-
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 router.get('/reviews', getPartnerReviews);
+
+// Promos
+router.get('/promos', getPromos);
+router.post('/promos', addPromo);
+router.delete('/promos/:id', deletePromo);
 
 export default router;
