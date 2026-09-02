@@ -211,14 +211,12 @@ const ProductManage = () => {
   const filteredCatalog = products.filter(product => {
     const productName = product?.name || '';
     const storeName = product?.store?.name || '';
-    const productCatName = product?.category?.name || '';
     
     const matchesSearch = productName.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           storeName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesVeg = filterVeg === 'all' ? true : (filterVeg === 'veg' ? product.isVeg : !product.isVeg);
-    const matchesCat = selectedTemplateCategory === 'All' ? true : productCatName.toLowerCase() === selectedTemplateCategory.toLowerCase();
     
-    return matchesSearch && matchesVeg && matchesCat;
+    return matchesSearch && matchesVeg;
   });
 
   const handleBulkUpload = async (e) => {
