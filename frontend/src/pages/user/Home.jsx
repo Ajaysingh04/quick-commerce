@@ -18,7 +18,8 @@ const Home = () => {
 
   const [heroBanners, setHeroBanners] = useState([]);
   const [promoBanners, setPromoBanners] = useState([]);
-  const [featuredStores, setFeaturedStores] = useState([]);
+  const [allStores, setAllStores] = useState([]);
+  const [showAllStores, setShowAllStores] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,7 @@ const Home = () => {
         API.get('/banners/active'),
         API.get('/products?limit=100'),
         API.get('/products/categories'),
-        API.get('/stores?featured=true')
+        API.get('/stores')
       ]);
       
       const banners = bannersRes.data;
@@ -48,7 +49,7 @@ const Home = () => {
         id: p._id || p.id
       }));
       setAllProducts(fetchedProducts);
-      setFeaturedStores(storesRes.data);
+      setAllStores(storesRes.data);
 
     } catch (error) {
       console.error('Failed to fetch home data', error);
@@ -167,26 +168,29 @@ const Home = () => {
       {/* Featured Stores */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-black text-gray-900">Featured Stores</h2>
-          <span onClick={() => navigate('/stores')} className="text-gray-500 text-sm font-semibold cursor-pointer hover:text-[#0a4733] flex items-center gap-1">
-            See more <ChevronRight className="w-4 h-4"/>
+          <h2 className="text-2xl font-black text-gray-900">{showAllStores ? 'All Stores' : 'Featured Stores'}</h2>
+          <span onClick={() => setShowAllStores(!showAllStores)} className="text-gray-500 text-sm font-semibold cursor-pointer hover:text-[#0a4733] flex items-center gap-1">
+            {showAllStores ? 'See less' : 'See more'} <ChevronRight className={`w-4 h-4 transition-transform ${showAllStores ? 'rotate-90' : ''}`}/>
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {featuredStores.length > 0 ? featuredStores.map(store => (
-            <div key={store._id} className="bg-white rounded-[20px] p-4 flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow border border-gray-100">
-              <img src={store.bannerImage || store.image} alt={store.name} className="w-16 h-16 rounded-full object-cover" />
-              <div className="flex flex-col">
-                <span className="font-bold text-gray-800">{store.name}</span>
-                <span className="text-xs text-gray-500">{store.category || store.cuisineTypes?.[0] || 'Store'}</span>
-                <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-gray-600">
-                  <span className="text-yellow-500">★</span> {store.rating || '4.5'}
+          {(() => {
+            const displayedStores = showAllStores ? allStores : allStores.filter(store => store.featured);
+            return displayedStores.length > 0 ? displayedStores.map(store => (
+              <div key={store._id} className="bg-white rounded-[20px] p-4 flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow border border-gray-100">
+                <img src={store.bannerImage || store.image} alt={store.name} className="w-16 h-16 rounded-full object-cover" />
+                <div className="flex flex-col">
+                  <span className="font-bold text-gray-800">{store.name}</span>
+                  <span className="text-xs text-gray-500">{store.category || store.cuisineTypes?.[0] || 'Store'}</span>
+                  <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-gray-600">
+                    <span className="text-yellow-500">★</span> {store.rating || '4.5'}
+                  </div>
                 </div>
               </div>
-            </div>
-          )) : (
-            <div className="col-span-full py-8 text-center text-slate-500 font-medium">No featured stores available.</div>
-          )}
+            )) : (
+              <div className="col-span-full py-8 text-center text-slate-500 font-medium">No stores available.</div>
+            );
+          })()}
         </div>
       </div>
 
