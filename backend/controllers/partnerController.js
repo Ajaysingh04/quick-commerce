@@ -110,13 +110,10 @@ export const addProduct = async (req, res) => {
     const store = await getPartnerStore(req.user._id);
     const { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
 
-    let categoryObj = null;
-    if (category) {
-      // Find or create category
-      categoryObj = await Category.findOne({ name: category });
-      if (!categoryObj) {
-        categoryObj = await Category.create({ name: category, isActive: true });
-      }
+    let categoryName = category || 'General';
+    let categoryObj = await Category.findOne({ name: categoryName });
+    if (!categoryObj) {
+      categoryObj = await Category.create({ name: categoryName, isActive: true });
     }
 
     const newProduct = await Product.create({
@@ -127,10 +124,10 @@ export const addProduct = async (req, res) => {
       stockQuantity,
       weight,
       sku,
-      category: categoryObj ? categoryObj._id : undefined,
-      image,
+      category: categoryObj._id,
+      image: image || '/assets/Fruits%20&%20Vegetables.jpg', // Fallback image
       isVeg,
-      isBestseller,
+      isPopular: isBestseller,
       inStock,
       store: store._id,
     });
@@ -171,9 +168,9 @@ export const updateProduct = async (req, res) => {
     if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
     if (weight !== undefined) product.weight = weight;
     if (sku !== undefined) product.sku = sku;
-    if (image !== undefined) product.image = image;
+    if (image !== undefined && image !== '') product.image = image;
     if (isVeg !== undefined) product.isVeg = isVeg;
-    if (isBestseller !== undefined) product.isBestseller = isBestseller;
+    if (isBestseller !== undefined) product.isPopular = isBestseller;
     if (inStock !== undefined) product.inStock = inStock;
 
     await product.save();
