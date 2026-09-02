@@ -33,36 +33,36 @@ const Inventory = () => {
  }, []);
 
  const fetchInventory = async () => {
- try {
- const res = await API.get('/partner/Inventory');
- setProducts(res.data);
- } catch (err) {
- console.error(err);
- // Fallback Mock Data for UI demonstration
- setProducts([
- { _id: '1', name: 'Amul Taaza Toned Fresh Milk', description: 'Fresh toned milk', price: 54, originalPrice: 56, weight: '1 L', stockQuantity: 150, sku: 'DAIRY-001', category: { name: 'Dairy' }, isVeg: true, inStock: true, image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=500&q=80', isBestseller: true },
- { _id: '2', name: 'Britannia Good Day Cashew Cookies', description: 'Rich cashew cookies', price: 20, originalPrice: 25, weight: '72 g', stockQuantity: 300, sku: 'SNK-002', category: { name: 'Snacks' }, isVeg: true, inStock: true, image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&q=80', isBestseller: true },
- { _id: '3', name: 'Fresh Onion (Pyaz)', description: 'Farm fresh onions', price: 45, originalPrice: 60, weight: '1 kg', stockQuantity: 50, sku: 'VEG-003', category: { name: 'Vegetables' }, isVeg: true, inStock: true, image: 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=500&q=80', isBestseller: false }
- ]);
- } finally {
- setLoading(false);
- }
- };
+    try {
+      const res = await API.get('/partner/menu');
+      setProducts(res.data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to fetch inventory from server.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
  const handleStockToggle = async (id, currentStock) => {
- try {
- // await API.put(`/partner/Inventory/${id}/stock`, { inStock: !currentStock });
- setProducts(prev => prev.map(f => f._id === id ? { ...f, inStock: !currentStock } : f));
- } catch (err) {
- alert('Failed to update stock status');
- }
- };
+    try {
+      await API.put(`/partner/menu/${id}/stock`, { inStock: !currentStock });
+      setProducts(prev => prev.map(f => f._id === id ? { ...f, inStock: !currentStock } : f));
+    } catch (err) {
+      alert('Failed to update stock status');
+    }
+  };
 
- const handleDelete = (id) => {
- if (window.confirm('Are you sure you want to delete this product?')) {
- setProducts(prev => prev.filter(f => f._id !== id));
- }
- };
+ const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await API.delete(`/partner/menu/${id}`);
+        setProducts(prev => prev.filter(f => f._id !== id));
+      } catch (error) {
+        alert('Failed to delete product');
+      }
+    }
+  };
 
  const openModal = (product = null) => {
  if (product) {
@@ -90,15 +90,21 @@ const Inventory = () => {
  setIsModalOpen(true);
  };
 
- const handleSubmit = (e) => {
- e.preventDefault();
- if (editingProduct) {
- setProducts(prev => prev.map(f => f._id === editingProduct._id ? { ...f, ...formData, category: { name: formData.category } } : f));
- } else {
- setProducts([{ _id: Date.now().toString(), ...formData, category: { name: formData.category } }, ...products]);
- }
- setIsModalOpen(false);
- };
+ const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingProduct) {
+        const res = await API.put(`/partner/menu/${editingProduct._id}`, formData);
+        setProducts(prev => prev.map(f => f._id === editingProduct._id ? res.data : f));
+      } else {
+        const res = await API.post('/partner/menu', formData);
+        setProducts([res.data, ...products]);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to save product');
+    }
+  };
 
  const filteredProducts = products.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
 

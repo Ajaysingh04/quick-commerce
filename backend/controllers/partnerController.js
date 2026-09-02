@@ -1,6 +1,7 @@
 import Order from '../models/Order.js';
 import Store from '../models/Store.js';
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 
 // Helper to get partner's store
 const getPartnerStore = async (userId) => {
@@ -88,6 +89,105 @@ export const updateProductStock = async (req, res) => {
     product.inStock = inStock;
     await product.save();
     res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Add a New Product
+// @route   POST /api/partner/menu
+// @access  Private (Partner)
+export const addProduct = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
+
+    let categoryObj = null;
+    if (category) {
+      // Find or create category
+      categoryObj = await Category.findOne({ name: category });
+      if (!categoryObj) {
+        categoryObj = await Category.create({ name: category, isActive: true });
+      }
+    }
+
+    const newProduct = await Product.create({
+      name,
+      description,
+      price,
+      originalPrice,
+      stockQuantity,
+      weight,
+      sku,
+      category: categoryObj ? categoryObj._id : undefined,
+      image,
+      isVeg,
+      isBestseller,
+      inStock,
+      store: store._id,
+    });
+
+    // Populate category before returning
+    await newProduct.populate('category');
+
+    res.status(201).json(newProduct);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update an Existing Product
+// @route   PUT /api/partner/menu/:id
+// @access  Private (Partner)
+export const updateProduct = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const product = await Product.findOne({ _id: req.params.id, store: store._id });
+    
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    const { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
+
+    if (category) {
+      let categoryObj = await Category.findOne({ name: category });
+      if (!categoryObj) {
+        categoryObj = await Category.create({ name: category, isActive: true });
+      }
+      product.category = categoryObj._id;
+    }
+
+    if (name) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = price;
+    if (originalPrice !== undefined) product.originalPrice = originalPrice;
+    if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
+    if (weight !== undefined) product.weight = weight;
+    if (sku !== undefined) product.sku = sku;
+    if (image !== undefined) product.image = image;
+    if (isVeg !== undefined) product.isVeg = isVeg;
+    if (isBestseller !== undefined) product.isBestseller = isBestseller;
+    if (inStock !== undefined) product.inStock = inStock;
+
+    await product.save();
+    await product.populate('category');
+
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a Product
+// @route   DELETE /api/partner/menu/:id
+// @access  Private (Partner)
+export const deleteProduct = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const product = await Product.findOneAndDelete({ _id: req.params.id, store: store._id });
+    
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

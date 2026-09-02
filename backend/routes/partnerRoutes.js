@@ -4,6 +4,9 @@ import {
   getDashboardStats,
   getOrders,
   getMenu,
+  addProduct,
+  updateProduct,
+  deleteProduct,
   updateProductStock,
   getProfile,
   updateProfile,
@@ -36,6 +39,9 @@ router.put('/orders/:id/status', updateOrderStatus);
 
 // Menu
 router.get('/menu', getMenu);
+router.post('/menu', addProduct);
+router.put('/menu/:id', updateProduct);
+router.delete('/menu/:id', deleteProduct);
 router.put('/menu/:id/stock', updateProductStock);
 
 // Profile
