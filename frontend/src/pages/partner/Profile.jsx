@@ -160,10 +160,20 @@ const Profile = () => {
  <input type="text" value={profile.address?.zipCode || ''} onChange={e => handleChange('address', 'zipCode', e.target.value)} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-medium" />
  </div>
  </div>
- <div>
- <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Max Delivery Radius (in KM)</label>
- <input type="number" value={profile.deliveryRadius || 5} onChange={e => handleChange(null, 'deliveryRadius', e.target.value)} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-medium" />
- </div>
+  <div className="grid grid-cols-2 gap-4">
+  <div>
+  <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Max Delivery Radius (in KM)</label>
+  <input type="number" value={profile.distance || ''} onChange={e => handleChange(null, 'distance', e.target.value)} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-medium" />
+  </div>
+  <div>
+  <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Avg Delivery Time (mins)</label>
+  <input type="number" value={profile.deliveryTime || ''} onChange={e => handleChange(null, 'deliveryTime', e.target.value)} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-medium" />
+  </div>
+  </div>
+  <div>
+  <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Cost For Two (₹) (Optional Min Order)</label>
+  <input type="number" value={profile.costForTwo || ''} onChange={e => handleChange(null, 'costForTwo', e.target.value)} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-medium" />
+  </div>
  </div>
  </div>
 

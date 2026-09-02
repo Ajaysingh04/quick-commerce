@@ -220,14 +220,18 @@ export const updateProfile = async (req, res) => {
     const store = await getPartnerStore(req.user._id);
     
     // Update allowed fields
-    const { name, description, address, bankDetails, gstDetails, openingHours, bannerImage } = req.body;
+    const { name, description, address, bankDetails, gstDetails, openingHours, bannerImage, distance, deliveryTime, costForTwo } = req.body;
     
     if (name) store.name = name;
-    if (description) store.description = description;
+    if (description !== undefined) store.description = description;
     if (address) store.address = { ...store.address, ...address };
     if (bankDetails) store.bankDetails = { ...store.bankDetails, ...bankDetails };
     if (gstDetails) store.gstDetails = { ...store.gstDetails, ...gstDetails };
     if (openingHours) store.openingHours = { ...store.openingHours, ...openingHours };
+    if (bannerImage) store.bannerImage = bannerImage;
+    if (distance !== undefined) store.distance = Number(distance);
+    if (deliveryTime !== undefined) store.deliveryTime = Number(deliveryTime);
+    if (costForTwo !== undefined) store.costForTwo = Number(costForTwo);
     if (bannerImage) store.bannerImage = bannerImage;
 
     await store.save();
