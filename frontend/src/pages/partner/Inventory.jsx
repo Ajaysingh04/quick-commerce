@@ -12,6 +12,7 @@ const Inventory = () => {
  
  const [isModalOpen, setIsModalOpen] = useState(false);
  const [editingProduct, setEditingProduct] = useState(null);
+ const [uploadingImage, setUploadingImage] = useState(false);
  
  const [formData, setFormData] = useState({
  name: '',
@@ -89,6 +90,24 @@ const Inventory = () => {
  }
  setIsModalOpen(true);
  };
+
+  const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
+    const formDataBody = new FormData();
+    formDataBody.append('image', file);
+    setUploadingImage(true);
+
+    try {
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      const { data } = await API.post('/upload', formDataBody, config);
+      setFormData(prev => ({ ...prev, image: data.url || data }));
+    } catch (error) {
+      console.error(error);
+      alert('Image upload failed');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
  const handleSubmit = async (e) => {
     e.preventDefault();
@@ -240,11 +259,40 @@ const Inventory = () => {
  <div className="p-6 overflow-y-auto custom-scrollbar">
  <form id="InventoryForm" onSubmit={handleSubmit} className="space-y-6">
  
- {/* Image Upload Area Mockup */}
- <div className="w-full h-32 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 bg-[#f5f6fa] hover:bg-slate-100 :bg-slate-800 transition-colors cursor-pointer group">
- <UploadCloud className="w-8 h-8 mb-2 group-hover:text-[#e31837] transition-colors" />
- <p className="text-xs font-bold uppercase tracking-wider">Click to upload product image</p>
- </div>
+  {/* Image Upload Area */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+    <div className="relative">
+      <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Image Upload</label>
+      <div className="w-full h-24 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 bg-[#f5f6fa] hover:bg-slate-100 transition-colors cursor-pointer relative overflow-hidden">
+        {formData.image ? (
+          <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+        ) : (
+          <div className="flex flex-col items-center">
+            <UploadCloud className="w-6 h-6 mb-1 text-slate-400" />
+            <span className="text-[10px] font-bold">Choose File</span>
+          </div>
+        )}
+        <input 
+          type="file" 
+          onChange={uploadFileHandler} 
+          className="absolute inset-0 opacity-0 cursor-pointer" 
+          disabled={uploadingImage}
+        />
+      </div>
+      {uploadingImage && <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-xs font-bold text-[#e31837]">Uploading...</div>}
+    </div>
+
+    <div>
+      <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Or Image URL</label>
+      <input 
+        type="text" 
+        value={formData.image} 
+        onChange={e => setFormData({...formData, image: e.target.value})} 
+        className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-semibold" 
+        placeholder="https://..." 
+      />
+    </div>
+  </div>
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="md:col-span-2">
