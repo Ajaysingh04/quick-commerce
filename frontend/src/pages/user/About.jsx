@@ -2,7 +2,7 @@ import React from 'react';
 import { Clock, Leaf, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import imgAbout from '../../assets/About.jpg';
+const imgAbout = '/assets/About.jpg';
 
 const About = () => {
   const navigate = useNavigate();

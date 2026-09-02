@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 import { ChevronRight, Smartphone, Store, Truck, ShieldCheck, ThumbsUp } from 'lucide-react';
 import ProductCard from '../../components/common/ProductCard';
 import { useSettings } from '../../context/SettingsContext';
-import imgMonsoonSale from '../../assets/monsoon.jpg';
+const imgMonsoonSale = '/assets/monsoon.jpg';
 import { PRODUCTS } from '../../data/mockProducts';
 
 // fallback image for hero
