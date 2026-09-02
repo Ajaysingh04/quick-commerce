@@ -88,7 +88,7 @@ const Analytics = () => {
  animate={{ height: `${heightPercentage}%` }}
  transition={{ duration: 1, delay: idx * 0.1, type: 'spring' }}
  className={`absolute bottom-0 left-0 right-0 rounded-t-xl ${
- idx === 5 || idx === 6 ? 'bg-[#e31837] shadow-[0_0_15px_rgba(249,115,22,0.4)]' : 'bg-brand-300 '
+ idx === 5 || idx === 6 ? 'bg-[#e31837] shadow-[0_0_15px_rgba(227,24,55,0.4)]' : 'bg-slate-800'
  }`}
  ></motion.div>
  </div>
