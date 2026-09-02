@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../services/api';
 import { 
- Plus, Edit, Trash2, Search, Check, X as XIcon, Utensils, Image as ImageIcon, UploadCloud, Package
+ Plus, Edit, Trash2, Search, Check, X as XIcon, Package, Image as ImageIcon, UploadCloud
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Menu = () => {
+const Inventory = () => {
  const [products, setProducts] = useState([]);
  const [loading, setLoading] = useState(true);
  const [search, setSearch] = useState('');
@@ -29,12 +29,12 @@ const Menu = () => {
  });
 
  useEffect(() => {
- fetchMenu();
+ fetchInventory();
  }, []);
 
- const fetchMenu = async () => {
+ const fetchInventory = async () => {
  try {
- const res = await API.get('/partner/menu');
+ const res = await API.get('/partner/Inventory');
  setProducts(res.data);
  } catch (err) {
  console.error(err);
@@ -51,7 +51,7 @@ const Menu = () => {
 
  const handleStockToggle = async (id, currentStock) => {
  try {
- // await API.put(`/partner/menu/${id}/stock`, { inStock: !currentStock });
+ // await API.put(`/partner/Inventory/${id}/stock`, { inStock: !currentStock });
  setProducts(prev => prev.map(f => f._id === id ? { ...f, inStock: !currentStock } : f));
  } catch (err) {
  alert('Failed to update stock status');
@@ -130,7 +130,7 @@ const Menu = () => {
  </div>
  </div>
 
- {/* Menu Table */}
+ {/* Inventory Table */}
  <div className="flex-1 overflow-auto custom-scrollbar">
  <table className="w-full text-left text-sm whitespace-nowrap">
  <thead className="bg-[#f5f6fa] sticky top-0 z-10">
@@ -232,7 +232,7 @@ const Menu = () => {
  </div>
 
  <div className="p-6 overflow-y-auto custom-scrollbar">
- <form id="menuForm" onSubmit={handleSubmit} className="space-y-6">
+ <form id="InventoryForm" onSubmit={handleSubmit} className="space-y-6">
  
  {/* Image Upload Area Mockup */}
  <div className="w-full h-32 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 bg-[#f5f6fa] hover:bg-slate-100 :bg-slate-800 transition-colors cursor-pointer group">
@@ -326,7 +326,7 @@ const Menu = () => {
  <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 bg-slate-200 text-slate-600 font-bold rounded-xl transition-colors hover:bg-slate-300 :bg-slate-700">
  Cancel
  </button>
- <button type="submit" form="menuForm" className="px-6 py-2.5 bg-[#e31837] text-white font-bold rounded-xl transition-colors hover:bg-[#c8102e] shadow-md shadow-[#e31837]/20">
+ <button type="submit" form="InventoryForm" className="px-6 py-2.5 bg-[#e31837] text-white font-bold rounded-xl transition-colors hover:bg-[#c8102e] shadow-md shadow-[#e31837]/20">
  {editingProduct ? 'Save Changes' : 'Add Product'}
  </button>
  </div>
@@ -339,4 +339,4 @@ const Menu = () => {
  );
 };
 
-export default Menu;
+export default Inventory;

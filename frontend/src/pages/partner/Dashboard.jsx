@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import API from '../../services/api';
 import { 
  TrendingUp, ShoppingBag, Users, Star, ArrowUpRight, ArrowDownRight, Clock,
- X, Check, Utensils
+ X, Check, Package
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -139,7 +139,7 @@ const Dashboard = () => {
  <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
  <div className="flex justify-between items-center mb-6">
  <h3 className="text-lg font-black text-slate-800 ">Top Selling Items</h3>
- <Utensils className="w-5 h-5 text-slate-400" />
+ <Package className="w-5 h-5 text-slate-400" />
  </div>
  <div className="space-y-4">
  {[

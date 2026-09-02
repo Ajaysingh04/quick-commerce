@@ -222,7 +222,12 @@ const UserLayout = () => {
             {/* User Icon / Auth */}
             {isAuthenticated ? (
               <button 
-                onClick={() => navigate('/profile')}
+                onClick={() => {
+                  if (user?.role === 'admin') navigate('/admin');
+                  else if (user?.role === 'delivery') navigate('/delivery');
+                  else if (user?.role === 'partner') navigate('/partner');
+                  else navigate('/profile');
+                }}
                 className="flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200 hover:border-[#0a4733] hover:text-[#0a4733] transition-colors"
               >
                 <UserIcon className="w-4 h-4 text-gray-700" />
@@ -266,7 +271,7 @@ const UserLayout = () => {
                 <UserIcon className="w-5 h-5" />
                 <span>{user?.name}</span>
               </div>
-              <Link to={user?.role === 'admin' ? '/admin' : user?.role === 'delivery' ? '/delivery' : '/profile'} onClick={() => setIsMobileMenuOpen(false)} className="py-2 hover:text-brand-500 font-medium">Profile</Link>
+              <Link to={user?.role === 'admin' ? '/admin' : user?.role === 'delivery' ? '/delivery' : user?.role === 'partner' ? '/partner' : '/profile'} onClick={() => setIsMobileMenuOpen(false)} className="py-2 hover:text-brand-500 font-medium">Profile</Link>
             </>
           ) : (
             <div className="flex flex-col gap-2 border-b border-gray-200 pb-4">

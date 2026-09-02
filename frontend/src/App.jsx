@@ -50,7 +50,7 @@ import DeliveryOnboarding from './pages/delivery/Onboarding.jsx';
 import PartnerLayout from './pages/partner/PartnerLayout.jsx';
 import PartnerDashboard from './pages/partner/Dashboard.jsx';
 import PartnerOrders from './pages/partner/Orders.jsx';
-import PartnerMenu from './pages/partner/Menu.jsx';
+import PartnerInventory from './pages/partner/Inventory.jsx';
 import PartnerProfile from './pages/partner/Profile.jsx';
 import PartnerPromos from './pages/partner/Promos.jsx';
 import PartnerAnalytics from './pages/partner/Analytics.jsx';
@@ -181,14 +181,14 @@ function App() {
 
  {/* Store Partner Routes */}
  <Route path="/partner" element={
- <ProtectedRoute allowedRoles={['partner']}>
+ <ProtectedRoute allowedRoles={['partner', 'admin']}>
  <PartnerLayout />
  </ProtectedRoute>
  }>
  <Route index element={<Navigate to="dashboard" replace />} />
  <Route path="dashboard" element={<PartnerDashboard />} />
  <Route path="orders" element={<PartnerOrders />} />
- <Route path="menu" element={<PartnerMenu />} />
+ <Route path="inventory" element={<PartnerInventory />} />
  <Route path="profile" element={<PartnerProfile />} />
  <Route path="promos" element={<PartnerPromos />} />
  <Route path="analytics" element={<PartnerAnalytics />} />
