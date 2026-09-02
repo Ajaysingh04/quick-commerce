@@ -110,7 +110,7 @@ export const updateProductStock = async (req, res) => {
 export const addProduct = async (req, res) => {
   try {
     const store = await getPartnerStore(req.user._id);
-    const { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
+    let { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
 
     let categoryName = category || 'General';
     let categoryObj = await Category.findOne({ name: categoryName });
@@ -121,9 +121,9 @@ export const addProduct = async (req, res) => {
     const newProduct = await Product.create({
       name,
       description,
-      price,
-      originalPrice,
-      stockQuantity,
+      price: price ? Number(price) : undefined,
+      originalPrice: originalPrice ? Number(originalPrice) : undefined,
+      stockQuantity: stockQuantity ? Number(stockQuantity) : 100,
       weight,
       sku,
       category: categoryObj._id,
@@ -153,7 +153,7 @@ export const updateProduct = async (req, res) => {
     
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
+    let { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
 
     if (category) {
       let categoryObj = await Category.findOne({ name: category });
@@ -165,9 +165,9 @@ export const updateProduct = async (req, res) => {
 
     if (name) product.name = name;
     if (description !== undefined) product.description = description;
-    if (price !== undefined) product.price = price;
-    if (originalPrice !== undefined) product.originalPrice = originalPrice;
-    if (stockQuantity !== undefined) product.stockQuantity = stockQuantity;
+    if (price !== undefined && price !== '') product.price = Number(price);
+    if (originalPrice !== undefined) product.originalPrice = originalPrice ? Number(originalPrice) : undefined;
+    if (stockQuantity !== undefined && stockQuantity !== '') product.stockQuantity = Number(stockQuantity);
     if (weight !== undefined) product.weight = weight;
     if (sku !== undefined) product.sku = sku;
     if (image !== undefined && image !== '') product.image = image;
