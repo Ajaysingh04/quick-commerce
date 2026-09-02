@@ -8,6 +8,7 @@ const Profile = () => {
  const [profile, setProfile] = useState(null);
  const [loading, setLoading] = useState(true);
  const [saving, setSaving] = useState(false);
+ const [uploadingImage, setUploadingImage] = useState(false);
 
  useEffect(() => {
  fetchProfile();
@@ -43,6 +44,25 @@ const Profile = () => {
  });
  };
 
+ const uploadBannerHandler = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formDataBody = new FormData();
+    formDataBody.append('image', file);
+    setUploadingImage(true);
+
+    try {
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      const { data } = await API.post('/upload', formDataBody, config);
+      setProfile(prev => ({ ...prev, bannerImage: data.url || data }));
+    } catch (error) {
+      console.error(error);
+      alert('Image upload failed');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
  const handleSave = async (e) => {
  e.preventDefault();
  setSaving(true);
@@ -63,15 +83,23 @@ const Profile = () => {
  
  {/* Cover Image & Basic Info */}
  <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
- <div className="h-48 bg-slate-200 relative group">
- <img src={profile.bannerImage} alt="Cover" className="w-full h-full object-cover" />
- <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
- <div className="flex flex-col items-center text-white">
- <ImageIcon className="w-8 h-8 mb-2" />
- <span className="text-sm font-bold">Change Cover</span>
- </div>
- </div>
- </div>
+ <div className="h-48 bg-slate-200 relative group overflow-hidden">
+  <img src={profile.bannerImage} alt="Cover" className="w-full h-full object-cover" />
+  <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+  <div className="flex flex-col items-center text-white">
+  <ImageIcon className="w-8 h-8 mb-2" />
+  <span className="text-sm font-bold">
+    {uploadingImage ? 'Uploading...' : 'Change Cover'}
+  </span>
+  </div>
+  <input 
+    type="file" 
+    className="hidden" 
+    onChange={uploadBannerHandler} 
+    disabled={uploadingImage}
+  />
+  </label>
+  </div>
  
  <div className="p-6 sm:px-10 relative">
  <div className="w-24 h-24 bg-white rounded-2xl border-4 border-white shadow-lg absolute -top-12 flex items-center justify-center">
@@ -79,10 +107,26 @@ const Profile = () => {
  </div>
  
  <div className="mt-14 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
- <div>
- <h2 className="text-2xl font-black text-slate-900 ">{profile.name}</h2>
- <p className="text-sm text-slate-500 mt-1">{profile.description}</p>
- </div>
+  <div className="flex-1 w-full max-w-lg space-y-3">
+  <div>
+    <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Store Name</label>
+    <input 
+      type="text" 
+      value={profile.name || ''} 
+      onChange={e => handleChange(null, 'name', e.target.value)} 
+      className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-lg font-black text-slate-900 outline-none focus:border-[#e31837]" 
+    />
+  </div>
+  <div>
+    <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Store Description</label>
+    <textarea 
+      rows="2" 
+      value={profile.description || ''} 
+      onChange={e => handleChange(null, 'description', e.target.value)} 
+      className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm text-slate-700 outline-none focus:border-[#e31837] resize-none"
+    ></textarea>
+  </div>
+  </div>
  <button 
  onClick={handleSave}
  disabled={saving}
