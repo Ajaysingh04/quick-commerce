@@ -134,10 +134,24 @@ const Offers = () => {
               <div key={coupon._id} className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all group flex flex-col relative overflow-hidden">
                 <div className={`absolute top-0 left-0 w-1.5 h-full ${accentColor}`}></div>
                 
-                <h3 className="text-lg font-bold text-slate-800 mb-2">{coupon.title || `${coupon.discountPercent}% OFF`}</h3>
-                <p className="text-sm text-gray-500 font-medium mb-6 flex-grow">{coupon.desc || `Get ${coupon.discountPercent}% off on orders above ₹${coupon.minOrderValue || 0}.`}</p>
+                <div className="mb-2">
+                  {coupon.store && <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-600 mb-1 inline-block">{coupon.store.name}</span>}
+                  <h3 className="text-lg font-bold text-slate-800 leading-tight">
+                    {coupon.title || (
+                      coupon.discountType === 'percentage' ? `${coupon.discountValue || coupon.discountPercent}% OFF` : 
+                      coupon.discountType === 'flat' ? `₹${coupon.discountValue} FLAT OFF` : 
+                      'BUY ONE GET ONE'
+                    )}
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-500 font-medium mb-6 flex-grow">
+                  {coupon.desc || (
+                    coupon.discountType === 'bogo' ? `Buy 1 get 1 free! Valid on selected items.` :
+                    `Get ${coupon.discountType === 'percentage' ? (coupon.discountValue || coupon.discountPercent) + '%' : '₹' + coupon.discountValue} off on orders above ₹${coupon.minOrderValue || 0}.`
+                  )}
+                </p>
                 
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center justify-between">
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center justify-between mt-auto">
                   <span className="font-mono font-black text-emerald-700 text-lg tracking-wider">{coupon.code}</span>
                   <button 
                     onClick={() => handleCopy(coupon.code)}
