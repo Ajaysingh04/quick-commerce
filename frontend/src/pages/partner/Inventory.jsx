@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const Inventory = () => {
  const [products, setProducts] = useState([]);
+ const [dbCategories, setDbCategories] = useState([]);
  const [loading, setLoading] = useState(true);
  const [search, setSearch] = useState('');
  
@@ -31,7 +32,17 @@ const Inventory = () => {
 
  useEffect(() => {
  fetchInventory();
+ fetchCategories();
  }, []);
+
+ const fetchCategories = async () => {
+    try {
+      const res = await API.get('/products/categories');
+      setDbCategories(res.data);
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  };
 
  const fetchInventory = async () => {
     try {
@@ -304,11 +315,9 @@ const Inventory = () => {
  <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Category</label>
  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-semibold text-slate-700 ">
  <option value="">Select Category</option>
- <option value="Dairy">Dairy</option>
- <option value="Vegetables">Vegetables</option>
- <option value="Fruits">Fruits</option>
- <option value="Snacks">Snacks</option>
- <option value="Beverages">Beverages</option>
+ {dbCategories.map(cat => (
+   <option key={cat._id} value={cat.name}>{cat.name}</option>
+ ))}
  </select>
  </div>
  
