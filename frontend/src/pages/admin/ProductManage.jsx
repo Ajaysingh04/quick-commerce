@@ -77,7 +77,7 @@ const ProductManage = () => {
  }
  
  // 3. Fetch categories list
- const catRes = await API.get('/products/categories');
+ const catRes = await API.get('/products/categories?all=true');
  setCategoriesList(catRes.data);
  if (catRes.data.length > 0) {
  setSelectedCategory(catRes.data[0]._id);
@@ -279,8 +279,12 @@ const ProductManage = () => {
           const res = await API.post('/products/bulk', { products: parsedData });
           
           // Re-fetch products
-          const updateRes = await API.get('/products?all=true');
-          setProducts(updateRes.data);
+          const [prodRes, catRes, storeRes] = await Promise.all([
+            API.get('/products?all=true'),
+            API.get('/products/categories?all=true'),
+            API.get('/stores')
+          ]);
+          setProducts(prodRes.data);
           
           if (res.data.skippedCount > 0) {
             setSuccess(`${res.data.inserted.length} products added, ${res.data.skippedCount} skipped (duplicates)!`);

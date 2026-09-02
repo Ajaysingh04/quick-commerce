@@ -30,7 +30,7 @@ const CategoryManage = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await API.get('/products/categories');
+      const res = await API.get('/products/categories?all=true');
       setCategories(res.data);
     } catch (err) {
       console.error('Failed to load categories', err);

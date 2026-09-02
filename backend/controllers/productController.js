@@ -7,7 +7,11 @@ import Store from '../models/Store.js';
 // @access  Public
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true });
+    const filter = {};
+    if (req.query.all !== 'true') {
+      filter.isActive = true;
+    }
+    const categories = await Category.find(filter);
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
