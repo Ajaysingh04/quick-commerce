@@ -41,7 +41,13 @@ router.post('/', upload.single('image'), (req, res) => {
   }
   // Convert backslashes to forward slashes for URLs on Windows
   const filePath = req.file.path.replace(/\\/g, '/');
-  res.send({ url: `/${filePath}` });
+  
+  // Construct full URL so frontend can load it
+  const protocol = req.protocol;
+  const host = req.get('host');
+  const fullUrl = `${protocol}://${host}/${filePath}`;
+  
+  res.send({ url: fullUrl });
 });
 
 export default router;
