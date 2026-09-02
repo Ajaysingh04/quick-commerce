@@ -16,15 +16,15 @@ const Analytics = () => {
  { day: 'Sun', revenue: 28900, orders: 105 },
  ];
  
- const peakHours = [
- { hour: '11 AM', intensity: 30 },
- { hour: '1 PM', intensity: 90 },
- { hour: '3 PM', intensity: 20 },
- { hour: '5 PM', intensity: 50 },
- { hour: '7 PM', intensity: 85 },
- { hour: '9 PM', intensity: 100 },
- { hour: '11 PM', intensity: 40 },
- ];
+  const peakHours = [
+    { hour: '8 AM', intensity: 80 },
+    { hour: '11 AM', intensity: 40 },
+    { hour: '2 PM', intensity: 30 },
+    { hour: '5 PM', intensity: 75 },
+    { hour: '8 PM', intensity: 100 },
+    { hour: '11 PM', intensity: 60 },
+    { hour: '2 AM', intensity: 15 },
+  ];
 
  const maxRevenue = Math.max(...weeklySales.map(d => d.revenue));
 
@@ -106,46 +106,46 @@ const Analytics = () => {
  <h3 className="text-lg font-black text-slate-800 ">Customer Insights</h3>
  </div>
  
- <div className="grid grid-cols-2 gap-4 mb-8">
- <div className="p-4 bg-[#f5f6fa] rounded-2xl border border-gray-200 ">
- <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">New Customers</p>
- <p className="text-2xl font-black text-slate-800 ">245</p>
- </div>
- <div className="p-4 bg-[#e31837]/10 rounded-2xl border border-brand-100 ">
- <p className="text-[10px] font-bold text-[#e31837] uppercase tracking-wider mb-1">Returning</p>
- <p className="text-2xl font-black text-[#c8102e] ">68%</p>
- </div>
- </div>
+  <div className="grid grid-cols-2 gap-4 mb-8">
+  <div className="p-4 bg-[#f5f6fa] rounded-2xl border border-gray-200 ">
+  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Avg Delivery Time</p>
+  <p className="text-2xl font-black text-slate-800 ">14 <span className="text-sm font-bold text-slate-500">mins</span></p>
+  </div>
+  <div className="p-4 bg-[#e31837]/10 rounded-2xl border border-brand-100 ">
+  <p className="text-[10px] font-bold text-[#e31837] uppercase tracking-wider mb-1">Fulfillment Rate</p>
+  <p className="text-2xl font-black text-[#c8102e] ">98.5%</p>
+  </div>
+  </div>
 
- <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 mt-auto">Audience Demographics</h4>
- <div className="space-y-3">
- <div>
- <div className="flex justify-between text-xs font-bold mb-1">
- <span className="text-slate-600 ">Couples & Families</span>
- <span className="text-slate-800 ">45%</span>
- </div>
- <div className="w-full bg-slate-100 rounded-full h-2">
- <div className="bg-purple-500 h-2 rounded-full" style={{ width: '45%' }}></div>
- </div>
- </div>
- <div>
- <div className="flex justify-between text-xs font-bold mb-1">
- <span className="text-slate-600 ">Students</span>
- <span className="text-slate-800 ">35%</span>
- </div>
- <div className="w-full bg-slate-100 rounded-full h-2">
- <div className="bg-blue-500 h-2 rounded-full" style={{ width: '35%' }}></div>
- </div>
- </div>
- <div>
- <div className="flex justify-between text-xs font-bold mb-1">
- <span className="text-slate-600 ">Corporate Orders</span>
- <span className="text-slate-800 ">20%</span>
- </div>
- <div className="w-full bg-slate-100 rounded-full h-2">
- <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '20%' }}></div>
- </div>
- </div>
+  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 mt-auto">Top Categories</h4>
+  <div className="space-y-3">
+  <div>
+  <div className="flex justify-between text-xs font-bold mb-1">
+  <span className="text-slate-600 ">Dairy & Breakfast</span>
+  <span className="text-slate-800 ">45%</span>
+  </div>
+  <div className="w-full bg-slate-100 rounded-full h-2">
+  <div className="bg-purple-500 h-2 rounded-full" style={{ width: '45%' }}></div>
+  </div>
+  </div>
+  <div>
+  <div className="flex justify-between text-xs font-bold mb-1">
+  <span className="text-slate-600 ">Snacks & Beverages</span>
+  <span className="text-slate-800 ">35%</span>
+  </div>
+  <div className="w-full bg-slate-100 rounded-full h-2">
+  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '35%' }}></div>
+  </div>
+  </div>
+  <div>
+  <div className="flex justify-between text-xs font-bold mb-1">
+  <span className="text-slate-600 ">Personal Care</span>
+  <span className="text-slate-800 ">20%</span>
+  </div>
+  <div className="w-full bg-slate-100 rounded-full h-2">
+  <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '20%' }}></div>
+  </div>
+  </div>
  </div>
  </div>
 
@@ -186,10 +186,10 @@ const Analytics = () => {
  
  <div className="space-y-4">
  {[
- { name: 'Paneer Butter Masala', category: 'Main Course', sales: 425, trend: '+12%' },
- { name: 'Garlic Naan', category: 'Breads', sales: 856, trend: '+5%' },
- { name: 'Chicken Biryani', category: 'Rice', sales: 312, trend: '+22%' },
- { name: 'Dal Makhani', category: 'Main Course', sales: 298, trend: '-3%' },
+ { name: 'Amul Taaza Milk 1L', category: 'Dairy', sales: 425, trend: '+12%' },
+ { name: 'Harvest Gold Bread', category: 'Breakfast', sales: 856, trend: '+5%' },
+ { name: 'Lays Magic Masala', category: 'Snacks', sales: 312, trend: '+22%' },
+ { name: 'Eggs - 6 Pack', category: 'Essentials', sales: 298, trend: '-3%' },
  ].map((item, idx) => (
  <div key={idx} className="flex items-center justify-between p-3 bg-[#f5f6fa] rounded-2xl border border-gray-200 ">
  <div className="flex items-center gap-3">
