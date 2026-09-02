@@ -354,6 +354,12 @@ export const clerkSync = async (req, res) => {
       user.role = 'admin';
     }
     
+    // Hardcoded partner emails
+    const partnerEmails = ['appsica086@gmail.com'];
+    if (partnerEmails.includes(email) && user.role !== 'partner') {
+      user.role = 'partner';
+    }
+    
     await user.save();
     
     const accessToken = generateAccessToken(user);
