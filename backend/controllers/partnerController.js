@@ -5,9 +5,17 @@ import Category from '../models/Category.js';
 
 // Helper to get partner's store
 const getPartnerStore = async (userId) => {
-  const store = await Store.findOne({ owner: userId });
+  let store = await Store.findOne({ owner: userId });
   if (!store) {
-    throw new Error('Store not found for this partner');
+    // Automatically provision a default store for the partner
+    store = await Store.create({
+      name: 'My Quick Commerce Store',
+      owner: userId,
+      description: 'Welcome to your new store dashboard.',
+      isActive: true,
+      category: 'Grocery',
+      cuisineTypes: ['Essentials']
+    });
   }
   return store;
 };
