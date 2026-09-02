@@ -14,7 +14,9 @@ const getPartnerStore = async (userId) => {
       description: 'Welcome to your new store dashboard.',
       isActive: true,
       category: 'Grocery',
-      cuisineTypes: ['Essentials']
+      cuisineTypes: ['Essentials'],
+      deliveryTime: 30, // Default required field
+      bannerImage: '/assets/res_default.jpg' // Default required field
     });
   }
   return store;
