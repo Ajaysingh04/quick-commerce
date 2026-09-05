@@ -22,6 +22,7 @@ const AIChatbot = () => {
 
  const dispatch = useDispatch();
  const { items: cartItems, store: cartStore } = useSelector(state => state.cart);
+ const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
 
  const handleVoiceInput = () => {
  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -81,6 +82,10 @@ const AIChatbot = () => {
  setMessages((prev) => [...prev, botMessage]);
 
  if (response.data.action === 'ADD_TO_CART' && response.data.payload) {
+ if (!isAuthenticated) {
+ alert("Please login to add items to cart.");
+ return;
+ }
  const item = response.data.payload;
  const confirmClear = cartItems.length > 0 && cartStore && cartStore.id !== item.resId;
  

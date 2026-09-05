@@ -68,6 +68,7 @@ const StoreDetails = () => {
  
  const cartItems = useSelector(state => state.cart.items);
  const cartStore = useSelector(state => state.cart.store);
+ const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
 
  const getAmbienceImage = (offset) => {
  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -146,6 +147,10 @@ const StoreDetails = () => {
  };
 
  const handleAddItem = (item) => {
+ if (!isAuthenticated) {
+ alert("Please login to add items to cart.");
+ return;
+ }
  const confirmClear = cartItems.length > 0 && cartStore && cartStore.id !== store._id;
  if (confirmClear) {
  const ok = window.confirm(`Clear cart and start a new order from "${store.name}"?`);
@@ -368,9 +373,9 @@ const StoreDetails = () => {
  <div className="absolute -bottom-4 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] rounded-lg w-28 h-9 overflow-hidden border border-pink-200 z-10">
  {qty > 0 ? (
  <div className="flex h-full text-brand-500 font-bold items-center justify-between px-2 bg-brand-50 ">
- <button onClick={() => dispatch(updateQuantity({ itemId: item.id || item._id, amount: -1 }))} className="p-1 hover:bg-white rounded"><Minus className="w-4 h-4" /></button>
+ <button onClick={() => { if(!isAuthenticated){ alert("Please login to update cart."); return; } dispatch(updateQuantity({ itemId: item.id || item._id, amount: -1 })) }} className="p-1 hover:bg-white rounded"><Minus className="w-4 h-4" /></button>
  <span className="text-[15px]">{qty}</span>
- <button onClick={() => dispatch(updateQuantity({ itemId: item.id || item._id, amount: 1 }))} className="p-1 hover:bg-white rounded"><Plus className="w-4 h-4" /></button>
+ <button onClick={() => { if(!isAuthenticated){ alert("Please login to update cart."); return; } dispatch(updateQuantity({ itemId: item.id || item._id, amount: 1 })) }} className="p-1 hover:bg-white rounded"><Plus className="w-4 h-4" /></button>
  </div>
  ) : (
  <button 

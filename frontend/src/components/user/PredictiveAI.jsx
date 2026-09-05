@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, ShoppingBag } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../store/cartSlice.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,6 +10,7 @@ const PredictiveAI = () => {
  const [prediction, setPrediction] = useState(null);
  const dispatch = useDispatch();
  const navigate = useNavigate();
+ const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
 
  useEffect(() => {
  // Simulate AI analyzing time of day and routine
@@ -81,6 +82,10 @@ const PredictiveAI = () => {
  }, []);
 
  const handle1ClickDispatch = () => {
+ if (!isAuthenticated) {
+ alert("Please login to place an order.");
+ return;
+ }
  if (prediction && prediction.item) {
  dispatch(addToCart({
  item: prediction.item,

@@ -17,6 +17,10 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
   const imageRef = React.useRef(null);
 
   const handleAdd = (e) => {
+    if (!isAuthenticated) {
+      alert("Please login to add items to cart.");
+      return;
+    }
     // Fly animation logic
     if (imageRef.current) {
       const cartIcon = document.getElementById('cart-icon');
@@ -58,6 +62,10 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
   };
 
   const handleUpdate = (amount) => {
+    if (!isAuthenticated) {
+      alert("Please login to update cart.");
+      return;
+    }
     dispatch(updateQuantity({ itemId: product.id, amount }));
   };
 
@@ -72,11 +80,11 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
           onClick={(e) => { 
             e.preventDefault(); 
             e.stopPropagation(); 
-            if (isAuthenticated) {
-              dispatch(toggleWishlistThunk(product));
-            } else {
-              dispatch(toggleWishlistItem(product));
+            if (!isAuthenticated) {
+              alert("Please login to add items to wishlist.");
+              return;
             }
+            dispatch(toggleWishlistThunk(product));
           }} 
           className="absolute -top-2 -right-2 p-1.5 bg-white/80 backdrop-blur rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors z-10 shadow-sm border border-gray-100"
         >

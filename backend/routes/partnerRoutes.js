@@ -15,7 +15,8 @@ import {
   getPartnerReviews,
   getPromos,
   addPromo,
-  deletePromo
+  deletePromo,
+  acceptStaffInvite
 } from '../controllers/partnerController.js';
 import { updateOrderStatus } from '../controllers/orderController.js';
 
