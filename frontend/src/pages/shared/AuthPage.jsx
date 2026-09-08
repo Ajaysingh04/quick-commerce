@@ -286,15 +286,15 @@ const AuthPage = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-[#1b1b1b] font-sans pt-16">
       <div 
-        className={`relative overflow-hidden w-[768px] max-w-[90%] min-h-[550px] bg-white rounded-[30px] shadow-[0_5px_25px_rgba(0,0,0,0.6)] ${isActive ? 'active' : ''}`} 
+        className={`relative overflow-hidden w-[90%] sm:w-[400px] md:w-[768px] min-h-[550px] bg-white rounded-[30px] shadow-[0_5px_25px_rgba(0,0,0,0.6)] ${isActive ? 'active' : ''}`} 
         id="container"
       >
         
         {/* Sign Up Form */}
-        <div className={`absolute top-0 h-full transition-all duration-[600ms] ease-in-out left-0 w-1/2 signup-container ${
+        <div className={`absolute top-0 h-full transition-all duration-[600ms] ease-in-out left-0 w-full md:w-1/2 signup-container ${
           isActive 
-            ? 'translate-x-full opacity-100 z-[5] animate-move' 
-            : 'opacity-0 z-[1]'
+            ? 'md:translate-x-full opacity-100 z-[5] md:animate-move' 
+            : 'opacity-0 z-[1] pointer-events-none'
         }`}>
           {signUpStep === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-10 bg-white">
@@ -325,6 +325,9 @@ const AuthPage = () => {
                   <span className="text-xs text-gray-500 mt-1">Deliver orders and earn money</span>
                 </button>
               </div>
+              <div className="md:hidden mt-6 text-xs font-bold text-gray-500">
+                Already have an account? <span onClick={() => handleToggle(false, '/login')} className="text-[#e31837] cursor-pointer">Sign In</span>
+              </div>
             </div>
           ) : signUpStep === 1 ? (
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleSignUp}>
@@ -348,6 +351,9 @@ const AuthPage = () => {
               <button type="submit" disabled={isLoading} className="px-12 py-3 mt-4 bg-[#e31837] text-white text-sm font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-red-500/30 hover:bg-[#c8102e] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                 {isLoading ? 'Wait...' : 'Sign Up'}
               </button>
+              <div className="md:hidden mt-4 text-xs font-bold text-gray-500">
+                Already have an account? <span onClick={() => handleToggle(false, '/login')} className="text-[#e31837] cursor-pointer">Sign In</span>
+              </div>
             </form>
           ) : (
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleVerifySignUp}>
@@ -370,10 +376,10 @@ const AuthPage = () => {
         </div>
 
         {/* Sign In Form */}
-        <div className={`absolute top-0 h-full transition-all duration-[600ms] ease-in-out left-0 w-1/2 signin-container ${
+        <div className={`absolute top-0 h-full transition-all duration-[600ms] ease-in-out left-0 w-full md:w-1/2 signin-container ${
           isActive 
-            ? 'translate-x-full z-[1]' 
-            : 'z-[2]'
+            ? 'md:translate-x-full opacity-0 pointer-events-none z-[1]' 
+            : 'opacity-100 z-[2]'
         }`}>
           {isMfa ? (
             <form className="flex flex-col items-center justify-center h-full px-10 bg-white" onSubmit={handleMfaSubmit}>
@@ -441,12 +447,15 @@ const AuthPage = () => {
               <button type="submit" disabled={isLoading} className="px-12 py-3 mt-2 bg-[#e31837] text-white text-sm font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-red-500/30 hover:bg-[#c8102e] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                 {isLoading ? 'Wait...' : 'Sign In'}
               </button>
+              <div className="md:hidden mt-4 text-xs font-bold text-gray-500">
+                Don't have an account? <span onClick={() => handleToggle(true, '/signup')} className="text-[#e31837] cursor-pointer">Sign Up</span>
+              </div>
             </form>
           )}
         </div>
 
         {/* Sliding Overlay Container */}
-        <div className={`absolute top-0 left-1/2 w-1/2 h-full overflow-hidden transition-all duration-[600ms] ease-in-out z-[1000] rounded-l-[100px] ${
+        <div className={`hidden md:block absolute top-0 left-1/2 w-1/2 h-full overflow-hidden transition-all duration-[600ms] ease-in-out z-[1000] rounded-l-[100px] ${
           isActive ? '-translate-x-full rounded-r-[100px] rounded-l-none' : ''
         }`}>
           {/* Sliding Crimson Overlay */}
