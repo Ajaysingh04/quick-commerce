@@ -37,6 +37,11 @@ const UserLayout = () => {
     }
   }, [isLoaded, isSignedIn, isAuthenticated, dispatch, navigate, location.pathname]);
 
+  // Scroll to top on route change
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
