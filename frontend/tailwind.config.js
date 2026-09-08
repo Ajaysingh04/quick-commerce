@@ -9,19 +9,23 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#fff0f5',
-          100: '#ffe4ee',
-          200: '#ffcce1',
-          300: '#ff99c8',
-          400: '#ff66af',
-          500: '#fc2779', // Nykaa primary
-          600: '#e01662',
-          700: '#be0e4d',
+          50: '#eefcf4',
+          100: '#d7f7e3',
+          200: '#b2edca',
+          300: '#7ddfae',
+          400: '#46c78e',
+          500: '#046A47', // Grocery Primary Green
+          600: '#035538',
+          700: '#02402a',
+        },
+        accent: {
+          yellow: '#F5B300',
+          mint: '#E6F4EA',
         },
         darkBg: {
-          default: '#fff1f2', // replacing dark mode with light pink variants
+          default: '#f8f9fa', // clean light gray
           card: '#ffffff',
-          border: '#ffe4e6',
+          border: '#e5e7eb',
         },
         lightBg: {
           default: '#fafafa',

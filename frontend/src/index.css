@@ -52,16 +52,16 @@
 body { top: 0px !important; }
 #google_translate_element { position: absolute; left: -9999px; top: -9999px; }
 
-/* Custom Dark Red Theme */
+/* Custom Dark Green Theme */
 html.dark body {
-  background-color: #ffe4e6 !important; /* Pink Background */
-  color: #881337 !important;
+  background-color: #eefcf4 !important; /* Light Green Background */
+  color: #02402a !important;
 }
 
 html.dark .bg-white,
-html.dark .bg-pink-50,
-html.dark .bg-pink-100 {
-  background-color: #fecdd3 !important; /* Darker Pink background for elements */
+html.dark .bg-brand-50,
+html.dark .bg-brand-100 {
+  background-color: #d7f7e3 !important; /* Darker Green background for elements */
 }
 
 html.dark .text-slate-900,
@@ -70,10 +70,10 @@ html.dark .text-slate-700,
 html.dark .text-slate-600,
 html.dark .text-slate-500,
 html.dark .text-slate-400 {
-  color: #701a2e !important; /* Dark Red text */
+  color: #035538 !important; /* Dark Green text */
 }
 
-html.dark .border-pink-200,
+html.dark .border-brand-200,
 html.dark .border-slate-100,
 html.dark .border-slate-200,
 html.dark .border-slate-300,
@@ -82,7 +82,7 @@ html.dark .border-t,
 html.dark .border-b,
 html.dark .border-l,
 html.dark .border-r {
-  border-color: #be123c !important; /* Dark Red borders */
+  border-color: #20a771 !important; /* Green borders */
 }
 
 html.dark .shadow-sm,
@@ -91,17 +91,17 @@ html.dark .shadow-md,
 html.dark .shadow-lg,
 html.dark .shadow-xl,
 html.dark .shadow-2xl {
-  box-shadow: 0 10px 25px -5px rgba(159, 18, 57, 0.4), 0 8px 10px -6px rgba(159, 18, 57, 0.4) !important;
+  box-shadow: 0 10px 25px -5px rgba(4, 106, 71, 0.4), 0 8px 10px -6px rgba(4, 106, 71, 0.4) !important;
 }
 
 html.dark .bg-slate-900, 
 html.dark .bg-slate-800 {
-  background-color: #881337 !important; /* Solid Dark Red backgrounds */
+  background-color: #02402a !important; /* Solid Dark Green backgrounds */
   color: white !important;
 }
 
 html.dark svg {
-  color: #9f1239;
+  color: #046A47;
 }
 
 @keyframes float {

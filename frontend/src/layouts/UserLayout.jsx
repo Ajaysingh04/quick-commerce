@@ -132,62 +132,56 @@ const UserLayout = () => {
     <div className="min-h-screen flex flex-col bg-white text-slate-800 transition-colors duration-300 font-sans">
       
       {settings.globalNotice && (
-        <div className="bg-[#0a4733] text-white text-center py-1 text-xs font-bold tracking-widest px-4">
+        <div className="bg-brand-500 text-white text-center py-1 text-xs font-bold tracking-widest px-4">
           {settings.globalNotice}
         </div>
       )}
       {/* RoseDash Style Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm py-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+      {/* Grocery Store Style Header */}
+      <header className="sticky top-0 z-40 bg-brand-500 shadow-md py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
           
-          {/* Logo & Location */}
-          <div className="flex flex-col">
+          <div className="flex items-center gap-6">
+            {/* Logo */}
             <div 
               onClick={() => { if(!isAuthenticated) navigate('/'); else navigate('/'); }}
               className="flex items-center gap-2 cursor-pointer transition-opacity"
             >
-              <img src={settings.logoUrl} alt="Logo" className="h-8 object-contain" />
-              <span className="font-black text-2xl tracking-tight text-[#0a4733]">
+              <img src={settings.logoUrl} alt="Logo" className="h-8 object-contain brightness-0 invert" />
+              <span className="font-black text-2xl tracking-tight text-white hidden sm:block">
                 {settings.siteTitle || 'Gromuse'}
               </span>
             </div>
-            <div 
-              onClick={handleGetLocation}
-              className={`flex items-center gap-1 text-[10px] text-gray-500 font-bold mt-1 cursor-pointer hover:text-[#0a4733] ${isLocating ? 'animate-pulse' : ''}`}
+
+            {/* Browse Categories Button */}
+            <button 
+              onClick={() => navigate('/shop')}
+              className="hidden md:flex items-center gap-2 bg-accent-yellow text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-yellow-500 transition-colors"
             >
-              <MapPin className="w-3 h-3 text-[#0a4733]" />
-              <span className="uppercase">{locationName}</span>
-            </div>
+              <Menu className="w-4 h-4" /> Browse All Categories
+            </button>
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-sm font-semibold text-gray-600">
-            <Link to="/" className={`${location.pathname === '/' ? 'bg-[#0a4733] text-white px-3 py-1.5 rounded-full' : 'hover:text-[#0a4733] transition-colors'}`}>Home</Link>
-            <Link to="/shop" className={`${location.pathname === '/shop' ? 'bg-[#0a4733] text-white px-3 py-1.5 rounded-full' : 'hover:text-[#0a4733] transition-colors'}`}>Shop</Link>
-            <Link to="/offers" className={`${location.pathname === '/offers' ? 'bg-[#0a4733] text-white px-3 py-1.5 rounded-full' : 'hover:text-[#0a4733] transition-colors'}`}>Offers</Link>
-            <Link to="/about" className={`${location.pathname === '/about' ? 'bg-[#0a4733] text-white px-3 py-1.5 rounded-full' : 'hover:text-[#0a4733] transition-colors'}`}>About</Link>
-            <Link to="/support" className={`${location.pathname === '/support' ? 'bg-[#0a4733] text-white px-3 py-1.5 rounded-full' : 'hover:text-[#0a4733] transition-colors'}`}>Support</Link>
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-white/90">
+            <Link to="/" className={`${location.pathname === '/' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Home</Link>
+            <Link to="/shop" className={`${location.pathname === '/shop' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Shop</Link>
+            <Link to="/offers" className={`${location.pathname === '/offers' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Offers</Link>
+            <Link to="/about" className={`${location.pathname === '/about' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>About</Link>
+            <Link to="/support" className={`${location.pathname === '/support' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Support</Link>
           </nav>
 
-          {/* Search Bar */}
-          <form onSubmit={handleGlobalSearch} className="hidden md:flex flex-1 max-w-md items-center bg-gray-50 border border-gray-200 rounded-full overflow-hidden px-4 py-1.5">
-            <Search className="w-4 h-4 text-gray-400 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Search groceries, dairy, snacks..." 
-              className="bg-transparent w-full outline-none text-sm text-gray-700" 
-              value={globalSearch}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-            />
-            <button type="submit" className="text-[#0a4733] p-1"><Search className="w-4 h-4" /></button>
-          </form>
+          {/* Right Icons / Actions */}
+          <div className="flex items-center gap-4 min-w-max">
+            
+            <button className="hidden lg:flex items-center gap-1 text-sm font-semibold text-white/90 hover:text-white mr-4">
+              Recently Viewed <ChevronRight className="w-4 h-4 rotate-90" />
+            </button>
 
-          {/* Right Icons */}
-          <div className="flex items-center gap-4 lg:gap-6 min-w-max">
-            {/* Download App */}
-            <Link to="/app" className="hidden sm:flex text-[#0a4733] hover:bg-green-50 p-2 rounded-full transition-colors border border-green-100">
-              <Smartphone className="w-5 h-5" />
-            </Link>
+            {/* Search Bar (Mobile only icon, desktop hidden for this layout or simplified) */}
+            <button className="text-white hover:text-white/80 transition-colors">
+              <Search className="w-5 h-5" />
+            </button>
 
             {/* Wishlist Icon */}
             <button 
@@ -195,11 +189,11 @@ const UserLayout = () => {
                 if(!isAuthenticated) navigate('/login');
                 else setIsWishlistOpen(true); 
               }}
-              className="relative flex items-center justify-center text-gray-700 hover:text-red-500 transition-colors"
+              className="relative flex items-center justify-center text-white hover:text-white/80 transition-colors"
             >
-              <Heart className="w-6 h-6" />
+              <Heart className="w-5 h-5" />
               {wishlistItems.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent-yellow text-slate-900 flex items-center justify-center text-[10px] font-bold shadow-sm">
                   {wishlistItems.length}
                 </span>
               )}
@@ -209,11 +203,11 @@ const UserLayout = () => {
             <button 
               id="cart-icon"
               onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center justify-center text-gray-700 hover:text-[#0a4733] transition-colors"
+              className="relative flex items-center justify-center text-white hover:text-white/80 transition-colors"
             >
-              <ShoppingBag className="w-6 h-6" />
+              <ShoppingBag className="w-5 h-5" />
               {totalCartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#0a4733] text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent-yellow text-slate-900 flex items-center justify-center text-[10px] font-bold shadow-sm">
                   {totalCartCount}
                 </span>
               )}
@@ -228,24 +222,21 @@ const UserLayout = () => {
                   else if (user?.role === 'partner') navigate('/partner');
                   else navigate('/profile');
                 }}
-                className="flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200 hover:border-[#0a4733] hover:text-[#0a4733] transition-colors"
+                className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/20 text-white transition-colors"
               >
-                <UserIcon className="w-4 h-4 text-gray-700" />
-                <span className="hidden lg:block text-sm font-semibold text-gray-700">
-                  {user?.name?.split(' ')[0] || 'Profile'}
-                </span>
+                <UserIcon className="w-4 h-4" />
               </button>
             ) : (
               <button 
                 onClick={() => navigate('/login')}
-                className="flex items-center gap-2 text-gray-700 hover:text-[#0a4733] transition-colors font-semibold text-sm bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200"
+                className="flex items-center gap-2 text-white hover:text-white/80 transition-colors font-semibold text-sm bg-white/10 px-4 py-1.5 rounded-full border border-white/20"
               >
-                <UserIcon className="w-4 h-4" /> Sign
+                <UserIcon className="w-4 h-4" /> Sign In
               </button>
             )}
 
             {/* Mobile menu trigger */}
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-gray-700">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white">
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -303,10 +294,10 @@ const UserLayout = () => {
       </main>
 
       {/* Solid Footer */}
-      <footer className="bg-[#0a4733] text-white pt-16 pb-8 mt-auto">
+      <footer className="bg-brand-500 text-white pt-16 pb-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-[#14664a]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-brand-600">
             
             {/* Logo and Description */}
             <div className="col-span-1 md:col-span-1">
@@ -417,7 +408,7 @@ const UserLayout = () => {
                   {/* Header */}
                   <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-white z-10 shadow-sm">
                     <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                      <ShoppingBag className="w-5 h-5 text-[#0a4733]" /> Your Cart
+                      <ShoppingBag className="w-5 h-5 text-brand-500" /> Your Cart
                     </h3>
                     <button 
                       onClick={() => setIsCartOpen(false)}
@@ -468,14 +459,14 @@ const UserLayout = () => {
                                     <h4 className="text-sm font-bold leading-tight line-clamp-2 text-slate-800">
                                       {item.name}
                                     </h4>
-                                    <p className="text-xs font-semibold text-[#0a4733] mt-1">₹{item.price}</p>
+                                    <p className="text-xs font-semibold text-brand-500 mt-1">₹{item.price}</p>
                                   </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
                                   <div className="flex items-center border border-gray-200 rounded-lg p-1 gap-3 bg-slate-50 text-xs font-bold text-slate-700">
-                                    <button onClick={() => dispatch(updateQuantity({ itemId: item.id, amount: -1 }))} className="hover:text-[#0a4733] p-1 bg-white rounded shadow-sm"><Minus className="w-3 h-3" /></button>
+                                    <button onClick={() => dispatch(updateQuantity({ itemId: item.id, amount: -1 }))} className="hover:text-brand-500 p-1 bg-white rounded shadow-sm"><Minus className="w-3 h-3" /></button>
                                     <span className="min-w-[1rem] text-center">{item.quantity}</span>
-                                    <button onClick={() => dispatch(updateQuantity({ itemId: item.id, amount: 1 }))} className="hover:text-[#0a4733] p-1 bg-white rounded shadow-sm"><Plus className="w-3 h-3" /></button>
+                                    <button onClick={() => dispatch(updateQuantity({ itemId: item.id, amount: 1 }))} className="hover:text-brand-500 p-1 bg-white rounded shadow-sm"><Plus className="w-3 h-3" /></button>
                                   </div>
                                   <span className="text-sm font-black text-slate-900">₹{item.price * item.quantity}</span>
                                 </div>
@@ -497,7 +488,7 @@ const UserLayout = () => {
                         </div>
                         <div className="flex justify-between">
                           <span>Shipping & Handling</span>
-                          <span className="font-bold text-[#0a4733]">
+                          <span className="font-bold text-brand-500">
                             {(() => {
                               const delivery = subtotal >= 500 ? 0 : 40;
                               const distanceSurcharge = store?.distance > 5 ? Math.ceil(store.distance - 5) * 4.75 : 0;
@@ -558,7 +549,7 @@ const UserLayout = () => {
                               navigate('/checkout');
                             }
                           }}
-                          className="flex-1 py-3.5 rounded-xl bg-[#0a4733] hover:bg-[#073324] text-white font-black text-sm text-center shadow-lg hover:shadow-xl active:scale-[0.98] transition-all uppercase tracking-wide"
+                          className="flex-1 py-3.5 rounded-xl bg-brand-500 hover:bg-brand-700 text-white font-black text-sm text-center shadow-lg hover:shadow-xl active:scale-[0.98] transition-all uppercase tracking-wide"
                         >
                           {isAuthenticated ? 'Proceed to Pay' : 'Login to Pay'}
                         </button>
@@ -644,7 +635,7 @@ const UserLayout = () => {
                                     <h4 className="text-sm font-bold leading-tight line-clamp-2 text-slate-800">
                                       {item.name}
                                     </h4>
-                                    <p className="text-xs font-semibold text-[#0a4733] mt-1">₹{item.price}</p>
+                                    <p className="text-xs font-semibold text-brand-500 mt-1">₹{item.price}</p>
                                   </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
@@ -654,7 +645,7 @@ const UserLayout = () => {
                                       dispatch({ type: 'cart/addToCart', payload: { item, store: { id: 'quick-store', name: 'Quick Store' } } });
                                       dispatch(toggleWishlistThunk(item));
                                     }}
-                                    className="bg-[#0a4733] text-white p-2 rounded-lg hover:bg-[#073324] transition-colors"
+                                    className="bg-brand-500 text-white p-2 rounded-lg hover:bg-brand-700 transition-colors"
                                   >
                                     <ShoppingBag className="w-4 h-4" />
                                   </button>
@@ -677,7 +668,7 @@ const UserLayout = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 p-3 bg-[#0a4733] text-white rounded-full shadow-xl hover:bg-[#073324] transition-all hover:-translate-y-1 z-50 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4"
+          className="fixed bottom-6 right-6 p-3 bg-brand-500 text-white rounded-full shadow-xl hover:bg-brand-700 transition-all hover:-translate-y-1 z-50 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4"
           aria-label="Scroll to top"
         >
           <ArrowUp className="w-6 h-6" />
@@ -720,7 +711,7 @@ const UserLayout = () => {
               <input 
                 type="text" 
                 placeholder="Enter a 10-digit mobile number" 
-                className="w-full border border-gray-300 rounded p-3 text-sm outline-none focus:border-[#971273] transition-colors"
+                className="w-full border border-gray-300 rounded p-3 text-sm outline-none focus:border-brand-500 transition-colors"
               />
             </div>
 
@@ -730,7 +721,7 @@ const UserLayout = () => {
 
             {/* Checkbox */}
             <label className="flex items-start gap-2 cursor-pointer mb-6 group">
-              <div className="relative flex items-center justify-center w-5 h-5 rounded border border-[#971273] bg-[#971273] mt-0.5">
+              <div className="relative flex items-center justify-center w-5 h-5 rounded border border-brand-500 bg-brand-500 mt-0.5">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                 </svg>
@@ -740,7 +731,7 @@ const UserLayout = () => {
 
             {/* Terms */}
             <p className="text-[10px] text-center text-gray-500 leading-relaxed px-2">
-              By creating an account or logging in, you agree to RoseDash's <Link to="/terms" className="text-[#971273] hover:underline" onClick={() => setIsAuthModalOpen(false)}>Terms of Use</Link>, <Link to="/privacy" className="text-[#971273] hover:underline" onClick={() => setIsAuthModalOpen(false)}>Privacy Policy</Link> and consent to the collection and use of your personal information.
+              By creating an account or logging in, you agree to RoseDash's <Link to="/terms" className="text-brand-500 hover:underline" onClick={() => setIsAuthModalOpen(false)}>Terms of Use</Link>, <Link to="/privacy" className="text-brand-500 hover:underline" onClick={() => setIsAuthModalOpen(false)}>Privacy Policy</Link> and consent to the collection and use of your personal information.
             </p>
           </div>
         </div>
