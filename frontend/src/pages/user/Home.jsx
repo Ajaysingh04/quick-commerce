@@ -59,18 +59,25 @@ const Home = () => {
 
       // Exact order requested by user
       const desiredOrder = [
-        'fruits & vegetables',
-        'dry fruits & nuts',
         'dairy & breakfast',
         'munchies',
         'cold drinks',
         'sweet cravings',
         'chicken & eggs',
-        'cleaning'
+        'cleaning',
+        'frozen & instant food',
+        'dry fruits & nuts'
       ];
       
       const rawCategories = categoriesRes.data || [];
-      const sortedCategories = [...rawCategories].sort((a, b) => {
+      
+      // Remove vegetables category as requested
+      const filteredCategories = rawCategories.filter(cat => {
+        const name = (cat.name || '').toLowerCase();
+        return !name.includes('vegetable') && !name.includes('fruits & vegetables');
+      });
+
+      const sortedCategories = [...filteredCategories].sort((a, b) => {
         const aName = (a.name || '').toLowerCase().trim();
         const bName = (b.name || '').toLowerCase().trim();
         
