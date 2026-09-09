@@ -18,6 +18,7 @@ const ProductManage = () => {
  const [price, setPrice] = useState('');
  const [originalPrice, setOriginalPrice] = useState('');
  const [weight, setWeight] = useState('');
+ const [discount, setDiscount] = useState('');
  const [sku, setSku] = useState('');
  const [stockQuantity, setStockQuantity] = useState(100);
  const [isVeg, setIsVeg] = useState(true);
@@ -116,6 +117,7 @@ const ProductManage = () => {
  formData.append('name', name);
  formData.append('price', price);
  if (originalPrice) formData.append('originalPrice', originalPrice);
+ if (discount) formData.append('discount', discount);
  if (weight) formData.append('weight', weight);
  if (sku) formData.append('sku', sku);
  formData.append('stockQuantity', stockQuantity);
@@ -159,6 +161,7 @@ const ProductManage = () => {
    setName(product.name);
    setPrice(product.price);
    setOriginalPrice(product.originalPrice || '');
+   setDiscount(product.discount || '');
    setWeight(product.weight || '');
    setSku(product.sku || '');
    setStockQuantity(product.stockQuantity || 0);
@@ -177,6 +180,7 @@ const ProductManage = () => {
  setName('');
  setPrice('');
  setOriginalPrice('');
+ setDiscount('');
  setWeight('');
  setSku('');
  setStockQuantity(100);
@@ -434,6 +438,7 @@ const ProductManage = () => {
  </div>
  </div>
  
+
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Stock Quantity</label>
@@ -458,6 +463,7 @@ const ProductManage = () => {
  </div>
  </div>
  
+ <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">SKU</label>
  <input 
@@ -467,6 +473,17 @@ const ProductManage = () => {
  className="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl outline-none focus:border-emerald-500 transition-colors text-sm font-bold text-slate-800 "
  placeholder="e.g. FRS-APL-001"
  />
+ </div>
+ <div>
+ <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Discount (% or Text)</label>
+ <input 
+ type="text" 
+ value={discount} 
+ onChange={e => setDiscount(e.target.value)} 
+ className="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl outline-none focus:border-emerald-500 transition-colors text-sm font-bold text-slate-800 "
+ placeholder="e.g. 20% OFF"
+ />
+ </div>
  </div>
 
  <div>

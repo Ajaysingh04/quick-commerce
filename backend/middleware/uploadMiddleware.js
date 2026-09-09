@@ -48,9 +48,10 @@ export const uploadToCloudinary = async (req, res, next) => {
     next();
   } catch (error) {
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME.includes('mock')) {
-      // Fallback for mock environments: use the local file
-      const port = process.env.PORT || 5000;
-      req.fileUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+      // Fallback for mock environments: use dynamic host
+      const protocol = req.protocol || 'http';
+      const host = req.get('host') || `localhost:${process.env.PORT || 5000}`;
+      req.fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
       return next();
     }
 
@@ -92,11 +93,12 @@ export const uploadMultipleToCloudinary = async (req, res, next) => {
     next();
   } catch (error) {
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME.includes('mock')) {
-      // Fallback for mock environments: use local files
-      const port = process.env.PORT || 5000;
+      // Fallback for mock environments: use dynamic host
+      const protocol = req.protocol || 'http';
+      const host = req.get('host') || `localhost:${process.env.PORT || 5000}`;
       Object.keys(req.files).forEach(fieldname => {
         const files = req.files[fieldname];
-        req.fileUrls[fieldname] = files.map(file => `http://localhost:${port}/uploads/${file.filename}`);
+        req.fileUrls[fieldname] = files.map(file => `${protocol}://${host}/uploads/${file.filename}`);
       });
       return next();
     }

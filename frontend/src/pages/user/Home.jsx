@@ -27,15 +27,20 @@ const Home = () => {
   // For weekly best selling filter
   const [selectedWeeklyCategory, setSelectedWeeklyCategory] = useState('All');
 
+  const activeHeroBanners = heroBanners.filter(b => b.isActive !== false);
+  const heroImages = activeHeroBanners.length > 0 
+    ? activeHeroBanners.map(b => b.imageUrl)
+    : ['https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop'];
+
   // For Hero Slider
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 4);
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroImages.length]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -82,10 +87,7 @@ const Home = () => {
 
   const mainHero = heroBanners.length > 0 ? heroBanners[0] : null;
 
-  const activeHeroBanners = heroBanners.filter(b => b.isActive !== false);
-  const heroImages = activeHeroBanners.length > 0 
-    ? activeHeroBanners.map(b => b.imageUrl)
-    : ['https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop'];
+
 
   // Slicing products for the sections to 12 (divisible by 2, 3, 4, 6 columns perfectly)
   const youMightNeedProducts = allProducts.slice(0, 12);

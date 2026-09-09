@@ -186,7 +186,7 @@ export const getProducts = async (req, res) => {
 // @route   POST /api/admin/products
 // @access  Private/Admin
 export const createProduct = async (req, res) => {
-  const { name, description, price, isVeg, category, store, isPopular } = req.body;
+  const { name, description, price, isVeg, category, store, isPopular, originalPrice, weight, sku, stockQuantity, discount } = req.body;
 
   try {
     const image = req.fileUrl || '/assets/dish_default.jpg';
@@ -195,6 +195,11 @@ export const createProduct = async (req, res) => {
       name,
       description,
       price: parseFloat(price),
+      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+      weight,
+      sku,
+      stockQuantity: stockQuantity ? parseInt(stockQuantity) : 100,
+      discount,
       image,
       isVeg: isVeg === 'true' || isVeg === true,
       category,
