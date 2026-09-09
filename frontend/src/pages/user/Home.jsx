@@ -57,7 +57,18 @@ const Home = () => {
       setHeroBanners(homeBanners.filter(b => b.position === 'hero'));
       setPromoBanners(homeBanners.filter(b => b.position === 'promotional'));
 
-      setCategories(categoriesRes.data);
+      // Put Fruits & Vegetables first
+      const rawCategories = categoriesRes.data || [];
+      const sortedCategories = [...rawCategories].sort((a, b) => {
+        const aName = (a.name || '').toLowerCase();
+        const bName = (b.name || '').toLowerCase();
+        const aIsFruits = aName.includes('fruit') || aName.includes('vegetable');
+        const bIsFruits = bName.includes('fruit') || bName.includes('vegetable');
+        if (aIsFruits && !bIsFruits) return -1;
+        if (!aIsFruits && bIsFruits) return 1;
+        return 0;
+      });
+      setCategories(sortedCategories);
 
       const fetchedProducts = productsRes.data.map(p => ({
         ...p,
