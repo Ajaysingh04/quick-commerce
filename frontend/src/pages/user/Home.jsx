@@ -57,16 +57,36 @@ const Home = () => {
       setHeroBanners(homeBanners.filter(b => b.position === 'hero'));
       setPromoBanners(homeBanners.filter(b => b.position === 'promotional'));
 
-      // Put Fruits & Vegetables first
+      // Exact order requested by user
+      const desiredOrder = [
+        'fruits & vegetables',
+        'dry fruits & nuts',
+        'dairy & breakfast',
+        'munchies',
+        'cold drinks',
+        'sweet cravings',
+        'chicken & eggs',
+        'cleaning'
+      ];
+      
       const rawCategories = categoriesRes.data || [];
       const sortedCategories = [...rawCategories].sort((a, b) => {
-        const aName = (a.name || '').toLowerCase();
-        const bName = (b.name || '').toLowerCase();
-        const aIsFruits = aName.includes('fruit') || aName.includes('vegetable');
-        const bIsFruits = bName.includes('fruit') || bName.includes('vegetable');
-        if (aIsFruits && !bIsFruits) return -1;
-        if (!aIsFruits && bIsFruits) return 1;
-        return 0;
+        const aName = (a.name || '').toLowerCase().trim();
+        const bName = (b.name || '').toLowerCase().trim();
+        
+        let aIndex = desiredOrder.findIndex(cat => aName.includes(cat.split(' ')[0]) || cat.includes(aName.split(' ')[0]));
+        let bIndex = desiredOrder.findIndex(cat => bName.includes(cat.split(' ')[0]) || cat.includes(bName.split(' ')[0]));
+        
+        // Exact match takes precedence
+        const aExact = desiredOrder.indexOf(aName);
+        const bExact = desiredOrder.indexOf(bName);
+        if (aExact !== -1) aIndex = aExact;
+        if (bExact !== -1) bIndex = bExact;
+
+        if (aIndex === -1) aIndex = 999;
+        if (bIndex === -1) bIndex = 999;
+        
+        return aIndex - bIndex;
       });
       setCategories(sortedCategories);
 
