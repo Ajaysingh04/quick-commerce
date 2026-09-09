@@ -179,9 +179,6 @@ const UserLayout = () => {
           {/* Right Icons / Actions */}
           <div className="flex items-center gap-4 min-w-max">
             
-            <button className="hidden lg:flex items-center gap-1 text-sm font-semibold text-white/90 hover:text-white mr-4">
-              Recently Viewed <ChevronRight className="w-4 h-4 rotate-90" />
-            </button>
 
             {/* Search Bar (Mobile only icon, desktop hidden for this layout or simplified) */}
             <button className="text-white hover:text-white/80 transition-colors">
@@ -299,7 +296,7 @@ const UserLayout = () => {
       </main>
 
       {/* Solid Footer */}
-      <footer className="bg-brand-500 text-white pt-16 pb-8 mt-auto">
+      <footer className="bg-brand-500 text-white pt-16 pb-8 mt-auto relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-brand-600">
@@ -332,7 +329,7 @@ const UserLayout = () => {
               <ul className="space-y-3 text-sm text-red-100 font-medium">
                 <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
                 <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/shop" className="hover:text-white transition-colors">Story</Link></li>
+                <li><Link to="/shop" className="hover:text-white transition-colors">Shop</Link></li>
                 <li><Link to="/support" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
@@ -341,11 +338,13 @@ const UserLayout = () => {
             <div className="col-span-1">
               <h4 className="text-sm font-bold mb-6 text-white uppercase tracking-wider">Categories</h4>
               <ul className="space-y-3 text-sm text-red-100 font-medium">
-                <li><Link to="/category/fresh" className="hover:text-white transition-colors">Fruits & Vegetables</Link></li>
-                <li><Link to="/category/dairy" className="hover:text-white transition-colors">Dairy & Breakfast</Link></li>
-                <li><Link to="/category/munchies" className="hover:text-white transition-colors">Grocery</Link></li>
-                <li><Link to="/category/drinks" className="hover:text-white transition-colors">Cold Drinks</Link></li>
-                <li><Link to="/category/chicken-eggs" className="hover:text-white transition-colors">Chicken & Eggs</Link></li>
+                {categories.slice(0, 5).map((cat) => (
+                  <li key={cat._id}>
+                    <Link to={`/category/${cat._id}`} className="hover:text-white transition-colors">
+                      {cat.name}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -381,9 +380,11 @@ const UserLayout = () => {
              <p className="text-xs text-green-200">
                 © {new Date().getFullYear()} {settings.siteTitle || 'RoseDash'}™ Ltd. All rights reserved. Developed by Ajay.
              </p>
-             <div className="flex gap-6 text-xs text-green-200 font-medium">
+             <div className="flex gap-6 text-xs text-green-200 font-medium flex-wrap justify-center md:justify-end">
                  <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
                  <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+                 <Link to="/cancellation" className="hover:text-white transition-colors">Cancellation & Refund</Link>
+                 <Link to="/shipping" className="hover:text-white transition-colors">Shipping & Delivery</Link>
              </div>
           </div>
         </div>

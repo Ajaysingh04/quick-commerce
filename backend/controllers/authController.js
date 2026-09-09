@@ -370,6 +370,23 @@ export const clerkSync = async (req, res) => {
 
     sendRefreshTokenCookie(res, refreshToken);
     
+    // Send Login Successful Email asynchronously
+    sendEmail({
+      email: user.email,
+      subject: 'Login Successful - Welcome to RoseDash!',
+      html: `
+        <div style="font-family: Arial, sans-serif; text-align: center; color: #333; padding: 30px 20px; max-w-[600px] margin: 0 auto;">
+          <h2 style="color: #046A47; margin-bottom: 20px;">Welcome Back, ${user.name}!</h2>
+          <p style="font-size: 16px; margin-bottom: 10px;">We noticed a successful login to your RoseDash account.</p>
+          <p style="font-size: 14px; color: #666; margin-bottom: 30px;">If this was you, you can safely ignore this email. Enjoy your premium shopping experience!</p>
+          <div style="margin-top: 30px; padding: 20px; background: #eefcf4; border: 1px solid #b2edca; border-radius: 15px; display: inline-block;">
+            <p style="margin: 0; font-weight: bold; color: #035538; font-size: 16px;">Quick Commerce at Your Fingertips</p>
+          </div>
+          <p style="font-size: 12px; color: #999; margin-top: 40px;">If you didn't log in recently, please secure your account immediately.</p>
+        </div>
+      `
+    }).catch(err => console.error("Failed to send login email:", err));
+    
     res.json({
       message: 'Clerk Sync successful!',
       token: accessToken,

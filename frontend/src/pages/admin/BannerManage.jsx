@@ -46,7 +46,7 @@ const BannerManage = () => {
     setUploadingImage(true);
     try {
       const res = await API.post('/settings/upload', imgData);
-      setFormData({ ...formData, imageUrl: res.data.url });
+      setFormData(prev => ({ ...prev, imageUrl: res.data.url }));
     } catch (error) {
       console.error('Image upload failed', error);
     } finally {

@@ -82,12 +82,10 @@ const Home = () => {
 
   const mainHero = heroBanners.length > 0 ? heroBanners[0] : null;
 
-  const heroImages = [
-    mainHero?.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop',
-    '/assets/herobanner2.jpg',
-    '/assets/herobanner3.jpg',
-    '/assets/herobanner4.jpg'
-  ];
+  const activeHeroBanners = heroBanners.filter(b => b.isActive !== false);
+  const heroImages = activeHeroBanners.length > 0 
+    ? activeHeroBanners.map(b => b.imageUrl)
+    : ['https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop'];
 
   // Slicing products for the sections to 12 (divisible by 2, 3, 4, 6 columns perfectly)
   const youMightNeedProducts = allProducts.slice(0, 12);
