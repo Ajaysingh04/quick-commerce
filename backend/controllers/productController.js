@@ -166,6 +166,13 @@ export const getProducts = async (req, res) => {
       filter.category = req.query.category;
     }
 
+    if (req.query.search) {
+      filter.$or = [
+        { name: { $regex: req.query.search, $options: 'i' } },
+        { description: { $regex: req.query.search, $options: 'i' } }
+      ];
+    }
+
     let query = Product.find(filter)
       .populate('store', 'name')
       .populate('category', 'name');

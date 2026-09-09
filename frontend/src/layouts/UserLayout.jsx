@@ -9,6 +9,7 @@ import { updateQuantity, selectSubtotal, selectCartTotal, clearCart } from '../s
 import { ShoppingBag, User as UserIcon, Menu, X, Plus, Minus, Search, ChevronRight, Mail, Phone, MapPin, ArrowUp, Heart, Smile, Gift, Smartphone, ArrowLeft } from 'lucide-react';
 import API from '../services/api.js';
 import { motion, AnimatePresence } from 'framer-motion';
+import SearchOverlay from '../components/common/SearchOverlay';
 
 const UserLayout = () => {
   const { settings } = useSettings();
@@ -46,6 +47,7 @@ const UserLayout = () => {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
 
@@ -141,6 +143,7 @@ const UserLayout = () => {
           {settings.globalNotice}
         </div>
       )}
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       {/* RoseDash Style Header */}
       {/* Grocery Store Style Header */}
       <header className="sticky top-0 z-40 bg-brand-500 shadow-md py-3">
@@ -180,8 +183,11 @@ const UserLayout = () => {
           <div className="flex items-center gap-4 min-w-max">
             
 
-            {/* Search Bar (Mobile only icon, desktop hidden for this layout or simplified) */}
-            <button className="text-white hover:text-white/80 transition-colors">
+            {/* Search Bar Icon */}
+            <button 
+              onClick={() => setIsSearchOpen(true)}
+              className="text-white hover:text-white/80 transition-colors"
+            >
               <Search className="w-5 h-5" />
             </button>
 
