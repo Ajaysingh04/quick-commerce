@@ -59,6 +59,7 @@ const Home = () => {
 
       // Exact order requested by user
       const desiredOrder = [
+        'fruits & vegetables',
         'dairy & breakfast',
         'munchies',
         'cold drinks',
@@ -71,10 +72,10 @@ const Home = () => {
       
       const rawCategories = categoriesRes.data || [];
       
-      // Remove vegetables category as requested
+      // Remove ONLY the standalone "vegetables" category
       const filteredCategories = rawCategories.filter(cat => {
-        const name = (cat.name || '').toLowerCase();
-        return !name.includes('vegetable') && !name.includes('fruits & vegetables');
+        const name = (cat.name || '').toLowerCase().trim();
+        return name !== 'vegetables';
       });
 
       const sortedCategories = [...filteredCategories].sort((a, b) => {
