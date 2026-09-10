@@ -38,6 +38,7 @@ import AdminProfile from './pages/admin/AdminProfile.jsx';
 import SystemSettings from './pages/admin/SystemSettings.jsx';
 import SupportTickets from './pages/admin/SupportTickets.jsx';
 import DeliveryManage from './pages/admin/DeliveryManage.jsx';
+import StorePartnerManage from './pages/admin/StorePartnerManage.jsx';
 
 import DeliveryDashboard from './pages/delivery/Dashboard.jsx';
 import ActiveDeliveries from './pages/delivery/ActiveDeliveries.jsx';
@@ -47,6 +48,7 @@ import Settings from './pages/delivery/Settings.jsx';
 import DeliveryOnboarding from './pages/delivery/Onboarding.jsx';
 
 import PartnerLayout from './pages/partner/PartnerLayout.jsx';
+import PartnerOnboarding from './pages/partner/Onboarding.jsx';
 import PartnerDashboard from './pages/partner/Dashboard.jsx';
 import PartnerOrders from './pages/partner/Orders.jsx';
 import PartnerInventory from './pages/partner/Inventory.jsx';
@@ -150,7 +152,7 @@ function App() {
  <Route path="reviews" element={<ReviewManage />} />
  <Route path="users" element={<UserManage />} />
  <Route path="delivery-partners" element={<DeliveryManage />} />
- <Route path="store-partners" element={<StoreManage />} />
+ <Route path="store-partners" element={<StorePartnerManage />} />
  <Route path="banners" element={<BannerManage />} />
  <Route path="pages" element={<PageManage />} />
  <Route path="support" element={<SupportTickets />} />
@@ -184,7 +186,8 @@ function App() {
  <PartnerLayout />
  </ProtectedRoute>
  }>
- <Route index element={<Navigate to="dashboard" replace />} />
+ <Route index element={<Navigate to="onboarding" replace />} />
+ <Route path="onboarding" element={<PartnerOnboarding />} />
  <Route path="dashboard" element={<PartnerDashboard />} />
  <Route path="orders" element={<PartnerOrders />} />
  <Route path="inventory" element={<PartnerInventory />} />

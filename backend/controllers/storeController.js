@@ -5,7 +5,7 @@ import Store from '../models/Store.js';
 // @access  Public
 export const getStores = async (req, res) => {
   const { search, cuisine, category, rating, featured, sort } = req.query;
-  let queryObject = { isActive: true };
+  let queryObject = { isActive: true, status: 'approved' };
 
   // 0. Featured Filter
   if (featured === 'true') {
@@ -91,12 +91,52 @@ export const createStore = async (req, res) => {
       deliveryTime: parseInt(deliveryTime),
       distance: parseFloat(distance),
       costForTwo: parseInt(costForTwo),
-      featured: featured === 'true' || featured === true
+      featured: featured === 'true' || featured === true,
+      status: 'approved'
     });
 
     res.status(201).json(store);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+export const getPartnerStoreRequests = async (req, res) => {
+  try {
+    const stores = await Store.find({ owner: { $exists: true } })
+      .populate('owner', 'name email phone role')
+      .sort({ createdAt: -1 });
+
+    res.json(stores);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const approveStoreRequest = async (req, res) => {
+  try {
+    const { status, approvalNotes } = req.body;
+    const store = await Store.findById(req.params.id);
+
+    if (!store) {
+      return res.status(404).json({ message: 'Store request not found' });
+    }
+
+    const nextStatus = ['approved', 'rejected', 'pending'].includes(status) ? status : 'pending';
+    store.status = nextStatus;
+    if (nextStatus === 'approved') {
+      store.kycStatus = 'approved';
+    } else if (nextStatus === 'rejected') {
+      store.kycStatus = 'rejected';
+    } else {
+      store.kycStatus = 'pending_review';
+    }
+    if (approvalNotes !== undefined) store.approvalNotes = approvalNotes;
+    await store.save();
+
+    res.json(store);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

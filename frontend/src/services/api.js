@@ -3,7 +3,15 @@ import { store } from '../store/index.js';
 import { setCredentials, logout } from '../store/authSlice.js';
 
 const getApiUrl = () => {
-  return (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim();
+  const configuredUrl = import.meta.env.VITE_API_URL;
+  if (configuredUrl && configuredUrl.trim()) return configuredUrl.trim();
+
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000/api';
+  }
+
+  return `${window.location.origin}/api`;
 };
 
 const API = axios.create({

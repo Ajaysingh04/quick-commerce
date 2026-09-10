@@ -8,19 +8,135 @@ import Coupon from '../models/Coupon.js';
 const getPartnerStore = async (userId) => {
   let store = await Store.findOne({ owner: userId });
   if (!store) {
-    // Automatically provision a default store for the partner
     store = await Store.create({
       name: 'My Quick Commerce Store',
       owner: userId,
       description: 'Welcome to your new store dashboard.',
       isActive: true,
+      status: 'pending',
       category: 'Grocery',
       cuisineTypes: ['Essentials'],
-      deliveryTime: 30, // Default required field
-      bannerImage: '/assets/res_default.jpg' // Default required field
+      deliveryTime: 30,
+      bannerImage: '/assets/res_default.jpg'
     });
   }
   return store;
+};
+
+const ensureApprovedPartnerStore = async (userId) => {
+  const store = await getPartnerStore(userId);
+  if (store.franchisePurchaseStatus !== 'paid') {
+    return { store, approved: false, reason: 'purchase_required' };
+  }
+  if (store.status !== 'approved') {
+    return { store, approved: false, reason: 'approval_pending' };
+  }
+  return { store, approved: true, reason: 'approved' };
+};
+
+export const getPartnerAccessStatus = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const kycStatus = store.kycStatus || 'not_submitted';
+    const canAccessDashboard = store.franchisePurchaseStatus === 'paid' && store.status === 'approved' && kycStatus === 'approved';
+
+    res.json({
+      storeId: store._id,
+      purchaseStatus: store.franchisePurchaseStatus || 'not_started',
+      approvalStatus: store.status || 'pending',
+      kycStatus,
+      canAccessDashboard,
+      needsPurchase: store.franchisePurchaseStatus !== 'paid',
+      needsApproval: store.status !== 'approved',
+      needsKycApproval: kycStatus !== 'approved',
+      onboardingCompleted: !!store.onboardingCompleted,
+      message: canAccessDashboard ? 'Store ready' : 'Partner onboarding is in progress.'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const submitPartnerOnboarding = async (req, res) => {
+  try {
+    const store = await getPartnerStore(req.user._id);
+    const fileUrls = req.fileUrls || {};
+    const rawAddress = typeof req.body.address === 'string' ? JSON.parse(req.body.address) : req.body.address;
+    const rawBankDetails = typeof req.body.bankDetails === 'string' ? JSON.parse(req.body.bankDetails) : req.body.bankDetails;
+    const rawGstDetails = typeof req.body.gstDetails === 'string' ? JSON.parse(req.body.gstDetails) : req.body.gstDetails;
+    const rawOpeningHours = typeof req.body.openingHours === 'string' ? JSON.parse(req.body.openingHours) : req.body.openingHours;
+    const { name, description, bannerImage, distance, deliveryTime, costForTwo, category } = req.body;
+
+    if (name) store.name = name;
+    if (description !== undefined) store.description = description;
+    if (category) store.category = category;
+    if (rawAddress) store.address = { ...store.address, ...rawAddress };
+    if (rawBankDetails) store.bankDetails = { ...store.bankDetails, ...rawBankDetails };
+    if (rawGstDetails) store.gstDetails = { ...store.gstDetails, ...rawGstDetails };
+    if (rawOpeningHours) store.openingHours = { ...store.openingHours, ...rawOpeningHours };
+    if (bannerImage) store.bannerImage = bannerImage;
+    if (distance !== undefined) store.distance = Number(distance);
+    if (deliveryTime !== undefined) store.deliveryTime = Number(deliveryTime);
+    if (costForTwo !== undefined) store.costForTwo = Number(costForTwo);
+
+    const documentUrls = {
+      panCard: fileUrls.panCard?.[0] || req.body.panCard || store.documents?.panCard,
+      gstCertificate: fileUrls.gstCertificate?.[0] || req.body.gstCertificate || store.documents?.gstCertificate,
+      shopFrontPhoto: fileUrls.shopFrontPhoto?.[0] || req.body.shopFrontPhoto || store.documents?.shopFrontPhoto,
+      addressProof: fileUrls.addressProof?.[0] || req.body.addressProof || store.documents?.addressProof,
+      bankProof: fileUrls.bankProof?.[0] || req.body.bankProof || store.documents?.bankProof
+    };
+
+    const hasAnyDocument = Object.values(documentUrls).some(Boolean);
+    if (hasAnyDocument) {
+      store.documents = { ...store.documents, ...documentUrls };
+      store.kycStatus = 'pending_review';
+    } else {
+      store.kycStatus = 'not_submitted';
+    }
+
+    store.onboardingCompleted = true;
+    if (store.status === 'rejected') store.status = 'pending';
+
+    await store.save();
+
+    res.json({
+      message: hasAnyDocument
+        ? 'Store profile and KYC documents submitted successfully. Waiting for admin approval.'
+        : 'Store onboarding saved successfully. Waiting for admin approval.',
+      store
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const purchaseFranchise = async (req, res) => {
+  try {
+    const { plan = 'starter', amount = 4999, paymentReference } = req.body;
+    const store = await getPartnerStore(req.user._id);
+
+    store.franchisePlan = plan;
+    store.franchisePurchaseStatus = 'paid';
+    store.onboardingCompleted = true;
+    store.paymentReference = paymentReference || `mock-${Date.now()}`;
+    if (!store.kycStatus || store.kycStatus === 'not_submitted') {
+      store.kycStatus = 'not_submitted';
+    }
+    if (store.status === 'rejected') {
+      store.status = 'pending';
+    }
+
+    await store.save();
+
+    res.json({
+      message: 'Franchise purchase completed. Your store is now waiting for admin approval.',
+      store,
+      nextStep: 'admin_approval'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // @desc    Get Partner Dashboard Stats
@@ -28,7 +144,12 @@ const getPartnerStore = async (userId) => {
 // @access  Private (Partner)
 export const getDashboardStats = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
 
     const orders = await Order.find({ store: store._id });
     
@@ -63,7 +184,12 @@ export const getDashboardStats = async (req, res) => {
 // @access  Private (Partner)
 export const getOrders = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     const orders = await Order.find({ store: store._id })
       .populate('user', 'name email phone')
       .populate('items.product', 'name image isVeg')
@@ -80,7 +206,12 @@ export const getOrders = async (req, res) => {
 // @access  Private (Partner)
 export const getMenu = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     const products = await Product.find({ store: store._id }).populate('category');
     res.json(products);
   } catch (error) {
@@ -110,7 +241,12 @@ export const updateProductStock = async (req, res) => {
 // @access  Private (Partner)
 export const addProduct = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     let { name, description, price, originalPrice, stockQuantity, weight, sku, category, image, isVeg, isBestseller, inStock } = req.body;
 
     let categoryName = category || 'General';
@@ -149,7 +285,12 @@ export const addProduct = async (req, res) => {
 // @access  Private (Partner)
 export const updateProduct = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     const product = await Product.findOne({ _id: req.params.id, store: store._id });
     
     if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -190,7 +331,12 @@ export const updateProduct = async (req, res) => {
 // @access  Private (Partner)
 export const deleteProduct = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     const product = await Product.findOneAndDelete({ _id: req.params.id, store: store._id });
     
     if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -206,7 +352,12 @@ export const deleteProduct = async (req, res) => {
 // @access  Private (Partner)
 export const getProfile = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     res.json(store);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -218,7 +369,12 @@ export const getProfile = async (req, res) => {
 // @access  Private (Partner)
 export const updateProfile = async (req, res) => {
   try {
-    const store = await getPartnerStore(req.user._id);
+    const { store, approved, reason } = await ensureApprovedPartnerStore(req.user._id);
+    if (!approved) {
+      return res.status(403).json({
+        message: reason === 'purchase_required' ? 'Please buy the franchise package to unlock your store dashboard.' : 'Store access is pending admin approval.'
+      });
+    }
     
     // Update allowed fields
     const { name, description, address, bankDetails, gstDetails, openingHours, bannerImage, distance, deliveryTime, costForTwo } = req.body;

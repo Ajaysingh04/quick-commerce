@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import upload, { uploadMultipleToCloudinary } from '../middleware/uploadMiddleware.js';
 import {
   getDashboardStats,
   getOrders,
@@ -16,7 +17,10 @@ import {
   getPromos,
   addPromo,
   deletePromo,
-  acceptStaffInvite
+  acceptStaffInvite,
+  getPartnerAccessStatus,
+  purchaseFranchise,
+  submitPartnerOnboarding
 } from '../controllers/partnerController.js';
 import { updateOrderStatus } from '../controllers/orderController.js';
 
@@ -24,6 +28,17 @@ const router = express.Router();
 
 // Public / Token-based route (staff accepts invite via email link, but requires user to be logged in)
 router.post('/staff/accept', protect, acceptStaffInvite);
+
+// Access check + onboarding purchase flow
+router.get('/access-status', protect, restrictTo('partner'), getPartnerAccessStatus);
+router.post('/purchase', protect, restrictTo('partner'), purchaseFranchise);
+router.post('/onboarding', protect, restrictTo('partner'), upload.fields([
+  { name: 'panCard', maxCount: 1 },
+  { name: 'gstCertificate', maxCount: 1 },
+  { name: 'shopFrontPhoto', maxCount: 1 },
+  { name: 'addressProof', maxCount: 1 },
+  { name: 'bankProof', maxCount: 1 }
+]), uploadMultipleToCloudinary, submitPartnerOnboarding);
 
 // All partner routes below require authentication and 'partner' role
 router.use(protect, restrictTo('partner'));

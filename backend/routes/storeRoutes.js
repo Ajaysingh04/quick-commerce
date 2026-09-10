@@ -4,7 +4,9 @@ import {
   getStoreById,
   createStore,
   updateStore,
-  deleteStore
+  deleteStore,
+  getPartnerStoreRequests,
+  approveStoreRequest
 } from '../controllers/storeController.js';
 import { getStoreMenu } from '../controllers/productController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
@@ -14,6 +16,8 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getStores);
+router.get('/admin/partners', protect, restrictTo('admin'), getPartnerStoreRequests);
+router.patch('/:id/approve', protect, restrictTo('admin'), approveStoreRequest);
 router.get('/:id', getStoreById);
 router.get('/:storeId/menu', getStoreMenu);
 

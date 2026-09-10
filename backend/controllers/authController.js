@@ -12,14 +12,43 @@ const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const normalizePhone = (value = '') => {
+  return String(value || '').replace(/\D/g, '');
+};
+
+const findUserByIdentifier = async (identifier) => {
+  const raw = String(identifier || '').trim();
+  if (!raw) return null;
+
+  const normalizedPhone = normalizePhone(raw);
+  const normalizedEmail = raw.toLowerCase();
+
+  if (normalizedPhone.length >= 10) {
+    const byPhone = await User.findOne({ phone: normalizedPhone });
+    if (byPhone) return byPhone;
+  }
+
+  return await User.findOne({ email: normalizedEmail });
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/signup
 // @access  Public
 export const signup = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, phone, role } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
+    const userExists = await User.findOne({
+      $or: [{ email: normalizedEmail }, ...(normalizedPhone ? [{ phone: normalizedPhone }] : [])]
+    });
+
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -29,7 +58,8 @@ export const signup = async (req, res) => {
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
+      phone: normalizedPhone || undefined,
       password,
       role: role || 'user',
       otp: { code: otpCode, expiresAt: otpExpires }
@@ -59,10 +89,11 @@ export const signup = async (req, res) => {
 // @route   POST /api/auth/otp/verify
 // @access  Public
 export const verifyOtp = async (req, res) => {
-  const { email, code } = req.body;
+  const { email, phone, code } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const identifier = email || phone;
+    const user = await findUserByIdentifier(identifier);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -107,10 +138,11 @@ export const verifyOtp = async (req, res) => {
 // @route   POST /api/auth/otp/resend
 // @access  Public
 export const resendOtp = async (req, res) => {
-  const { email } = req.body;
+  const { email, phone } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const identifier = email || phone;
+    const user = await findUserByIdentifier(identifier);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -144,12 +176,13 @@ export const resendOtp = async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, phone, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const identifier = email || phone;
+    const user = await findUserByIdentifier(identifier);
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid email/phone or password' });
     }
 
     if (!user.isVerified) {

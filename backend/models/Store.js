@@ -11,6 +11,20 @@ const storeSchema = new mongoose.Schema({
   distance: { type: Number }, // in km from user coordinates
   isActive: { type: Boolean, default: true },
   featured: { type: Boolean, default: false },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  approvalNotes: { type: String, default: '' },
+  franchisePurchaseStatus: { type: String, enum: ['not_started', 'paid'], default: 'not_started' },
+  franchisePlan: { type: String, default: '' },
+  paymentReference: { type: String, default: '' },
+  onboardingCompleted: { type: Boolean, default: false },
+  kycStatus: { type: String, enum: ['not_submitted', 'pending_review', 'approved', 'rejected'], default: 'not_submitted' },
+  documents: {
+    panCard: { type: String },
+    gstCertificate: { type: String },
+    shopFrontPhoto: { type: String },
+    addressProof: { type: String },
+    bankProof: { type: String }
+  },
   category: { type: String, default: 'Grocery & Essentials' }, // Used for featured tags
   costForTwo: { type: Number, default: 0 },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

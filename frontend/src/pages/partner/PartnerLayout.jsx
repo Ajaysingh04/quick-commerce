@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useSettings } from '../../context/SettingsContext.jsx';
 import { logout } from '../../store/authSlice.js';
+import API from '../../services/api.js';
 import { useAuth } from '@clerk/clerk-react';
 import { LayoutDashboard, ShoppingBag, Store, Package, Users, LogOut, Menu, X, Star, Settings, FileText, Bell, LineChart, Tag, Truck } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -13,6 +14,7 @@ const PartnerLayout = () => {
   
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,7 +27,6 @@ const PartnerLayout = () => {
       const newNotification = { ...data, id: Date.now() };
       setNotifications(prev => [newNotification, ...prev]);
       
-      // Auto dismiss after 5 seconds
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
       }, 5000);
@@ -33,6 +34,36 @@ const PartnerLayout = () => {
 
     return () => socket.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!location.pathname.startsWith('/partner')) return;
+
+    const checkPartnerAccess = async () => {
+      try {
+        const { data } = await API.get('/partner/access-status');
+        const canAccessDashboard = Boolean(data.canAccessDashboard);
+
+        if (canAccessDashboard && location.pathname === '/partner/onboarding') {
+          navigate('/partner/dashboard', { replace: true });
+          return;
+        }
+
+        if (!canAccessDashboard && location.pathname !== '/partner/onboarding') {
+          navigate('/partner/onboarding', { replace: true });
+        }
+
+        if (data.needsKycApproval && location.pathname === '/partner/dashboard') {
+          navigate('/partner/onboarding', { replace: true });
+        }
+      } catch (error) {
+        if (location.pathname !== '/partner/onboarding') {
+          navigate('/partner/onboarding', { replace: true });
+        }
+      }
+    };
+
+    checkPartnerAccess();
+  }, [location.pathname, navigate]);
 
   const handleLogout = () => {
     signOut().catch(() => {}).finally(() => {

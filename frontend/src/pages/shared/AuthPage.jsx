@@ -20,6 +20,7 @@ const AuthPage = () => {
   
   const [signUpName, setSignUpName] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPhone, setSignUpPhone] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
 
   const [error, setError] = useState('');
@@ -233,7 +234,7 @@ const AuthPage = () => {
       const result = await signUp.create(signUpData);
       if (result.status === "complete") {
         await setSignUpActive({ session: result.createdSessionId });
-        navigate('/auth-sync');
+        navigate(`/verify-otp?email=${encodeURIComponent(signUpEmail)}&phone=${encodeURIComponent(signUpPhone)}&role=${encodeURIComponent(localStorage.getItem('auth_role') || 'user')}`);
       } else {
         console.log("Incomplete SignUp:", result);
         setIsLoading(false);
@@ -342,6 +343,7 @@ const AuthPage = () => {
 
               <input type="text" placeholder="Name" value={signUpName} onChange={(e) => setSignUpName(e.target.value)} className="w-full px-4 py-3 my-2 text-sm bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#e31837] transition-shadow" />
               <input type="email" placeholder="Enter E-mail" value={signUpEmail} onChange={(e) => setSignUpEmail(e.target.value)} className="w-full px-4 py-3 my-2 text-sm bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#e31837] transition-shadow" />
+              <input type="tel" placeholder="Phone Number (+91... )" value={signUpPhone} onChange={(e) => setSignUpPhone(e.target.value)} className="w-full px-4 py-3 my-2 text-sm bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#e31837] transition-shadow" />
               <div className="relative w-full my-2">
                 <input type={showSignUpPassword ? "text" : "password"} placeholder="Enter Password" value={signUpPassword} onChange={(e) => setSignUpPassword(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#e31837] transition-shadow" />
                 <button type="button" onClick={() => setShowSignUpPassword(!showSignUpPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
