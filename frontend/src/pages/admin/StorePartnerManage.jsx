@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../../services/api.js';
-import { CheckCircle2, XCircle, Clock3, Store, Mail, Phone } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock3, Store, Mail, Phone, Sparkles, ArrowRight } from 'lucide-react';
 
 const StorePartnerManage = () => {
+  const navigate = useNavigate();
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [welcomeState, setWelcomeState] = useState(null);
+  const welcomeTimeoutRef = useRef(null);
 
   const fetchPartners = async () => {
     try {
@@ -22,14 +26,51 @@ const StorePartnerManage = () => {
     fetchPartners();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (welcomeTimeoutRef.current) {
+        clearTimeout(welcomeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const dismissWelcome = () => {
+    if (welcomeTimeoutRef.current) {
+      clearTimeout(welcomeTimeoutRef.current);
+    }
+    setWelcomeState(null);
+    navigate('/partner/profile');
+  };
+
   const updatePartnerStatus = async (storeId, status) => {
     setUpdating(true);
     try {
-      await API.patch(`/stores/${storeId}/approve`, {
+      const response = await API.patch(`/stores/${storeId}/approve`, {
         status,
         approvalNotes: status === 'approved' ? 'Approved by admin.' : 'Rejected by admin.',
         kycStatus: status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'pending_review'
       });
+
+      if (status === 'approved') {
+        const approvedStore = response.data || partners.find((store) => store._id === storeId);
+        const storeName = approvedStore?.name || 'Your store';
+
+        setWelcomeState({
+          title: 'Welcome to RoseDash',
+          message: `${storeName} has been approved successfully. Your storefront is ready to go live.`,
+          storeName
+        });
+
+        if (welcomeTimeoutRef.current) {
+          clearTimeout(welcomeTimeoutRef.current);
+        }
+
+        welcomeTimeoutRef.current = setTimeout(() => {
+          setWelcomeState(null);
+          navigate('/partner/profile');
+        }, 10000);
+      }
+
       await fetchPartners();
     } catch (err) {
       console.error('Failed to update partner status', err);
@@ -71,6 +112,50 @@ const StorePartnerManage = () => {
 
   return (
     <div className="space-y-6">
+      {welcomeState && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl overflow-hidden rounded-[28px] border border-emerald-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.18)]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_28%)]" />
+            <div className="relative p-6 md:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Approved</p>
+                    <h3 className="mt-1 text-2xl font-black text-slate-900">{welcomeState.title}</h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={dismissWelcome}
+                  className="rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-900"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                <p className="font-semibold">{welcomeState.message}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-emerald-700 font-black">Auto-closing in 10 seconds</p>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={dismissWelcome}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-700"
+                >
+                  Open profile
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-3xl border border-emerald-200/60 shadow-premium p-6">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>

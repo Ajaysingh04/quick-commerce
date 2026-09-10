@@ -169,6 +169,11 @@ const Checkout = () => {
         setMockPaymentId(res.data.mockOrderId);
         setShowPaymentModal(true);
       } else if (res.data.razorpayOrderId) {
+        if (!res.data.key || !res.data.razorpayOrderId) {
+          alert('Razorpay is not configured correctly. Please contact support or try again later.');
+          return;
+        }
+
         const resScript = await loadRazorpayScript();
         if (!resScript) {
           alert('Razorpay SDK failed to load');

@@ -176,8 +176,10 @@ const PartnerOnboarding = () => {
       }
 
       const paymentReference = `franchise-${Date.now()}`;
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TIs1FsoZoPKlhY';
+
       const options = {
-        key: 'rzp_test_TIs1FsoZoPKlhY',
+        key: razorpayKey,
         amount: Math.round(total * 100),
         currency: 'INR',
         name: 'Quick Commerce',
