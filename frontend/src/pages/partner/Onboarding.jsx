@@ -28,6 +28,33 @@ const requiredKycDocs = [
   'Bank Proof'
 ];
 
+const CANONICAL_CATEGORY_OPTIONS = [
+  'Fruits & Vegetables',
+  'Dairy & Breakfast',
+  'Munchies',
+  'Cold Drinks',
+  'Sweet Cravings',
+  'Chicken & Eggs',
+  'Cleaning',
+  'Home & Office',
+  'Personal Care',
+  'Dry Fruits & Nuts',
+  'Edible Oils',
+  'Flours',
+  'Rice & Rice Products',
+  'Frozen & Instant Food',
+  'Fish, Prawns & Seafood',
+  'Mutton, Duck & Lamb',
+  'Sauces & Seasoning',
+  'Masala, Salt & Sugar',
+  'Grocery & Essentials',
+  'Bakery',
+  'Electronics',
+  'Pharmacy',
+  'Organic',
+  'Snacks'
+];
+
 const PartnerOnboarding = () => {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState('starter');
@@ -77,10 +104,13 @@ const PartnerOnboarding = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await API.get('/products/categories?all=true');
-        const categoryOptions = (data || [])
+        const fetchedValues = (data || [])
           .map((item) => item?.name)
-          .filter(Boolean)
-          .sort((a, b) => a.localeCompare(b));
+          .filter(Boolean);
+
+        const categoryOptions = CANONICAL_CATEGORY_OPTIONS.filter((name) =>
+          fetchedValues.includes(name) || fetchedValues.length === 0
+        );
 
         setCategories(categoryOptions);
 
@@ -89,7 +119,7 @@ const PartnerOnboarding = () => {
         }
       } catch (err) {
         console.error('Categories fetch failed', err);
-        setCategories(['Grocery & Essentials', 'Fruits & Vegetables', 'Bakery', 'Electronics', 'Pharmacy']);
+        setCategories(CANONICAL_CATEGORY_OPTIONS);
       }
     };
 

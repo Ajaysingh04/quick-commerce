@@ -5,6 +5,33 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const CANONICAL_CATEGORY_OPTIONS = [
+  'Fruits & Vegetables',
+  'Dairy & Breakfast',
+  'Munchies',
+  'Cold Drinks',
+  'Sweet Cravings',
+  'Chicken & Eggs',
+  'Cleaning',
+  'Home & Office',
+  'Personal Care',
+  'Dry Fruits & Nuts',
+  'Edible Oils',
+  'Flours',
+  'Rice & Rice Products',
+  'Frozen & Instant Food',
+  'Fish, Prawns & Seafood',
+  'Mutton, Duck & Lamb',
+  'Sauces & Seasoning',
+  'Masala, Salt & Sugar',
+  'Grocery & Essentials',
+  'Bakery',
+  'Electronics',
+  'Pharmacy',
+  'Organic',
+  'Snacks'
+];
+
 const Inventory = () => {
  const [products, setProducts] = useState([]);
  const [dbCategories, setDbCategories] = useState([]);
@@ -38,9 +65,14 @@ const Inventory = () => {
  const fetchCategories = async () => {
     try {
       const res = await API.get('/products/categories');
-      setDbCategories(res.data);
+      const fetchedValues = (res.data || []).map((item) => item?.name).filter(Boolean);
+      const validCategories = CANONICAL_CATEGORY_OPTIONS.filter((name) =>
+        fetchedValues.includes(name) || fetchedValues.length === 0
+      );
+      setDbCategories(validCategories);
     } catch (err) {
       console.error('Failed to fetch categories:', err);
+      setDbCategories(CANONICAL_CATEGORY_OPTIONS);
     }
   };
 
