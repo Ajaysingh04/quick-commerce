@@ -347,16 +347,23 @@ export const clerkSync = async (req, res) => {
         });
       }
     }
+
+    if (role && ['admin', 'delivery', 'partner', 'user'].includes(role) && user.role !== role) {
+      user.role = role;
+    }
     
-    // Check for hardcoded admin emails during sync to promote automatically
-    const adminEmails = ['admin@appsica.com', 'ajayworkon04@gmail.com', 'ajaysingh04@gmail.com'];
-    if (adminEmails.includes(email) && user.role !== 'admin') {
+    const envAdminEmails = (process.env.ADMIN_EMAILS || 'admin@appsica.com,ajayworkon04@gmail.com,ajaysingh04@gmail.com')
+      .split(',')
+      .map(item => item.trim().toLowerCase())
+      .filter(Boolean);
+    const adminEmails = [...new Set([...envAdminEmails, 'admin@appsica.com', 'ajayworkon04@gmail.com', 'ajaysingh04@gmail.com'])];
+    if (email && adminEmails.includes(String(email).toLowerCase()) && user.role !== 'admin') {
       user.role = 'admin';
     }
     
     // Hardcoded partner emails
     const partnerEmails = ['appsica086@gmail.com'];
-    if (partnerEmails.includes(email) && user.role !== 'partner') {
+    if (email && partnerEmails.includes(String(email).toLowerCase()) && user.role !== 'partner') {
       user.role = 'partner';
     }
     

@@ -47,20 +47,31 @@ const AuthSync = () => {
  const token = await getToken();
  
  // Sync with our backend to ensure MongoDB user exists and to fetch their roles
- let roleIntent = localStorage.getItem('auth_role') || 'customer';
+ const storedRole = localStorage.getItem('auth_role');
+ let roleIntent = storedRole || 'customer';
  
-  const userEmail = user.primaryEmailAddress?.emailAddress;
-  const isAdminEmail = userEmail === 'admin@appsica.com' || userEmail === 'ajayworkon04@gmail.com' || userEmail === 'ajaysingh04@gmail.com';
-  
-  // Auto-detect role based on strict emails regardless of where they logged in from
-  if (isAdminEmail) roleIntent = 'admin';
+ const userEmail = user.primaryEmailAddress?.emailAddress?.toLowerCase();
+ const defaultAdminEmails = ['admin@appsica.com', 'ajayworkon04@gmail.com', 'ajaysingh04@gmail.com'];
+ const configuredAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+ const adminEmails = [...new Set([...defaultAdminEmails, ...configuredAdminEmails])];
+ const isAdminEmail = !!userEmail && adminEmails.includes(userEmail);
+ 
+ if (storedRole === 'admin' || user?.publicMetadata?.role === 'admin' || isAdminEmail) {
+   roleIntent = 'admin';
+ } else if (storedRole === 'delivery' || user?.publicMetadata?.role === 'delivery') {
+   roleIntent = 'delivery';
+ } else if (storedRole === 'partner' || user?.publicMetadata?.role === 'partner') {
+   roleIntent = 'partner';
+ } else {
+   roleIntent = 'user';
+ }
  
  const res = await API.post('/auth/clerk-sync', {
  clerkId: user.id,
  email: user.primaryEmailAddress?.emailAddress,
  name: user.fullName || user.firstName || 'User',
  avatar: user.imageUrl,
- role: roleIntent === 'admin' ? 'admin' : (roleIntent === 'delivery' ? 'delivery' : (roleIntent === 'partner' ? 'partner' : 'user'))
+ role: roleIntent
  }, {
  headers: { Authorization: `Bearer ${token}` }
  });

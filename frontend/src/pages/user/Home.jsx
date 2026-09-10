@@ -318,7 +318,7 @@ const Home = () => {
               <p className="text-gray-700 font-medium mb-6 max-w-md">
                 {settings.festivalOffer.description || 'Stock up on your daily essentials.'}
               </p>
-              <button className="bg-[#d97706] text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-[#b45309] transition-colors">
+              <button onClick={() => navigate('/shop')} className="bg-[#d97706] text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-[#b45309] transition-colors">
                 {settings.festivalOffer.buttonText || 'Shop the Sale'}
               </button>
             </div>
@@ -343,7 +343,7 @@ const Home = () => {
                 <span className="bg-accent-yellow text-slate-800 text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block">Flat 20% Discount</span>
                 <h3 className="text-3xl font-black text-gray-900 mb-3 leading-tight">Purely Fresh<br/>Vegetables</h3>
                 <p className="text-xs text-gray-500 mb-6 w-4/5">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                <button className="bg-brand-500 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-brand-600 transition-colors w-max">
+                <button onClick={() => navigate('/products')} className="bg-brand-500 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-brand-600 transition-colors w-max">
                   Shop Now <ChevronRight className="w-4 h-4"/>
                 </button>
              </div>
@@ -355,7 +355,7 @@ const Home = () => {
                 <span className="bg-white/40 text-slate-800 text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block backdrop-blur-sm border border-white/20">Flat 25% Discount</span>
                 <h3 className="text-3xl font-black text-gray-900 mb-3 leading-tight">Fresh Fruits,<br/>Pure Quality</h3>
                 <p className="text-xs text-slate-800/70 mb-6 w-4/5">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                <button className="bg-brand-500 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-brand-600 transition-colors w-max">
+                <button onClick={() => navigate('/products')} className="bg-brand-500 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-brand-600 transition-colors w-max">
                   Shop Now <ChevronRight className="w-4 h-4"/>
                 </button>
              </div>
