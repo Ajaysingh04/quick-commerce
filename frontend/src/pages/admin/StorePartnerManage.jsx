@@ -59,6 +59,12 @@ const StorePartnerManage = () => {
     ['bankProof', 'Bank Proof']
   ];
 
+  const formatCurrency = (value) => new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  }).format(Number(value || 0));
+
   if (loading) {
     return <div className="p-8 text-center text-slate-500">Loading store partner requests...</div>;
   }
@@ -122,6 +128,21 @@ const StorePartnerManage = () => {
                               </a>
                             );
                           })}
+                        </div>
+                      )}
+
+                      {(store.invoiceNumber || store.invoiceMeta?.total || store.franchisePurchaseStatus === 'paid') && (
+                        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span className="font-black uppercase tracking-[0.12em]">Invoice</span>
+                            <span>{store.invoiceNumber || 'FR-INV'}</span>
+                          </div>
+                          <div className="grid md:grid-cols-2 gap-2">
+                            <span>Plan: {store.invoiceMeta?.planName || store.franchisePlan || 'Starter Franchise'}</span>
+                            <span>Amount: {formatCurrency(store.invoiceMeta?.total || store.invoiceMeta?.amount || 4999)}</span>
+                            <span>Method: {store.paymentMethod || 'razorpay'}</span>
+                            <span>Payment: {store.paymentStatus || 'paid'}</span>
+                          </div>
                         </div>
                       )}
                     </div>
