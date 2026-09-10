@@ -37,6 +37,7 @@ const PartnerOnboarding = () => {
   const [status, setStatus] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState([]);
   const [kycFiles, setKycFiles] = useState({
     panCard: null,
     gstCertificate: null,
@@ -73,7 +74,27 @@ const PartnerOnboarding = () => {
       }
     };
 
+    const fetchCategories = async () => {
+      try {
+        const { data } = await API.get('/products/categories?all=true');
+        const categoryOptions = (data || [])
+          .map((item) => item?.name)
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b));
+
+        setCategories(categoryOptions);
+
+        if (!details.category && categoryOptions.length > 0) {
+          setDetails((prev) => ({ ...prev, category: categoryOptions[0] }));
+        }
+      } catch (err) {
+        console.error('Categories fetch failed', err);
+        setCategories(['Grocery & Essentials', 'Fruits & Vegetables', 'Bakery', 'Electronics', 'Pharmacy']);
+      }
+    };
+
     fetchStatus();
+    fetchCategories();
   }, [navigate]);
 
   const handlePurchase = async () => {
@@ -351,7 +372,19 @@ const PartnerOnboarding = () => {
 
             <label>
               <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Category</span>
-              <input value={details.category} onChange={(e) => setDetails((prev) => ({ ...prev, category: e.target.value }))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm" />
+              <select
+                value={details.category || ''}
+                onChange={(e) => setDetails((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+              >
+                {categories.length === 0 ? (
+                  <option value="Grocery & Essentials">Grocery & Essentials</option>
+                ) : (
+                  categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))
+                )}
+              </select>
             </label>
 
             <label>

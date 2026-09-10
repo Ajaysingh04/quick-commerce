@@ -5,20 +5,24 @@ import './index.css';
 
 import { ClerkProvider } from '@clerk/clerk-react';
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const rawPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+const hasValidClerkKey = rawPublishableKey &&
+  !rawPublishableKey.toLowerCase().includes('your_') &&
+  !rawPublishableKey.toLowerCase().includes('replace_') &&
+  !rawPublishableKey.toLowerCase().includes('example');
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-if (!PUBLISHABLE_KEY) {
+if (!hasValidClerkKey) {
  root.render(
- <div style={{ padding: '2rem', fontFamily: 'sans-serif', color: 'red' }}>
- <h2>Missing Clerk Publishable Key</h2>
- <p>Please add <code>VITE_CLERK_PUBLISHABLE_KEY</code> to your frontend <code>.env</code> file.</p>
- </div>
+ <React.StrictMode>
+ <App />
+ </React.StrictMode>
  );
 } else {
  root.render(
  <React.StrictMode>
- <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+ <ClerkProvider publishableKey={rawPublishableKey}>
  <App />
  </ClerkProvider>
  </React.StrictMode>

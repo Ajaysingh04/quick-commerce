@@ -70,7 +70,38 @@ import StaticPage from './pages/shared/StaticPage.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 
+const hasValidClerkKey = () => {
+ const value = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '').trim();
+ return Boolean(value) &&
+   !value.toLowerCase().includes('your_') &&
+   !value.toLowerCase().includes('replace_') &&
+   !value.toLowerCase().includes('example');
+};
+
 function App() {
+ if (!hasValidClerkKey()) {
+   return (
+     <div style={{
+       minHeight: '100vh',
+       display: 'flex',
+       alignItems: 'center',
+       justifyContent: 'center',
+       textAlign: 'center',
+       background: '#f8fafc',
+       color: '#0f172a',
+       fontFamily: 'sans-serif',
+       padding: '2rem'
+     }}>
+       <div style={{ maxWidth: 560, background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: '2rem 2.5rem', boxShadow: '0 20px 50px rgba(15,23,42,0.08)' }}>
+         <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.75rem', fontWeight: 800 }}>Auth is not configured yet</h2>
+         <p style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>
+           Add a valid Clerk publishable key in <strong>frontend/.env</strong> to enable login and dashboard access.
+         </p>
+       </div>
+     </div>
+   );
+ }
+
  return (
  <Provider store={store}>
  <ThemeProvider>
