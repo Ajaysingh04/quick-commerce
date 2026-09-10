@@ -48,7 +48,7 @@ const AuthSync = () => {
  
  // Sync with our backend to ensure MongoDB user exists and to fetch their roles
  const storedRole = localStorage.getItem('auth_role');
- let roleIntent = storedRole || 'customer';
+ let roleIntent = storedRole || user?.publicMetadata?.role || 'user';
  
  const userEmail = user.primaryEmailAddress?.emailAddress?.toLowerCase();
  const defaultAdminEmails = ['admin@appsica.com', 'ajayworkon04@gmail.com', 'ajaysingh04@gmail.com'];

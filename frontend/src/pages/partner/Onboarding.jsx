@@ -68,6 +68,7 @@ const PartnerOnboarding = () => {
   const [showInvoice, setShowInvoice] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [kycStatus, setKycStatus] = useState('not_submitted');
   const [kycFiles, setKycFiles] = useState({
     panCard: null,
     gstCertificate: null,
@@ -94,6 +95,7 @@ const PartnerOnboarding = () => {
       try {
         const { data } = await API.get('/partner/access-status');
         setStatus(data);
+        setKycStatus(data.kycStatus || 'not_submitted');
         if (data.canAccessDashboard) {
           navigate('/partner/dashboard', { replace: true });
         }
@@ -130,6 +132,21 @@ const PartnerOnboarding = () => {
     fetchCategories();
   }, [navigate]);
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePurchase = async () => {
     const requiredFields = Object.keys(kycFiles);
     const missingDoc = requiredKycDocs.find((doc, index) => !kycFiles[requiredFields[index]]);
@@ -148,38 +165,81 @@ const PartnerOnboarding = () => {
 
     try {
       const plan = plans.find((item) => item.id === selectedPlan);
-      const res = await API.post('/partner/purchase', {
-        plan: plan.id,
-        amount: plan.price.replace(/[^\d]/g, ''),
-        paymentReference: `franchise-${Date.now()}`
-      });
+      const baseAmount = Number(plan.price.replace(/[^\d]/g, ''));
+      const gst = Number((baseAmount * 0.05).toFixed(2));
+      const total = Number((baseAmount + gst).toFixed(2));
 
-      if (res.data) {
-        const invoice = res.data.invoice || {
-          invoiceNumber: `FR-${Date.now()}`,
-          planName: plan.name,
-          termMonths: 12,
-          amount: Number(plan.price.replace(/[^\d]/g, '')),
-          gst: Number((Number(plan.price.replace(/[^\d]/g, '')) * 0.05).toFixed(2)),
-          total: Number((Number(plan.price.replace(/[^\d]/g, '')) * 1.05).toFixed(2)),
-          currency: 'INR',
-          paidAt: new Date().toISOString(),
-          paymentMethod: 'razorpay'
-        };
-
-        setInvoiceData(invoice);
-        setShowInvoice(true);
-        setStatus({
-          ...status,
-          purchaseStatus: 'paid',
-          approvalStatus: 'pending',
-          canAccessDashboard: true,
-          needsPurchase: false,
-          needsApproval: true,
-          message: 'Franchise locked in. Admin review is in progress.'
-        });
-        setMessage('Franchise payment received successfully. Your invoice is ready and admin review has started.');
+      const razorpayReady = await loadRazorpayScript();
+      if (!razorpayReady) {
+        setError('Razorpay checkout could not load. Please refresh and try again.');
+        return;
       }
+
+      const paymentReference = `franchise-${Date.now()}`;
+      const options = {
+        key: 'rzp_test_TIs1FsoZoPKlhY',
+        amount: Math.round(total * 100),
+        currency: 'INR',
+        name: 'Quick Commerce',
+        description: `${plan.name} Registration`,
+        handler: async function (response) {
+          try {
+            const res = await API.post('/partner/purchase', {
+              plan: plan.id,
+              amount: baseAmount,
+              paymentReference,
+              paymentMethod: 'razorpay',
+              paymentIntentId: response.razorpay_payment_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature
+            });
+
+            const invoice = res.data.invoice || {
+              invoiceNumber: `FR-${Date.now()}`,
+              planName: plan.name,
+              termMonths: 12,
+              amount: baseAmount,
+              gst,
+              total,
+              currency: 'INR',
+              paidAt: new Date().toISOString(),
+              paymentMethod: 'razorpay'
+            };
+
+            setInvoiceData(invoice);
+            setShowInvoice(true);
+            setStatus((prev) => ({
+              ...(prev || {}),
+              purchaseStatus: 'paid',
+              approvalStatus: 'pending',
+              canAccessDashboard: true,
+              needsPurchase: false,
+              needsApproval: true,
+              message: 'Franchise locked in. Admin review is in progress.'
+            }));
+            setKycStatus('pending_review');
+            setMessage('Payment successful. Your professional invoice is ready and admin review has started.');
+          } catch (purchaseError) {
+            setError(purchaseError.response?.data?.message || 'Payment succeeded but invoice creation failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: details.name || 'Partner',
+          email: 'partner@example.com'
+        },
+        theme: {
+          color: '#10b981'
+        },
+        modal: {
+          ondismiss: function () {
+            setError('Payment was not completed. Please try again to unlock your franchise access.');
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
     } catch (err) {
       setError(err.response?.data?.message || 'Unable to complete purchase. Please try again.');
     } finally {
@@ -226,7 +286,9 @@ const PartnerOnboarding = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      setMessage(res.data.message || 'Store details submitted successfully.');
+      const allDocsDone = Object.values(kycFiles).every(Boolean);
+      setKycStatus(allDocsDone ? 'pending_review' : 'not_submitted');
+      setMessage(res.data.message || 'Store details submitted successfully. Update your documents anytime before approval.');
       setStatus((prev) => ({
         ...prev,
         approvalStatus: 'pending',
@@ -258,19 +320,29 @@ const PartnerOnboarding = () => {
         <head>
           <title>Franchise Invoice</title>
           <style>
-            body { font-family: Arial, sans-serif; background: #f8fafc; padding: 24px; color: #0f172a; }
-            .card { max-width: 820px; margin: 0 auto; background: white; border: 1px solid #e2e8f0; border-radius: 18px; padding: 28px; }
-            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
-            .brand { font-size: 28px; font-weight: 700; color: #059669; }
-            .muted { color: #475569; font-size: 12px; }
-            .row { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 12px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-            th, td { border-bottom: 1px solid #e2e8f0; padding: 12px 8px; text-align: left; }
-            .total { font-size: 20px; font-weight: 700; }
+            body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #fff1f2 0%, #fff7ed 100%); padding: 32px; color: #0f172a; }
+            .card {
+              position: relative; max-width: 840px; margin: 0 auto; background: rgba(255,255,255,0.92);
+              border: 1px solid rgba(251,113,133,0.2); border-radius: 22px; padding: 28px; box-shadow: 0 24px 60px rgba(244,114,182,0.12);
+              overflow: hidden;
+            }
+            .watermark {
+              position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              font-size: 160px; font-weight: 800; letter-spacing: 10px; color: rgba(251,113,133,0.08); transform: rotate(-22deg); pointer-events: none;
+            }
+            .header { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #fecdd3; padding-bottom: 18px; margin-bottom: 20px; }
+            .brand { font-size: 30px; font-weight: 800; color: #be123c; }
+            .muted { color: #475569; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+            .row { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 24px; margin-bottom: 12px; }
+            table { position: relative; z-index: 1; width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border-bottom: 1px solid #ffe4e6; padding: 12px 10px; text-align: left; }
+            th { background: #fff1f2; color: #475569; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+            .total { font-size: 20px; font-weight: 800; }
           </style>
         </head>
         <body>
           <div class="card">
+            <div class="watermark">ROSE</div>
             <div class="header">
               <div>
                 <div class="brand">Quick Commerce</div>
@@ -278,7 +350,7 @@ const PartnerOnboarding = () => {
               </div>
               <div style="text-align:right;">
                 <div class="muted">Invoice No.</div>
-                <div style="font-weight:700;">${invoiceData.invoiceNumber || 'FR-INV'}</div>
+                <div style="font-weight:800; color: #111827;">${invoiceData.invoiceNumber || 'FR-INV'}</div>
               </div>
             </div>
             <div class="row">
@@ -317,7 +389,7 @@ const PartnerOnboarding = () => {
             </table>
             <div class="row" style="margin-top:20px;">
               <div></div>
-              <div style="width:260px;">
+              <div style="width:280px;">
                 <div class="row"><span>Sub Total</span><span>₹${Number(invoiceData.amount || 0).toLocaleString('en-IN')}</span></div>
                 <div class="row"><span>GST 5%</span><span>₹${Number(invoiceData.gst || 0).toLocaleString('en-IN')}</span></div>
                 <div class="row total"><span>Total</span><span>₹${Number(invoiceData.total || 0).toLocaleString('en-IN')}</span></div>
@@ -458,11 +530,13 @@ const PartnerOnboarding = () => {
               {purchasing ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
+                  Opening Razorpay...
                 </>
               ) : (
                 <>
-                  Buy {plans.find((p) => p.id === selectedPlan)?.name}
+                  {(kycStatus === 'pending_review' || kycStatus === 'approved' || status?.kycStatus === 'pending_review' || status?.kycStatus === 'approved')
+                    ? 'Update your documents'
+                    : `Buy ${plans.find((p) => p.id === selectedPlan)?.name}`}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -503,46 +577,50 @@ const PartnerOnboarding = () => {
         </div>
 
         {showInvoice && invoiceData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4">
-            <div className="w-full max-w-3xl rounded-[28px] bg-white shadow-2xl border border-slate-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-5 text-white">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="relative w-full max-w-5xl overflow-hidden rounded-[32px] border border-rose-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.18)]">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,113,133,0.18),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_30%)]" />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[170px] font-black tracking-[0.5em] text-rose-200/75 select-none">ROSE</div>
+
+              <div className="relative bg-gradient-to-r from-rose-500 via-pink-500 to-emerald-500 px-6 py-5 text-white">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-black text-emerald-100">Payment receipt</p>
-                    <h3 className="text-2xl font-black mt-2">Franchise invoice</h3>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-black text-rose-100">Payment receipt</p>
+                    <h3 className="text-2xl md:text-3xl font-black mt-2">Franchise invoice</h3>
                   </div>
-                  <button type="button" onClick={() => setShowInvoice(false)} className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold">Close</button>
+                  <button type="button" onClick={() => setShowInvoice(false)} className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold ring-1 ring-white/20">Close</button>
                 </div>
               </div>
 
-              <div className="p-6 md:p-8">
-                <div className="grid md:grid-cols-2 gap-5 border-b border-slate-200 pb-5 mb-5">
+              <div className="relative p-6 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b border-rose-100 pb-5 mb-6">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black mb-2">Quick Commerce</p>
-                    <h4 className="text-xl font-black text-slate-900">{invoiceData.planName || 'Starter Franchise'}</h4>
-                    <p className="text-sm text-slate-600 mt-1">Invoice No: {invoiceData.invoiceNumber || 'FR-INV'}</p>
+                    <div className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-rose-600">Quick Commerce</div>
+                    <h4 className="mt-4 text-2xl font-black text-slate-900">{invoiceData.planName || 'Starter Franchise'}</h4>
+                    <p className="mt-2 text-sm text-slate-600">Invoice No: {invoiceData.invoiceNumber || 'FR-INV'}</p>
                   </div>
-                  <div className="text-left md:text-right">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black mb-2">Payment successful</p>
-                    <p className="text-sm text-emerald-700 font-bold">Paid on {new Date(invoiceData.paidAt || Date.now()).toLocaleDateString('en-IN')}</p>
-                    <p className="text-sm text-slate-600 mt-1">Mode: Razorpay</p>
+
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left md:text-right">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-emerald-700 font-black">Paid successfully</p>
+                    <p className="mt-2 text-sm font-bold text-emerald-700">{new Date(invoiceData.paidAt || Date.now()).toLocaleDateString('en-IN')}</p>
+                    <p className="mt-1 text-xs text-slate-600">Mode: Razorpay</p>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-5 text-sm text-slate-700">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black mb-2">Customer</p>
-                    <p className="font-semibold">{details.name || 'Store Partner'}</p>
+                <div className="grid md:grid-cols-2 gap-5 text-sm text-slate-700 mb-6">
+                  <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-black mb-2">Customer</p>
+                    <p className="font-bold text-slate-800">{details.name || 'Store Partner'}</p>
                   </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black mb-2">Billing term</p>
-                    <p className="font-semibold">{invoiceData.termMonths || 12} months</p>
+                  <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-black mb-2">Billing term</p>
+                    <p className="font-bold text-slate-800">{invoiceData.termMonths || 12} months</p>
                   </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+                <div className="overflow-hidden rounded-[24px] border border-rose-100 bg-white">
                   <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-gradient-to-r from-rose-50 to-pink-50">
                       <tr>
                         <th className="px-4 py-3 font-black text-slate-600">Item</th>
                         <th className="px-4 py-3 font-black text-slate-600">Quantity</th>
@@ -552,26 +630,38 @@ const PartnerOnboarding = () => {
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="px-4 py-3">{invoiceData.planName || 'Starter Franchise'}</td>
-                        <td className="px-4 py-3">1</td>
-                        <td className="px-4 py-3">{invoiceData.termMonths || 12} months</td>
-                        <td className="px-4 py-3 text-right">₹{Number(invoiceData.amount || 0).toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-4 font-semibold text-slate-800">{invoiceData.planName || 'Starter Franchise'}</td>
+                        <td className="px-4 py-4 text-slate-700">1</td>
+                        <td className="px-4 py-4 text-slate-700">{invoiceData.termMonths || 12} months</td>
+                        <td className="px-4 py-4 text-right font-bold text-slate-900">₹{Number(invoiceData.amount || 0).toLocaleString('en-IN')}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
-                <div className="mt-6 flex justify-end">
-                  <div className="w-full max-w-xs space-y-2 text-sm text-slate-600">
+                <div className="mt-6 grid md:grid-cols-[1fr_280px] gap-6 items-end">
+                  <div className="rounded-2xl border border-dashed border-rose-200 bg-rose-50/70 p-4 text-sm text-slate-600">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-rose-500 font-black mb-2">Notes</p>
+                    <p>This invoice confirms your franchise purchase and secures your onboarding review. Your store will be activated after admin approval.</p>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-slate-600">
                     <div className="flex justify-between"><span>Sub total</span><span>₹{Number(invoiceData.amount || 0).toLocaleString('en-IN')}</span></div>
                     <div className="flex justify-between"><span>GST 5%</span><span>₹{Number(invoiceData.gst || 0).toLocaleString('en-IN')}</span></div>
-                    <div className="flex justify-between font-black text-lg text-slate-900 border-t border-slate-200 pt-2"><span>Total</span><span>₹{Number(invoiceData.total || 0).toLocaleString('en-IN')}</span></div>
+                    <div className="flex justify-between items-center font-black text-lg text-slate-900 border-t border-rose-100 pt-2"><span>Total</span><span>₹{Number(invoiceData.total || 0).toLocaleString('en-IN')}</span></div>
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
-                  <button type="button" onClick={downloadInvoice} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700">Download / Print</button>
-                  <button type="button" onClick={() => setShowInvoice(false)} className="rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-black text-white">Continue</button>
+                <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-t border-rose-100 pt-6">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-black mb-2">Authorized by</p>
+                    <div className="h-10 w-40 rounded-md border border-dashed border-slate-300 bg-slate-50" />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button type="button" onClick={downloadInvoice} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm">Download / Print</button>
+                    <button type="button" onClick={() => setShowInvoice(false)} className="rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-emerald-500/20">Continue</button>
+                  </div>
                 </div>
               </div>
             </div>
