@@ -16,6 +16,19 @@ const storeSchema = new mongoose.Schema({
   franchisePurchaseStatus: { type: String, enum: ['not_started', 'paid'], default: 'not_started' },
   franchisePlan: { type: String, default: '' },
   paymentReference: { type: String, default: '' },
+  paymentMethod: { type: String, default: 'razorpay' },
+  paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+  invoiceNumber: { type: String, default: '' },
+  invoiceMeta: {
+    planName: { type: String, default: '' },
+    termMonths: { type: Number, default: 0 },
+    amount: { type: Number, default: 0 },
+    gst: { type: Number, default: 0 },
+    total: { type: Number, default: 0 },
+    paidAt: { type: Date, default: null },
+    currency: { type: String, default: 'INR' },
+    paymentIntentId: { type: String, default: '' }
+  },
   onboardingCompleted: { type: Boolean, default: false },
   kycStatus: { type: String, enum: ['not_submitted', 'pending_review', 'approved', 'rejected'], default: 'not_submitted' },
   documents: {

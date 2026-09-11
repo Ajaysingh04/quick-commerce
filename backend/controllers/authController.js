@@ -374,15 +374,18 @@ export const clerkSync = async (req, res) => {
           name: name || 'Clerk User',
           email,
           avatar,
-          role: role || 'user',
+          role: role && role !== 'user' ? role : 'user',
           isVerified: true,
           password: Math.random().toString(36).slice(-8),
         });
       }
     }
 
-    if (role && ['admin', 'delivery', 'partner', 'user'].includes(role) && user.role !== role) {
-      user.role = role;
+    const explicitRole = role && ['admin', 'delivery', 'partner', 'user'].includes(role) ? role : null;
+    if (explicitRole && explicitRole !== 'user') {
+      user.role = explicitRole;
+    } else if (!user.role || user.role === 'user') {
+      user.role = user.role || 'user';
     }
     
     const envAdminEmails = (process.env.ADMIN_EMAILS || 'admin@appsica.com,ajayworkon04@gmail.com,ajaysingh04@gmail.com')

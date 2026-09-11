@@ -31,6 +31,15 @@ export const createRazorpayIntent = async (req, res) => {
   let { storeId, items, paymentMethod, couponCode } = req.body;
 
   try {
+    const razorpayKeyId = process.env.RAZORPAY_KEY_ID?.trim();
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
+
+    if (!razorpayKeyId || !razorpayKeySecret || razorpayKeyId.includes('your_') || razorpayKeySecret.includes('your_')) {
+      return res.status(400).json({
+        message: 'Razorpay payment is not configured for this environment. Please add valid Razorpay keys.'
+      });
+    }
+
     // Prevent CastError for mock data
     if (!mongoose.Types.ObjectId.isValid(storeId)) {
       storeId = new mongoose.Types.ObjectId().toString();

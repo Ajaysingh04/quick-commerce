@@ -1,4 +1,5 @@
 import Store from '../models/Store.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // @desc    Get all stores with search, category, and sort filters
 // @route   GET /api/stores
@@ -116,7 +117,7 @@ export const getPartnerStoreRequests = async (req, res) => {
 export const approveStoreRequest = async (req, res) => {
   try {
     const { status, approvalNotes } = req.body;
-    const store = await Store.findById(req.params.id);
+    const store = await Store.findById(req.params.id).populate('owner', 'email name');
 
     if (!store) {
       return res.status(404).json({ message: 'Store request not found' });
@@ -133,6 +134,21 @@ export const approveStoreRequest = async (req, res) => {
     }
     if (approvalNotes !== undefined) store.approvalNotes = approvalNotes;
     await store.save();
+
+    if (store.owner?.email) {
+      await sendEmail({
+        email: store.owner.email,
+        subject: `Store application ${nextStatus === 'approved' ? 'approved' : 'rejected'} for ${store.name}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:16px;">
+            <h2 style="margin-top:0;color:#0f172a;">Store application update</h2>
+            <p>Your store <strong>${store.name}</strong> has been <strong>${nextStatus}</strong>.</p>
+            <p><strong>Admin notes:</strong> ${approvalNotes || 'No extra notes provided.'}</p>
+            ${nextStatus === 'approved' ? '<p>Your store panel is now active and ready for setup.</p>' : '<p>Please update your documents or resubmit the application.</p>'}
+          </div>
+        `
+      });
+    }
 
     res.json(store);
   } catch (error) {

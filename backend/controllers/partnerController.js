@@ -3,6 +3,7 @@ import Store from '../models/Store.js';
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import Coupon from '../models/Coupon.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // Helper to get partner's store
 const getPartnerStore = async (userId) => {
@@ -38,7 +39,8 @@ export const getPartnerAccessStatus = async (req, res) => {
   try {
     const store = await getPartnerStore(req.user._id);
     const kycStatus = store.kycStatus || 'not_submitted';
-    const canAccessDashboard = store.franchisePurchaseStatus === 'paid' && store.status === 'approved' && kycStatus === 'approved';
+    const paymentDone = store.franchisePurchaseStatus === 'paid';
+    const canAccessDashboard = paymentDone && !!store.onboardingCompleted;
 
     res.json({
       storeId: store._id,
@@ -46,7 +48,7 @@ export const getPartnerAccessStatus = async (req, res) => {
       approvalStatus: store.status || 'pending',
       kycStatus,
       canAccessDashboard,
-      needsPurchase: store.franchisePurchaseStatus !== 'paid',
+      needsPurchase: !paymentDone,
       needsApproval: store.status !== 'approved',
       needsKycApproval: kycStatus !== 'approved',
       onboardingCompleted: !!store.onboardingCompleted,
@@ -113,15 +115,39 @@ export const submitPartnerOnboarding = async (req, res) => {
 
 export const purchaseFranchise = async (req, res) => {
   try {
-    const { plan = 'starter', amount = 4999, paymentReference } = req.body;
+    const { plan = 'starter', amount = 4999, paymentReference, paymentMethod = 'razorpay', paymentIntentId } = req.body;
     const store = await getPartnerStore(req.user._id);
+
+    const planNameMap = {
+      starter: 'Starter Franchise',
+      growth: 'Growth Franchise'
+    };
+
+    const finalAmount = Number(amount) || 4999;
+    const gst = Number((finalAmount * 0.05).toFixed(2));
+    const total = Number((finalAmount + gst).toFixed(2));
+    const invoiceNumber = `FR-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
     store.franchisePlan = plan;
     store.franchisePurchaseStatus = 'paid';
+    store.paymentStatus = 'paid';
+    store.paymentMethod = paymentMethod || 'razorpay';
     store.onboardingCompleted = true;
     store.paymentReference = paymentReference || `mock-${Date.now()}`;
+    store.invoiceNumber = invoiceNumber;
+    store.invoiceMeta = {
+      planName: planNameMap[plan] || 'Franchise Plan',
+      termMonths: 12,
+      amount: finalAmount,
+      gst,
+      total,
+      paidAt: new Date(),
+      currency: 'INR',
+      paymentIntentId: paymentIntentId || store.paymentReference
+    };
+
     if (!store.kycStatus || store.kycStatus === 'not_submitted') {
-      store.kycStatus = 'not_submitted';
+      store.kycStatus = 'pending_review';
     }
     if (store.status === 'rejected') {
       store.status = 'pending';
@@ -129,10 +155,63 @@ export const purchaseFranchise = async (req, res) => {
 
     await store.save();
 
+    const adminEmails = [process.env.ADMIN_EMAIL, process.env.EMAIL_USER].filter(Boolean);
+    const partnerEmail = req.user?.email;
+
+    for (const email of [...new Set(adminEmails)]) {
+      await sendEmail({
+        email,
+        subject: `New franchise payment received for ${store.name}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:16px;">
+            <h2 style="margin-top:0;color:#0f172a;">Franchise payment received</h2>
+            <p><strong>Store:</strong> ${store.name}</p>
+            <p><strong>Plan:</strong> ${store.invoiceMeta.planName}</p>
+            <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+            <p><strong>Amount:</strong> ₹${Number(total).toLocaleString('en-IN')}</p>
+            <p><strong>Method:</strong> ${store.paymentMethod}</p>
+            <p><strong>Reference:</strong> ${store.paymentReference}</p>
+            <p style="margin-top:20px;">Please review the uploaded KYC documents and approve or reject the franchise request.</p>
+          </div>
+        `
+      });
+    }
+
+    if (partnerEmail) {
+      await sendEmail({
+        email: partnerEmail,
+        subject: `Franchise receipt for ${store.invoiceMeta.planName}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:16px;">
+            <h2 style="margin-top:0;color:#0f172a;">Payment successful</h2>
+            <p>Your franchise payment has been received successfully.</p>
+            <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+            <p><strong>Plan:</strong> ${store.invoiceMeta.planName}</p>
+            <p><strong>Total:</strong> ₹${Number(total).toLocaleString('en-IN')}</p>
+            <p>Admin review is in progress. Once approved, your store panel will be activated.</p>
+          </div>
+        `
+      });
+    }
+
     res.json({
-      message: 'Franchise purchase completed. Your store is now waiting for admin approval.',
+      message: 'Franchise payment received successfully. Your receipt is ready and admin review is in progress.',
       store,
-      nextStep: 'admin_approval'
+      invoice: {
+        invoiceNumber,
+        planName: store.invoiceMeta.planName,
+        termMonths: 12,
+        amount: finalAmount,
+        gst,
+        total,
+        paidAt: store.invoiceMeta.paidAt,
+        currency: 'INR',
+        paymentMethod: store.paymentMethod,
+        paymentReference: store.paymentReference,
+        status: 'paid'
+      },
+      nextStep: 'admin_review',
+      canAccessDashboard: store.status === 'approved' || store.franchisePurchaseStatus === 'paid'
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
