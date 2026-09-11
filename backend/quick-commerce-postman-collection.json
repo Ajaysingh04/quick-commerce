@@ -1,0 +1,282 @@
+{
+  "info": {
+    "name": "Quick Commerce API",
+    "description": "Collection for testing Quick Commerce backend endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "quick-commerce-api-2026"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "storeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Partner\",\n  \"email\": \"partner@example.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"partner\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/signup", "host": ["{{baseUrl}}"], "path": ["auth", "signup"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"partner@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stores",
+      "item": [
+        {
+          "name": "Get All Stores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/stores", "host": ["{{baseUrl}}"], "path": ["stores"] }
+          }
+        },
+        {
+          "name": "Get Store By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/stores/{{storeId}}", "host": ["{{baseUrl}}"], "path": ["stores", "{{storeId}}"] }
+          }
+        },
+        {
+          "name": "Admin Partner Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/stores/admin/partners", "host": ["{{baseUrl}}"], "path": ["stores", "admin", "partners"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/products/categories", "host": ["{{baseUrl}}"], "path": ["products", "categories"] }
+          }
+        },
+        {
+          "name": "Get Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/products?limit=10&page=1", "host": ["{{baseUrl}}"], "path": ["products"], "query": [ { "key": "limit", "value": "10" }, { "key": "page", "value": "1" } ] }
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Product\",\n  \"description\": \"Sample product\",\n  \"price\": 150,\n  \"category\": \"Grocery & Essentials\",\n  \"stock\": 50,\n  \"store\": \"{{storeId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/products", "host": ["{{baseUrl}}"], "path": ["products"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partner",
+      "item": [
+        {
+          "name": "Access Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/partner/access-status", "host": ["{{baseUrl}}"], "path": ["partner", "access-status"] }
+          }
+        },
+        {
+          "name": "Purchase Franchise",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"starter\",\n  \"amount\": 4999,\n  \"paymentReference\": \"FR-TEST-001\",\n  \"paymentMethod\": \"razorpay\",\n  \"paymentIntentId\": \"test_payment_001\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/partner/purchase", "host": ["{{baseUrl}}"], "path": ["partner", "purchase"] }
+          }
+        },
+        {
+          "name": "Submit Onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "My Store", "type": "text" },
+                { "key": "description", "value": "Demo Store Description", "type": "text" },
+                { "key": "category", "value": "Grocery & Essentials", "type": "text" },
+                { "key": "distance", "value": "5", "type": "text" },
+                { "key": "deliveryTime", "value": "30", "type": "text" },
+                { "key": "costForTwo", "value": "499", "type": "text" },
+                { "key": "address", "value": "{\"street\":\"Main Road\",\"city\":\"Delhi\",\"state\":\"Delhi\",\"zipCode\":\"110001\"}", "type": "text" },
+                { "key": "bankDetails", "value": "{\"bankName\":\"HDFC\",\"accountHolderName\":\"Test User\",\"accountNumber\":\"1234567890\",\"ifscCode\":\"HDFC000123\"}", "type": "text" },
+                { "key": "gstDetails", "value": "{\"gstNumber\":\"07ABCDE1234F1Z5\",\"panNumber\":\"ABCDE1234F\"}", "type": "text" },
+                { "key": "openingHours", "value": "{\"open\":\"09:00\",\"close\":\"22:00\"}", "type": "text" },
+                { "key": "bannerImage", "value": "/assets/res_default.jpg", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/partner/onboarding", "host": ["{{baseUrl}}"], "path": ["partner", "onboarding"] }
+          }
+        },
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/partner/dashboard-stats", "host": ["{{baseUrl}}"], "path": ["partner", "dashboard-stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryAddress\": {\n    \"street\": \"Main Road\",\n    \"city\": \"Delhi\",\n    \"state\": \"Delhi\",\n    \"zipCode\": \"110001\"\n  },\n  \"paymentMethod\": \"cod\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] }
+          }
+        },
+        {
+          "name": "Razorpay Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"price\": 150\n    }\n  ],\n  \"paymentMethod\": \"razorpay\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/orders/razorpay-intent", "host": ["{{baseUrl}}"], "path": ["orders", "razorpay-intent"] }
+          }
+        },
+        {
+          "name": "My Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/orders/myorders", "host": ["{{baseUrl}}"], "path": ["orders", "myorders"] }
+          }
+        },
+        {
+          "name": "Order By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

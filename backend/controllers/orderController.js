@@ -67,7 +67,7 @@ export const createRazorpayIntent = async (req, res) => {
       }
     }
 
-    let distance = 2;
+    let distance = 20;
     if (mongoose.Types.ObjectId.isValid(storeId)) {
       const store = await Store.findById(storeId);
       if (store) distance = store.distance || 2;
