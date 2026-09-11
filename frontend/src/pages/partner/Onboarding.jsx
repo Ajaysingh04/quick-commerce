@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../services/api.js';
 import { CheckCircle2, CreditCard, ShieldCheck, Sparkles, Loader2, ArrowRight, Store, MapPin, Building2, Clock3, BadgeCheck } from 'lucide-react';
@@ -57,6 +57,7 @@ const CANONICAL_CATEGORY_OPTIONS = [
 
 const PartnerOnboarding = () => {
   const navigate = useNavigate();
+  const paymentSectionRef = useRef(null);
   const [selectedPlan, setSelectedPlan] = useState('starter');
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -294,6 +295,10 @@ const PartnerOnboarding = () => {
         needsApproval: true,
         onboardingCompleted: true
       }));
+
+      setTimeout(() => {
+        paymentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 250);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit onboarding details.');
     } finally {
@@ -511,7 +516,7 @@ const PartnerOnboarding = () => {
           ))}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-[32px] p-6 md:p-8 shadow-sm">
+        <div ref={paymentSectionRef} id="payment-section" className="bg-white border border-slate-200 rounded-[32px] p-6 md:p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div>
               <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">Current status</p>
@@ -533,9 +538,7 @@ const PartnerOnboarding = () => {
                 </>
               ) : (
                 <>
-                  {(status?.purchaseStatus === 'paid')
-                    ? 'Payment complete'
-                    : `Pay via Razorpay - ${plans.find((p) => p.id === selectedPlan)?.name}`}
+                  {status?.purchaseStatus === 'paid' ? 'Payment complete' : 'Get Payment'}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

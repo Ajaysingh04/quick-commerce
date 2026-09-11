@@ -17,6 +17,7 @@ const PartnerLayout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
+  const approvalWelcomeKey = 'roseDashApprovalWelcomeSeen';
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [approvalWelcome, setApprovalWelcome] = useState(null);
@@ -24,11 +25,28 @@ const PartnerLayout = () => {
   const redirectGuardRef = useRef('');
   const approvalHandledRef = useRef(false);
 
+  const hasSeenApprovalWelcome = () => {
+    try {
+      return localStorage.getItem(approvalWelcomeKey) === 'true';
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const markApprovalWelcomeSeen = () => {
+    try {
+      localStorage.setItem(approvalWelcomeKey, 'true');
+    } catch (error) {
+      // no-op
+    }
+  };
+
   const dismissApprovalWelcome = () => {
     if (redirectTimerRef.current) {
       clearTimeout(redirectTimerRef.current);
     }
     approvalHandledRef.current = false;
+    markApprovalWelcomeSeen();
     setApprovalWelcome(null);
   };
 
@@ -55,6 +73,7 @@ const PartnerLayout = () => {
     }
 
     redirectTimerRef.current = setTimeout(() => {
+      markApprovalWelcomeSeen();
       setApprovalWelcome(null);
       approvalHandledRef.current = false;
       if (location.pathname === '/partner/onboarding') {
@@ -82,14 +101,25 @@ const PartnerLayout = () => {
         const canAccessDashboard = Boolean(data.canAccessDashboard);
         const currentPath = location.pathname;
 
-        if (canAccessDashboard && currentPath === '/partner/onboarding' && !approvalHandledRef.current) {
-          approvalHandledRef.current = true;
-          redirectGuardRef.current = 'approved-dashboard';
+        if (canAccessDashboard && currentPath === '/partner/onboarding') {
+          if (hasSeenApprovalWelcome()) {
+            if (currentPath !== '/partner/dashboard') {
+              redirectGuardRef.current = 'approved-dashboard';
+              navigate('/partner/dashboard', { replace: true });
+            }
+            return;
+          }
 
-          setApprovalWelcome({
-            title: 'Welcome to RoseDash',
-            message: 'Your store has been approved. Opening your dashboard now...'
-          });
+          if (!approvalHandledRef.current) {
+            approvalHandledRef.current = true;
+            redirectGuardRef.current = 'approved-dashboard';
+            markApprovalWelcomeSeen();
+
+            setApprovalWelcome({
+              title: 'Welcome to RoseDash',
+              message: 'Your store has been approved. Opening your dashboard now...'
+            });
+          }
           return;
         }
 
@@ -195,8 +225,17 @@ const PartnerLayout = () => {
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-600">Approved</p>
               <h3 className="mt-3 text-3xl font-black text-slate-900">{approvalWelcome.title}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">{approvalWelcome.message}</p>
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
-                Opening dashboard in 5s
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+                  Opening dashboard in 5s
+                </div>
+                <button
+                  type="button"
+                  onClick={dismissApprovalWelcome}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </motion.div>
