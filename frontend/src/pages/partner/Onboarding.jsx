@@ -174,7 +174,7 @@ const PartnerOnboarding = () => {
       }
 
       const paymentReference = `franchise-${Date.now()}`;
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TIs1FsoZoPKlhY';
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TaK8SVteF33h0O';
 
       const options = {
         key: razorpayKey,
