@@ -287,7 +287,7 @@ const PartnerOnboarding = () => {
 
       const allDocsDone = Object.values(kycFiles).every(Boolean);
       setKycStatus(allDocsDone ? 'pending_review' : 'not_submitted');
-      setMessage(res.data.message || 'Store details submitted successfully. Update your documents anytime before approval.');
+      setMessage(res.data.message || 'Store details submitted successfully. Please complete the Razorpay payment to unlock your store dashboard.');
       setStatus((prev) => ({
         ...prev,
         approvalStatus: 'pending',
@@ -533,9 +533,9 @@ const PartnerOnboarding = () => {
                 </>
               ) : (
                 <>
-                  {(kycStatus === 'pending_review' || kycStatus === 'approved' || status?.kycStatus === 'pending_review' || status?.kycStatus === 'approved')
-                    ? 'Update your documents'
-                    : `Buy ${plans.find((p) => p.id === selectedPlan)?.name}`}
+                  {(status?.purchaseStatus === 'paid')
+                    ? 'Payment complete'
+                    : `Pay via Razorpay - ${plans.find((p) => p.id === selectedPlan)?.name}`}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
