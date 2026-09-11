@@ -1,27 +1,27 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Plus, Minus, Heart, ShoppingBag } from 'lucide-react';
+import { Plus, Minus, Heart, ShoppingBag, Sparkles } from 'lucide-react';
 import { addToCart, updateQuantity } from '../../store/cartSlice';
-import { toggleWishlistItem, toggleWishlistThunk } from '../../store/wishlistSlice';
+import { toggleWishlistThunk } from '../../store/wishlistSlice';
 
 const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Commerce Store' }) => {
   const dispatch = useDispatch();
-  const cartItems = useSelector(state => state.cart.items);
-  const wishlistItems = useSelector(state => state.wishlist.items);
-  
-  const cartItem = cartItems.find(item => item.id === product.id);
+  const cartItems = useSelector((state) => state.cart.items);
+  const wishlistItems = useSelector((state) => state.wishlist.items);
+
+  const cartItem = cartItems.find((item) => item.id === product.id);
   const quantity = cartItem ? cartItem.quantity : 0;
-  const isWishlisted = wishlistItems.some(item => (item._id || item.id) === product.id);
-  const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+  const isWishlisted = wishlistItems.some((item) => (item._id || item.id) === product.id);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   const imageRef = React.useRef(null);
 
-  const handleAdd = (e) => {
+  const handleAdd = () => {
     if (!isAuthenticated) {
-      alert("Please login to add items to cart.");
+      alert('Please login to add items to cart.');
       return;
     }
-    // Fly animation logic
+
     if (imageRef.current) {
       const cartIcon = document.getElementById('cart-icon');
       if (cartIcon) {
@@ -35,7 +35,7 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
         clone.style.width = `${imgRect.width}px`;
         clone.style.height = `${imgRect.height}px`;
         clone.style.zIndex = '9999';
-        clone.style.transition = 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+        clone.style.transition = 'all 0.45s cubic-bezier(0.22, 1, 0.36, 1)';
         clone.style.pointerEvents = 'none';
 
         document.body.appendChild(clone);
@@ -43,27 +43,27 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
         requestAnimationFrame(() => {
           clone.style.left = `${cartRect.left + cartRect.width / 2}px`;
           clone.style.top = `${cartRect.top + cartRect.height / 2}px`;
-          clone.style.width = '20px';
-          clone.style.height = '20px';
+          clone.style.width = '22px';
+          clone.style.height = '22px';
           clone.style.opacity = '0.5';
-          clone.style.transform = 'translate(-50%, -50%) scale(0.1)';
+          clone.style.transform = 'translate(-50%, -50%) scale(0.12)';
         });
 
-        setTimeout(() => {
-          clone.remove();
-        }, 400);
+        setTimeout(() => clone.remove(), 420);
       }
     }
 
-    dispatch(addToCart({
-      item: product,
-      store: { id: storeId, name: storeName }
-    }));
+    dispatch(
+      addToCart({
+        item: product,
+        store: { id: storeId, name: storeName }
+      })
+    );
   };
 
   const handleUpdate = (amount) => {
     if (!isAuthenticated) {
-      alert("Please login to update cart.");
+      alert('Please login to update cart.');
       return;
     }
     dispatch(updateQuantity({ itemId: product.id, amount }));
@@ -72,91 +72,82 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
   const discountPercent = product.discount || (product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) + '% OFF' : null);
 
   return (
-    <div className="bg-white rounded-[24px] p-4 flex flex-col h-full relative transition-all duration-300 transform shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(4,106,71,0.15)] hover:-translate-y-1.5 group border border-gray-100/80 hover:border-brand-200">
-      
-      {/* Top badges & actions */}
-      <div className="absolute top-5 left-5 right-5 flex justify-between items-start z-10">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white p-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_30px_60px_rgba(34,197,94,0.12)]">
+      <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
         {discountPercent ? (
-          <span className="bg-[#FF4545] text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-sm tracking-wide">
+          <span className="rounded-full bg-[#EF4444] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
             {discountPercent}
           </span>
-        ) : (
-          <span />
-        )}
-        <button 
-          onClick={(e) => { 
-            e.preventDefault(); 
-            e.stopPropagation(); 
-            if (!isAuthenticated) {
-              alert("Please login to add items to wishlist.");
-              return;
-            }
-            dispatch(toggleWishlistThunk(product));
-          }} 
-          className="p-2 bg-white/95 backdrop-blur-md rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all hover:scale-110 shadow-sm border border-gray-100"
-        >
-          <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} className={isWishlisted ? "text-red-500" : ""} />
-        </button>
+        ) : null}
+        <span className="rounded-full bg-white/90 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-slate-700 shadow-sm backdrop-blur-sm">
+          10-15 min
+        </span>
       </div>
 
-      {/* Product Image */}
-      <div className="relative flex justify-center items-center h-44 mb-5 mt-2 bg-[#f4f6f8] rounded-[20px] p-4 group-hover:bg-[#eefcf4] transition-colors duration-500 overflow-hidden">
-        <img 
+      <button
+        type="button"
+        onClick={() => {
+          if (!isAuthenticated) {
+            alert('Please login to add items to wishlist.');
+            return;
+          }
+          dispatch(toggleWishlistThunk(product));
+        }}
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-500 shadow-sm backdrop-blur-sm transition hover:border-rose-200 hover:text-rose-500"
+      >
+        <Heart size={16} fill={isWishlisted ? 'currentColor' : 'none'} className={isWishlisted ? 'text-rose-500' : ''} />
+      </button>
+
+      <div className="relative mb-4 mt-2 flex h-44 items-center justify-center overflow-hidden rounded-[22px] bg-gradient-to-br from-slate-50 via-white to-emerald-50 p-3">
+        <img
           ref={imageRef}
-          src={product.image} 
-          alt={product.name} 
-          className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
+          src={product.image}
+          alt={product.name}
+          className="h-full w-full object-contain transition duration-500 group-hover:scale-110"
         />
       </div>
-      
-      {/* Product Details */}
-      <div className="flex flex-col flex-grow px-1">
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-[11px] text-brand-600 font-black tracking-widest uppercase bg-brand-50 px-2 py-0.5 rounded-md">{product.category?.name || product.category || 'Fresh'}</span>
-          <div className="flex items-center text-[12px] font-black text-slate-700 gap-1 bg-yellow-50 px-2 py-0.5 rounded-md">
-            <span className="text-[#F5B300] text-[14px]">★</span> {product.rating || '4.8'}
-          </div>
+
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-700">
+          {product.category?.name || product.category || 'Fresh'}
+        </span>
+        <div className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700">
+          <Sparkles className="h-3 w-3" />
+          {product.rating || '4.8'}
         </div>
-        
-        <h3 className="text-[16px] font-bold text-slate-800 line-clamp-2 leading-tight mb-1.5 group-hover:text-brand-500 transition-colors">
+      </div>
+
+      <div className="flex flex-1 flex-col">
+        <h3 className="mb-1 line-clamp-2 text-base font-black tracking-[-0.02em] text-slate-900 transition group-hover:text-emerald-700">
           {product.name}
         </h3>
-        <div className="text-[13px] text-slate-400 font-semibold mb-5">
-          {product.weight || '500 g'}
-        </div>
-        
-        {/* Price and Action Button */}
-        <div className="mt-auto flex items-center justify-between">
-          <div className="flex flex-col items-start">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[20px] font-black text-slate-900 tracking-tight">₹{product.price}</span>
-            </div>
+        <p className="mb-4 text-xs font-medium text-slate-500">{product.weight || '500 g'}</p>
+
+        <div className="mt-auto flex items-end justify-between gap-3">
+          <div>
+            <div className="text-xl font-black tracking-[-0.04em] text-slate-900">₹{product.price}</div>
             {product.originalPrice && (
-              <span className="text-[12px] text-slate-400 line-through font-bold">M.R.P: ₹{product.originalPrice}</span>
+              <div className="text-[11px] font-semibold text-slate-400 line-through">₹{product.originalPrice}</div>
             )}
           </div>
-          
+
           {quantity === 0 ? (
-            <button 
+            <button
+              type="button"
               onClick={handleAdd}
-              className="flex items-center gap-1.5 border-[2px] border-brand-100 text-brand-600 px-4 py-2 rounded-full hover:bg-brand-500 hover:border-brand-500 hover:text-white transition-all text-sm font-black bg-white shadow-sm hover:shadow-md"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white transition hover:bg-emerald-600"
             >
-              <ShoppingBag size={16} strokeWidth={2.5}/> Add
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Add
             </button>
           ) : (
-            <div className="flex items-center border-[2px] border-brand-500 text-white rounded-full px-2 py-1 shadow-md bg-brand-500">
-              <button 
-                onClick={() => handleUpdate(-1)}
-                className="w-7 h-7 flex items-center justify-center hover:bg-brand-600 rounded-full transition-colors"
-              >
-                <Minus size={14} strokeWidth={3} />
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-1.5 text-emerald-700 shadow-sm">
+              <button type="button" onClick={() => handleUpdate(-1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-black transition hover:bg-emerald-100">
+                <Minus className="h-3.5 w-3.5" />
               </button>
-              <span className="font-black text-[15px] px-3">{quantity}</span>
-              <button 
-                onClick={() => handleUpdate(1)}
-                className="w-7 h-7 flex items-center justify-center hover:bg-brand-600 rounded-full transition-colors"
-              >
-                <Plus size={14} strokeWidth={3} />
+              <span className="min-w-5 text-center text-sm font-black">{quantity}</span>
+              <button type="button" onClick={() => handleUpdate(1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-black transition hover:bg-emerald-100">
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
