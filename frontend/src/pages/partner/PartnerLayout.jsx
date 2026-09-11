@@ -21,6 +21,16 @@ const PartnerLayout = () => {
   const [notifications, setNotifications] = useState([]);
   const [approvalWelcome, setApprovalWelcome] = useState(null);
   const redirectTimerRef = useRef(null);
+  const redirectGuardRef = useRef('');
+  const approvalHandledRef = useRef(false);
+
+  const dismissApprovalWelcome = () => {
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    approvalHandledRef.current = false;
+    setApprovalWelcome(null);
+  };
 
   useEffect(() => {
     const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
@@ -38,6 +48,28 @@ const PartnerLayout = () => {
   }, []);
 
   useEffect(() => {
+    if (!approvalWelcome) return undefined;
+
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+
+    redirectTimerRef.current = setTimeout(() => {
+      setApprovalWelcome(null);
+      approvalHandledRef.current = false;
+      if (location.pathname === '/partner/onboarding') {
+        navigate('/partner/dashboard', { replace: true });
+      }
+    }, 5000);
+
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, [approvalWelcome, location.pathname, navigate]);
+
+  useEffect(() => {
     if (!location.pathname.startsWith('/partner')) return;
 
     let isActive = true;
@@ -48,43 +80,36 @@ const PartnerLayout = () => {
         if (!isActive) return;
 
         const canAccessDashboard = Boolean(data.canAccessDashboard);
-        const isOnboardingRoute = location.pathname === '/partner/onboarding';
-        const isDashboardRoute = location.pathname === '/partner/dashboard';
+        const currentPath = location.pathname;
 
-        if (canAccessDashboard && isOnboardingRoute) {
-          if (redirectTimerRef.current) {
-            clearTimeout(redirectTimerRef.current);
-          }
+        if (canAccessDashboard && currentPath === '/partner/onboarding' && !approvalHandledRef.current) {
+          approvalHandledRef.current = true;
+          redirectGuardRef.current = 'approved-dashboard';
 
           setApprovalWelcome({
             title: 'Welcome to RoseDash',
             message: 'Your store has been approved. Opening your dashboard now...'
           });
-
-          redirectTimerRef.current = setTimeout(() => {
-            setApprovalWelcome(null);
-            navigate('/partner/dashboard', { replace: true });
-          }, 5000);
           return;
         }
 
-        if (isDashboardRoute && !canAccessDashboard) {
+        if (!canAccessDashboard && currentPath !== '/partner/onboarding' && redirectGuardRef.current !== 'go-onboarding') {
+          redirectGuardRef.current = 'go-onboarding';
           navigate('/partner/onboarding', { replace: true });
           return;
         }
 
-        if (!isOnboardingRoute && !canAccessDashboard) {
-          navigate('/partner/onboarding', { replace: true });
-          return;
+        if (canAccessDashboard && currentPath === '/partner/dashboard') {
+          redirectGuardRef.current = 'dashboard-open';
         }
 
-        if (isDashboardRoute && data.needsKycApproval) {
-          navigate('/partner/onboarding', { replace: true });
-          return;
+        if (!canAccessDashboard && currentPath === '/partner/onboarding') {
+          redirectGuardRef.current = 'onboarding-open';
         }
       } catch (error) {
         if (!isActive) return;
-        if (location.pathname !== '/partner/onboarding') {
+        if (location.pathname !== '/partner/onboarding' && redirectGuardRef.current !== 'go-onboarding') {
+          redirectGuardRef.current = 'go-onboarding';
           navigate('/partner/onboarding', { replace: true });
         }
       }
