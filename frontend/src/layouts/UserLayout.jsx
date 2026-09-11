@@ -139,114 +139,112 @@ const UserLayout = () => {
     <div className="min-h-screen flex flex-col bg-white text-slate-800 transition-colors duration-300 font-sans">
       
       {settings.globalNotice && (
-        <div className="bg-brand-500 text-white text-center py-1 text-xs font-bold tracking-widest px-4">
+        <div className="bg-slate-900 px-4 py-2 text-center text-xs font-bold tracking-[0.2em] text-emerald-300">
           {settings.globalNotice}
         </div>
       )}
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-      {/* RoseDash Style Header */}
-      {/* Grocery Store Style Header */}
-      <header className="sticky top-0 z-40 bg-brand-500 shadow-md py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
-          
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <div 
-              onClick={() => { if(!isAuthenticated) navigate('/'); else navigate('/'); }}
-              className="flex items-center gap-2 cursor-pointer transition-opacity"
-            >
-              <img src={settings.logoUrl} alt="Logo" className="h-8 object-contain brightness-0 invert" />
-              <span className="font-black text-2xl tracking-tight text-white hidden sm:block">
-                {settings.siteTitle || 'Gromuse'}
-              </span>
+
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4 py-3">
+            <div className="flex items-center gap-4">
+              <div
+                onClick={() => navigate('/')}
+                className="flex cursor-pointer items-center gap-3"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/10">
+                  <ShoppingBag className="h-4 w-4" />
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-lg font-black tracking-[-0.06em] text-slate-900">
+                    {settings.siteTitle || 'QuickCart'}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/shop')}
+                className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-700 transition hover:border-slate-300 hover:bg-white md:inline-flex"
+              >
+                <Menu className="h-3.5 w-3.5" />
+                Categories
+              </button>
             </div>
 
-            {/* Browse Categories Button */}
-            <button 
-              onClick={() => navigate('/shop')}
-              className="hidden md:flex items-center gap-2 bg-accent-yellow text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-yellow-500 transition-colors"
-            >
-              <Menu className="w-4 h-4" /> Browse All Categories
-            </button>
-          </div>
+            <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex">
+              <Link to="/" className={`${location.pathname === '/' ? 'rounded-full bg-slate-900 px-3 py-1.5 text-white' : 'transition hover:text-slate-900'}`}>Home</Link>
+              <Link to="/shop" className={`${location.pathname === '/shop' ? 'rounded-full bg-slate-900 px-3 py-1.5 text-white' : 'transition hover:text-slate-900'}`}>Shop</Link>
+              <Link to="/offers" className={`${location.pathname === '/offers' ? 'rounded-full bg-slate-900 px-3 py-1.5 text-white' : 'transition hover:text-slate-900'}`}>Offers</Link>
+              <Link to="/about" className={`${location.pathname === '/about' ? 'rounded-full bg-slate-900 px-3 py-1.5 text-white' : 'transition hover:text-slate-900'}`}>About</Link>
+              <Link to="/support" className={`${location.pathname === '/support' ? 'rounded-full bg-slate-900 px-3 py-1.5 text-white' : 'transition hover:text-slate-900'}`}>Support</Link>
+            </nav>
 
-          {/* Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-white/90">
-            <Link to="/" className={`${location.pathname === '/' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Home</Link>
-            <Link to="/shop" className={`${location.pathname === '/shop' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Shop</Link>
-            <Link to="/offers" className={`${location.pathname === '/offers' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Offers</Link>
-            <Link to="/about" className={`${location.pathname === '/about' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>About</Link>
-            <Link to="/support" className={`${location.pathname === '/support' ? 'bg-white/20 text-white px-3 py-1.5 rounded-full' : 'hover:text-white transition-colors'}`}>Support</Link>
-          </nav>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4" />
+              </button>
 
-          {/* Right Icons / Actions */}
-          <div className="flex items-center gap-4 min-w-max">
-            
-
-            {/* Search Bar Icon */}
-            <button 
-              onClick={() => setIsSearchOpen(true)}
-              className="text-white hover:text-white/80 transition-colors"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* Wishlist Icon */}
-            <button 
-              onClick={() => {
-                if(!isAuthenticated) navigate('/login');
-                else setIsWishlistOpen(true); 
-              }}
-              className="relative flex items-center justify-center text-white hover:text-white/80 transition-colors"
-            >
-              <Heart className="w-5 h-5" />
-              {wishlistItems.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent-yellow text-slate-900 flex items-center justify-center text-[10px] font-bold shadow-sm">
-                  {wishlistItems.length}
-                </span>
-              )}
-            </button>
-
-            {/* Cart Icon */}
-            <button 
-              id="cart-icon"
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center justify-center text-white hover:text-white/80 transition-colors"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {totalCartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent-yellow text-slate-900 flex items-center justify-center text-[10px] font-bold shadow-sm">
-                  {totalCartCount}
-                </span>
-              )}
-            </button>
-
-            {/* User Icon / Auth */}
-            {isAuthenticated ? (
-              <button 
+              <button
                 onClick={() => {
-                  if (user?.role === 'admin') navigate('/admin');
-                  else if (user?.role === 'delivery') navigate('/delivery');
-                  else if (user?.role === 'partner') navigate('/partner');
-                  else navigate('/profile');
+                  if (!isAuthenticated) navigate('/login');
+                  else setIsWishlistOpen(true);
                 }}
-                className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/20 text-white transition-colors"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                aria-label="Wishlist"
               >
-                <UserIcon className="w-4 h-4" />
+                <Heart className="h-4 w-4" />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-emerald-500 px-1 text-[9px] font-bold text-white">
+                    {wishlistItems.length}
+                  </span>
+                )}
               </button>
-            ) : (
-              <button 
-                onClick={() => navigate('/login')}
-                className="flex items-center gap-2 text-white hover:text-white/80 transition-colors font-semibold text-sm bg-white/10 px-4 py-1.5 rounded-full border border-white/20"
-              >
-                <UserIcon className="w-4 h-4" /> Sign In
-              </button>
-            )}
 
-            {/* Mobile menu trigger */}
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white">
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+              <button
+                id="cart-icon"
+                onClick={() => setIsCartOpen(true)}
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700"
+                aria-label="Cart"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                {totalCartCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-emerald-400 px-1 text-[9px] font-bold text-slate-900">
+                    {totalCartCount}
+                  </span>
+                )}
+              </button>
+
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    if (user?.role === 'admin') navigate('/admin');
+                    else if (user?.role === 'delivery') navigate('/delivery');
+                    else if (user?.role === 'partner') navigate('/partner');
+                    else navigate('/profile');
+                  }}
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300"
+                >
+                  <UserIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Account</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-[0_12px_25px_rgba(16,185,129,0.25)] transition hover:bg-emerald-400"
+                >
+                  Sign In
+                </button>
+              )}
+
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-slate-700">
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -302,51 +300,48 @@ const UserLayout = () => {
       </main>
 
       {/* Solid Footer */}
-      <footer className="bg-brand-500 text-white pt-16 pb-8 mt-auto relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-brand-600">
-            
-            {/* Logo and Description */}
-            <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <img src={settings.logoUrl} alt="Logo" className="h-8 object-contain brightness-0 invert" />
-                <span className="font-black text-2xl tracking-tighter text-white">
-                  {settings.siteTitle || 'Gromuse'}
+      <footer className="relative mt-auto overflow-hidden bg-slate-900 pt-16 pb-8 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(148,163,184,0.10),transparent_30%)]" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 border-b border-white/10 pb-12 md:grid-cols-4">
+            <div className="md:col-span-1">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">
+                  <ShoppingBag className="h-4 w-4" />
+                </div>
+                <span className="text-2xl font-black tracking-[-0.06em]">
+                  {settings.siteTitle || 'QuickCart'}
                 </span>
               </div>
-              <p className="text-sm text-green-100 mb-6 font-medium">
-                Your daily dose of fresh, organic, and healthy products delivered straight to your door. Freshness guaranteed.
+              <p className="max-w-xs text-sm font-medium text-slate-300">
+                Premium grocery delivery for modern living. Fresh essentials, faster shopping, and beautifully simple service.
               </p>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Download App</h4>
-              <div className="flex gap-3">
-                <a href="#" className="hover:opacity-80 transition-opacity">
-                  <img src="https://b.zmtcdn.com/data/webuikit/9f0c85a5e33adb783fa0aef667075f9e1556003622.png" alt="Google Play" className="h-8 object-contain rounded" />
+              <div className="mt-6 flex gap-3">
+                <a href="#" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10">
+                  App Store
                 </a>
-                <a href="#" className="hover:opacity-80 transition-opacity">
-                  <img src="https://b.zmtcdn.com/data/webuikit/23e930757c3df49840c482a8638bf5c31556001144.png" alt="App Store" className="h-8 object-contain rounded" />
+                <a href="#" className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/10">
+                  Google Play
                 </a>
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="col-span-1">
-              <h4 className="text-sm font-bold mb-6 text-white uppercase tracking-wider">Quick Links</h4>
-              <ul className="space-y-3 text-sm text-red-100 font-medium">
-                <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/shop" className="hover:text-white transition-colors">Shop</Link></li>
-                <li><Link to="/support" className="hover:text-white transition-colors">Contact</Link></li>
+            <div>
+              <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Quick links</h4>
+              <ul className="space-y-3 text-sm text-slate-300">
+                <li><Link to="/" className="transition hover:text-white">Home</Link></li>
+                <li><Link to="/about" className="transition hover:text-white">About Us</Link></li>
+                <li><Link to="/shop" className="transition hover:text-white">Shop</Link></li>
+                <li><Link to="/support" className="transition hover:text-white">Support</Link></li>
               </ul>
             </div>
 
-            {/* Categories */}
-            <div className="col-span-1">
-              <h4 className="text-sm font-bold mb-6 text-white uppercase tracking-wider">Categories</h4>
-              <ul className="space-y-3 text-sm text-red-100 font-medium">
+            <div>
+              <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Categories</h4>
+              <ul className="space-y-3 text-sm text-slate-300">
                 {categories.slice(0, 5).map((cat) => (
                   <li key={cat._id}>
-                    <Link to={`/category/${cat._id}`} className="hover:text-white transition-colors">
+                    <Link to={`/category/${cat._id}`} className="transition hover:text-white">
                       {cat.name}
                     </Link>
                   </li>
@@ -354,44 +349,33 @@ const UserLayout = () => {
               </ul>
             </div>
 
-            {/* Contact Us */}
-            <div className="col-span-1">
-              <h4 className="text-sm font-bold mb-6 text-white uppercase tracking-wider">Contact Us</h4>
-              <ul className="space-y-4 text-sm text-red-100 font-medium">
-                <li className="flex gap-3 items-start">
-                  <MapPin className="w-5 h-5 shrink-0" />
-                  <span>{settings.contactAddress || '15, Scheme No 54, PU4, Indore, Madhya Pradesh 452010, India'}</span>
+            <div>
+              <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Contact</h4>
+              <ul className="space-y-4 text-sm text-slate-300">
+                <li className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-4 w-4 text-emerald-300" />
+                  <span>{settings.contactAddress || 'Connaught Place, New Delhi'}</span>
                 </li>
-                <li className="flex gap-3 items-center">
-                  <Phone className="w-4 h-4 shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-emerald-300" />
                   <span>{settings.contactPhone || '1800-267-4444'}</span>
                 </li>
-                <li className="flex gap-3 items-center">
-                  <Mail className="w-4 h-4 shrink-0" />
-                  <span>{settings.contactEmail || 'support@rosedash.com'}</span>
+                <li className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-emerald-300" />
+                  <span>{settings.contactEmail || 'support@quickcart.app'}</span>
                 </li>
               </ul>
-              <div className="mt-6 flex gap-4">
-                {settings.socialLinks?.facebook && <a href={settings.socialLinks.facebook} target="_blank" rel="noreferrer" className="text-white hover:text-red-200">FB</a>}
-                {settings.socialLinks?.instagram && <a href={settings.socialLinks.instagram} target="_blank" rel="noreferrer" className="text-white hover:text-red-200">IG</a>}
-                {settings.socialLinks?.twitter && <a href={settings.socialLinks.twitter} target="_blank" rel="noreferrer" className="text-white hover:text-red-200">TW</a>}
-                {settings.socialLinks?.linkedin && <a href={settings.socialLinks.linkedin} target="_blank" rel="noreferrer" className="text-white hover:text-red-200">IN</a>}
-              </div>
             </div>
-
           </div>
 
-          {/* Bottom Footer */}
-          <div className="flex flex-col md:flex-row justify-between items-center pt-8 gap-4">
-             <p className="text-xs text-green-200">
-                © {new Date().getFullYear()} {settings.siteTitle || 'RoseDash'}™ Ltd. All rights reserved. Developed by Ajay.
-             </p>
-             <div className="flex gap-6 text-xs text-green-200 font-medium flex-wrap justify-center md:justify-end">
-                 <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-                 <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-                 <Link to="/cancellation" className="hover:text-white transition-colors">Cancellation & Refund</Link>
-                 <Link to="/shipping" className="hover:text-white transition-colors">Shipping & Delivery</Link>
-             </div>
+          <div className="flex flex-col items-center justify-between gap-4 pt-8 text-sm text-slate-300 md:flex-row">
+            <p>© {new Date().getFullYear()} {settings.siteTitle || 'QuickCart'}. All rights reserved.</p>
+            <div className="flex flex-wrap items-center gap-5">
+              <Link to="/privacy" className="transition hover:text-white">Privacy</Link>
+              <Link to="/terms" className="transition hover:text-white">Terms</Link>
+              <Link to="/shipping" className="transition hover:text-white">Shipping</Link>
+              <Link to="/cancellation" className="transition hover:text-white">Refunds</Link>
+            </div>
           </div>
         </div>
       </footer>

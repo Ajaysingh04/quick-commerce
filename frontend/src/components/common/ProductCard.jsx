@@ -56,7 +56,7 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
     dispatch(
       addToCart({
         item: product,
-        store: { id: storeId, name: storeName }
+        store: { id: storeId, name: storeName },
       })
     );
   };
@@ -69,13 +69,14 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
     dispatch(updateQuantity({ itemId: product.id, amount }));
   };
 
-  const discountPercent = product.discount || (product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) + '% OFF' : null);
+  const discountPercent = product.discount ||
+    (product.originalPrice ? `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF` : null);
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white p-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_30px_60px_rgba(34,197,94,0.12)]">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-[0_20px_50px_rgba(15,23,42,0.12)]">
       <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
         {discountPercent ? (
-          <span className="rounded-full bg-[#EF4444] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
+          <span className="rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
             {discountPercent}
           </span>
         ) : null}
@@ -135,7 +136,7 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
             <button
               type="button"
               onClick={handleAdd}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white transition hover:bg-emerald-600"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-white transition hover:bg-emerald-600"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               Add
