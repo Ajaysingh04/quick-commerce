@@ -3,7 +3,6 @@ import API from '../../services/api';
 import {
   TrendingUp,
   ShoppingBag,
-  Users,
   Star,
   ArrowUpRight,
   ArrowDownRight,
@@ -52,10 +51,10 @@ const inventoryData = [
 ];
 
 const pieData = [
-  { name: 'Fresh Produce', value: 38, color: '#10B981' },
-  { name: 'Dairy', value: 25, color: '#3B82F6' },
-  { name: 'Snacks', value: 22, color: '#F59E0B' },
-  { name: 'Household', value: 15, color: '#6366F1' },
+  { name: 'Fresh Produce', value: 38, color: '#0EA5E9' },
+  { name: 'Dairy', value: 25, color: '#2563EB' },
+  { name: 'Snacks', value: 22, color: '#8B5CF6' },
+  { name: 'Household', value: 15, color: '#F59E0B' },
 ];
 
 const topProducts = [
@@ -73,8 +72,8 @@ const alerts = [
 ];
 
 const activityFeed = [
-  { time: '2 min ago', action: 'New order received', detail: 'Order #A1842 — 3 items', color: 'emerald' },
-  { time: '13 min ago', action: 'Inventory updated', detail: 'Milk stock refreshed to 42 units', color: 'blue' },
+  { time: '2 min ago', action: 'New order received', detail: 'Order #A1842 — 3 items', color: 'sky' },
+  { time: '13 min ago', action: 'Inventory updated', detail: 'Milk stock refreshed to 42 units', color: 'indigo' },
   { time: '28 min ago', action: 'Delivery completed', detail: 'Rider delivered to Sector 18', color: 'amber' },
   { time: '49 min ago', action: 'Offer launched', detail: 'Weekend combo discount activated', color: 'violet' },
 ];
@@ -142,15 +141,15 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Overview</div>
-          <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">Store performance dashboard</h1>
+          <div className="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Overview</div>
+          <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">Store operations dashboard</h1>
         </div>
         <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
           {['7D', '30D', '90D'].map((option) => (
             <button
               key={option}
               onClick={() => setRange(option)}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition ${range === option ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition ${range === option ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
             >
               {option}
             </button>
@@ -164,10 +163,10 @@ const Dashboard = () => {
           value={`₹${(stats?.totalRevenue || 148200).toLocaleString('en-IN')}`}
           trend={14.8}
           detail="Vs last week"
-          accent="bg-emerald-100 text-emerald-700"
+          accent="bg-sky-100 text-sky-700"
           icon={CircleDollarSign}
           sparkline={sparklineBars.map((height, index) => (
-            <span key={index} className="w-full rounded-t-full bg-emerald-200" style={{ height: `${height}%` }} />
+            <span key={index} className="w-full rounded-t-full bg-sky-200" style={{ height: `${height}%` }} />
           ))}
         />
         <StatCard
@@ -175,10 +174,10 @@ const Dashboard = () => {
           value={stats?.totalOrders || 342}
           trend={11.2}
           detail="Across all channels"
-          accent="bg-blue-100 text-blue-700"
+          accent="bg-indigo-100 text-indigo-700"
           icon={ShoppingBag}
           sparkline={sparklineBars.map((height, index) => (
-            <span key={index} className="w-full rounded-t-full bg-blue-200" style={{ height: `${height}%` }} />
+            <span key={index} className="w-full rounded-t-full bg-indigo-200" style={{ height: `${height}%` }} />
           ))}
         />
         <StatCard
@@ -248,15 +247,15 @@ const Dashboard = () => {
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0.02} />
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.03} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #E2E8F0', boxShadow: '0 12px 30px rgba(15,23,42,0.08)' }} />
-                <Area type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={3} fill="url(#revenueFill)" />
+                <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={3} fill="url(#revenueFill)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -268,7 +267,7 @@ const Dashboard = () => {
               <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Category mix</div>
               <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Sales split</h2>
             </div>
-            <Sparkles className="h-5 w-5 text-emerald-500" />
+            <Sparkles className="h-5 w-5 text-sky-600" />
           </div>
 
           <div className="h-[240px]">
@@ -305,7 +304,7 @@ const Dashboard = () => {
               <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Stock</div>
               <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Inventory movement</h2>
             </div>
-            <button className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">
+            <button className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-sky-700">
               Replenish
             </button>
           </div>
@@ -317,8 +316,8 @@ const Dashboard = () => {
                 <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #E2E8F0' }} />
-                <Bar dataKey="sold" radius={[8, 8, 0, 0]} fill="#0F172A" />
-                <Bar dataKey="stock" radius={[8, 8, 0, 0]} fill="#10B981" />
+                <Bar dataKey="sold" radius={[8, 8, 0, 0]} fill="#1E293B" />
+                <Bar dataKey="stock" radius={[8, 8, 0, 0]} fill="#3B82F6" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -336,7 +335,7 @@ const Dashboard = () => {
           <div className="space-y-4">
             {topProducts.map((product) => (
               <div key={product.name} className="flex items-center gap-3 rounded-[22px] border border-slate-100 bg-slate-50 p-3 transition hover:border-slate-200 hover:bg-white">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-700">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 to-indigo-50 text-sky-700">
                   <Package className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -371,8 +370,8 @@ const Dashboard = () => {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { label: 'Add Product', icon: Package, color: 'bg-emerald-100 text-emerald-700' },
-              { label: 'Create Offer', icon: Tag, color: 'bg-blue-100 text-blue-700' },
+              { label: 'Add Product', icon: Package, color: 'bg-sky-100 text-sky-700' },
+              { label: 'Create Offer', icon: Tag, color: 'bg-indigo-100 text-indigo-700' },
               { label: 'Manage Inventory', icon: Boxes, color: 'bg-amber-100 text-amber-700' },
               { label: 'Assign Delivery', icon: Truck, color: 'bg-violet-100 text-violet-700' },
             ].map(({ label, icon: Icon, color }) => (
@@ -420,15 +419,15 @@ const Dashboard = () => {
             <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Live activity</div>
             <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Recent activity</h2>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" /> Live
+          <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-sky-700">
+            <span className="h-2 w-2 rounded-full bg-sky-500" /> Live
           </div>
         </div>
 
         <div className="space-y-4">
           {activityFeed.map((activity) => (
             <div key={activity.time} className="flex items-start gap-4 rounded-[22px] border border-slate-100 bg-slate-50 p-3">
-              <div className={`mt-1 flex h-10 w-10 items-center justify-center rounded-xl ${activity.color === 'emerald' ? 'bg-emerald-100 text-emerald-700' : activity.color === 'blue' ? 'bg-blue-100 text-blue-700' : activity.color === 'amber' ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'}`}>
+              <div className={`mt-1 flex h-10 w-10 items-center justify-center rounded-xl ${activity.color === 'sky' ? 'bg-sky-100 text-sky-700' : activity.color === 'indigo' ? 'bg-indigo-100 text-indigo-700' : activity.color === 'amber' ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'}`}>
                 <TrendingUp className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">

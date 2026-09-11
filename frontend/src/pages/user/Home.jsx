@@ -313,66 +313,105 @@ const Home = () => {
           </div>
         </section>
 
-        <section className="mt-12 rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 text-white shadow-[0_30px_60px_rgba(15,23,42,0.18)] sm:p-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Flash deal</div>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.06em]">Weekend essentials under ₹299</h2>
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-12 overflow-hidden rounded-[32px] border border-slate-800 bg-[#0F172A] relative shadow-[0_30px_60px_rgba(15,23,42,0.4)]"
+        >
+          {/* Subtle background glow */}
+          <div className="absolute top-0 left-1/4 h-[300px] w-[500px] -translate-y-1/2 rounded-full bg-emerald-500/20 blur-[120px]" />
+          
+          <div className="relative z-10 p-6 sm:p-10 lg:p-12">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400 backdrop-blur-md">
+                  <Flame className="h-3.5 w-3.5" />
+                  Flash deal
+                </div>
+                <h2 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
+                  Weekend essentials <br className="hidden sm:block" />
+                  <span className="text-emerald-400">under ₹299</span>
+                </h2>
+                <p className="mt-3 max-w-xl text-sm font-medium text-slate-400 sm:text-base">
+                  Stock up on premium weekend supplies. Incredible quality at unbeatable prices, delivered instantly.
+                </p>
+              </div>
+              <div className="flex w-max items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
+                  <Clock3 className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Offer ends in</div>
+                  <div className="text-lg font-black tabular-nums tracking-tight text-white">02<span className="text-emerald-400 opacity-50">:</span>42<span className="text-emerald-400 opacity-50">:</span>18</div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200">
-              <Clock3 className="h-4 w-4 text-emerald-300" />
-              Ends in 02:42:18
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[26px] bg-white/5 p-4 ring-1 ring-white/10">
+            <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-8">
+              {/* Main Products Grid */}
               <div className="grid gap-4 sm:grid-cols-2">
-                {mostSellingProducts.slice(0, 4).map((product) => (
-                  <div key={product.id} className="rounded-[22px] border border-white/10 bg-white/5 p-3">
-                    <div className="flex h-24 items-center justify-center rounded-2xl bg-white/5">
-                      <img src={product.image} alt={product.name} className="h-full w-full object-contain p-2" />
-                    </div>
-                    <div className="mt-3 flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-sm font-bold text-white">{product.name}</h3>
-                        <p className="mt-1 text-xs text-slate-300">{product.weight || '500 g'}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-black text-emerald-300">₹{product.price}</div>
-                        <div className="text-[10px] text-slate-400 line-through">₹{product.originalPrice || product.price + 80}</div>
+                {mostSellingProducts.slice(0, 4).map((product, idx) => (
+                  <motion.div 
+                    key={product.id} 
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-1 transition-all hover:border-emerald-500/30 hover:shadow-[0_8px_30px_rgba(16,185,129,0.15)]"
+                  >
+                    <div className="relative flex h-[160px] w-full items-center justify-center overflow-hidden rounded-[20px] bg-slate-900/50 p-4">
+                      <img src={product.image} alt={product.name} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
+                        {Math.floor(((product.originalPrice || product.price + 80) - product.price) / (product.originalPrice || product.price + 80) * 100)}% OFF
                       </div>
                     </div>
-                  </div>
+                    <div className="p-4 sm:p-5">
+                      <h3 className="line-clamp-1 text-base font-bold text-white group-hover:text-emerald-400 transition-colors">{product.name}</h3>
+                      <p className="mt-1 text-xs font-medium text-slate-400">{product.weight || '500 g'}</p>
+                      
+                      <div className="mt-4 flex items-end justify-between gap-2">
+                        <div>
+                          <div className="text-xl font-black tracking-tight text-emerald-400">₹{product.price}</div>
+                          <div className="text-xs font-semibold text-slate-500 line-through">₹{product.originalPrice || product.price + 80}</div>
+                        </div>
+                        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-emerald-500">
+                          <ShoppingBag className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
 
-            <div className="rounded-[26px] border border-emerald-400/20 bg-gradient-to-br from-emerald-500/20 to-transparent p-5">
-              <div className="flex items-center gap-2 text-emerald-300">
-                <Flame className="h-5 w-5" />
-                <span className="text-xs font-bold uppercase tracking-[0.18em]">Bestsellers</span>
-              </div>
-              <div className="mt-5 space-y-4">
-                {mostSellingProducts.slice(0, 3).map((product) => (
-                  <div key={product.id} className="flex items-center gap-3 rounded-2xl bg-white/5 p-2.5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/8">
-                      <img src={product.image} alt={product.name} className="h-12 w-12 object-contain" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-bold text-white">{product.name}</div>
-                      <div className="mt-1 text-xs text-slate-300">{product.category?.name || product.category || 'Fresh'}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-black text-emerald-300">₹{product.price}</div>
-                      <div className="text-[10px] text-slate-400 line-through">₹{product.originalPrice || product.price + 60}</div>
-                    </div>
+              {/* Sidebar List */}
+              <div className="flex flex-col overflow-hidden rounded-[28px] border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-transparent">
+                <div className="border-b border-emerald-500/10 bg-emerald-500/5 p-5 sm:px-6">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-emerald-400" />
+                    <span className="text-sm font-black uppercase tracking-[0.15em] text-white">Trending Picks</span>
                   </div>
-                ))}
+                </div>
+                <div className="flex flex-1 flex-col justify-center divide-y divide-white/5 p-2">
+                  {mostSellingProducts.slice(0, 4).map((product) => (
+                    <div key={product.id} className="group flex items-center gap-4 rounded-2xl p-3 transition-colors hover:bg-white/5">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-slate-900 p-2 border border-white/5">
+                        <img src={product.image} alt={product.name} className="h-full w-full object-contain transition-transform group-hover:scale-110" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{product.name}</div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="text-sm font-black tracking-tight text-emerald-400">₹{product.price}</div>
+                          <div className="text-[10px] font-semibold text-slate-500 line-through">₹{product.originalPrice || product.price + 60}</div>
+                        </div>
+                      </div>
+                      <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/5 text-slate-300 transition-colors hover:bg-emerald-500 hover:text-white">
+                        <ArrowRight className="h-3.5 w-3.5 -rotate-45" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         <section className="mt-12">
           <div className="mb-5 flex items-center justify-between gap-3">
