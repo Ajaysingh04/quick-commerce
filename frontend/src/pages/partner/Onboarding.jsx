@@ -96,8 +96,11 @@ const PartnerOnboarding = () => {
         const { data } = await API.get('/partner/access-status');
         setStatus(data);
         setKycStatus(data.kycStatus || 'not_submitted');
-        if (data.canAccessDashboard) {
-          navigate('/partner/dashboard', { replace: true });
+        if (data.canAccessDashboard && window.location.pathname === '/partner/onboarding') {
+          const redirectTimer = setTimeout(() => {
+            navigate('/partner/dashboard', { replace: true });
+          }, 5000);
+          return () => clearTimeout(redirectTimer);
         }
       } catch (err) {
         console.error('Access status failed', err);

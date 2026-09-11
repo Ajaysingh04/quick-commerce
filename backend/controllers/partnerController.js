@@ -40,7 +40,7 @@ export const getPartnerAccessStatus = async (req, res) => {
     const store = await getPartnerStore(req.user._id);
     const kycStatus = store.kycStatus || 'not_submitted';
     const paymentDone = store.franchisePurchaseStatus === 'paid';
-    const canAccessDashboard = paymentDone && !!store.onboardingCompleted;
+    const canAccessDashboard = paymentDone && !!store.onboardingCompleted && store.status === 'approved';
 
     res.json({
       storeId: store._id,
@@ -211,7 +211,7 @@ export const purchaseFranchise = async (req, res) => {
         status: 'paid'
       },
       nextStep: 'admin_review',
-      canAccessDashboard: store.status === 'approved' || store.franchisePurchaseStatus === 'paid'
+      canAccessDashboard: store.status === 'approved' && store.franchisePurchaseStatus === 'paid' && !!store.onboardingCompleted
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

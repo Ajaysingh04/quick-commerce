@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useSettings } from '../../context/SettingsContext.jsx';
 import { logout } from '../../store/authSlice.js';
 import API from '../../services/api.js';
 import { useAuth } from '@clerk/clerk-react';
-import { LayoutDashboard, ShoppingBag, Store, Package, Users, LogOut, Menu, X, Star, Settings, FileText, Bell, LineChart, Tag, Truck } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Store, Package, Users, LogOut, Menu, X, Star, Settings, FileText, Bell, LineChart, Tag, Truck, CheckCircle2 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -19,6 +19,8 @@ const PartnerLayout = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [approvalWelcome, setApprovalWelcome] = useState(null);
+  const redirectTimerRef = useRef(null);
 
   useEffect(() => {
     const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
@@ -38,24 +40,50 @@ const PartnerLayout = () => {
   useEffect(() => {
     if (!location.pathname.startsWith('/partner')) return;
 
+    let isActive = true;
+
     const checkPartnerAccess = async () => {
       try {
         const { data } = await API.get('/partner/access-status');
-        const canAccessDashboard = Boolean(data.canAccessDashboard);
+        if (!isActive) return;
 
-        if (canAccessDashboard && location.pathname === '/partner/onboarding') {
-          navigate('/partner/dashboard', { replace: true });
+        const canAccessDashboard = Boolean(data.canAccessDashboard);
+        const isOnboardingRoute = location.pathname === '/partner/onboarding';
+        const isDashboardRoute = location.pathname === '/partner/dashboard';
+
+        if (canAccessDashboard && isOnboardingRoute) {
+          if (redirectTimerRef.current) {
+            clearTimeout(redirectTimerRef.current);
+          }
+
+          setApprovalWelcome({
+            title: 'Welcome to RoseDash',
+            message: 'Your store has been approved. Opening your dashboard now...'
+          });
+
+          redirectTimerRef.current = setTimeout(() => {
+            setApprovalWelcome(null);
+            navigate('/partner/dashboard', { replace: true });
+          }, 5000);
           return;
         }
 
-        if (!canAccessDashboard && location.pathname !== '/partner/onboarding') {
+        if (isDashboardRoute && !canAccessDashboard) {
           navigate('/partner/onboarding', { replace: true });
+          return;
         }
 
-        if (data.needsKycApproval && location.pathname === '/partner/dashboard') {
+        if (!isOnboardingRoute && !canAccessDashboard) {
           navigate('/partner/onboarding', { replace: true });
+          return;
+        }
+
+        if (isDashboardRoute && data.needsKycApproval) {
+          navigate('/partner/onboarding', { replace: true });
+          return;
         }
       } catch (error) {
+        if (!isActive) return;
         if (location.pathname !== '/partner/onboarding') {
           navigate('/partner/onboarding', { replace: true });
         }
@@ -63,6 +91,13 @@ const PartnerLayout = () => {
     };
 
     checkPartnerAccess();
+
+    return () => {
+      isActive = false;
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
   }, [location.pathname, navigate]);
 
   const handleLogout = () => {
@@ -119,6 +154,29 @@ const PartnerLayout = () => {
           ))}
         </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {approvalWelcome && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/20 backdrop-blur-sm"
+          >
+            <div className="w-full max-w-md rounded-[28px] border border-emerald-100 bg-white/95 p-8 shadow-2xl text-center">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-600">Approved</p>
+              <h3 className="mt-3 text-3xl font-black text-slate-900">{approvalWelcome.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{approvalWelcome.message}</p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+                Opening dashboard in 5s
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Sidebar - Desktop */}
       <aside className="hidden md:flex flex-col w-[260px] h-screen sticky top-0 bg-emerald-600 text-white shrink-0 shadow-xl rounded-br-[40px] z-20 overflow-hidden py-8">
