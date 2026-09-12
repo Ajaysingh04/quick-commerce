@@ -67,11 +67,18 @@ const AuthPage = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthLoaded && userId) {
-      navigate('/');
+  const handleSwitchAccount = async () => {
+    try {
+      setIsLoading(true);
+      await signOut();
+      setError('');
+      setSuccessMsg('Signed out of previous session. You can now sign in.');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isAuthLoaded, userId, navigate]);
+  };
 
   useEffect(() => {
     const signupPath = location.pathname === '/signup';
@@ -112,6 +119,10 @@ const AuthPage = () => {
     const currentOrigin = window.location.origin;
     setError('');
     try {
+      if (userId) {
+        try { await signOut(); } catch (e) {}
+      }
+
       if (isSignUp) {
         if (!isSignUpLoaded) {
           setError("Auth system is still initializing. Please wait...");
@@ -138,7 +149,7 @@ const AuthPage = () => {
       const errMsg = err.message || (err.errors && err.errors[0]?.longMessage) || '';
       if (errMsg.toLowerCase().includes("already signed in")) {
         await signOut();
-        setError("Clearing previous incomplete session... Please click Google Login again.");
+        setError("Cleared previous session. Please click Google Login again.");
       } else {
         setError("Google Login failed. Please try again or use email.");
       }
@@ -158,11 +169,18 @@ const AuthPage = () => {
     }
     setError('');
     setIsLoading(true);
+
     try {
+      // Clear previous incomplete session if any exists
+      if (userId) {
+        try { await signOut(); } catch (e) {}
+      }
+
       const result = await signIn.create({
         identifier: signInEmail.trim(),
         password: signInPassword,
       });
+
       if (result.status === "complete") {
         await setSignInActive({ session: result.createdSessionId });
         navigate('/auth-sync');
@@ -185,6 +203,27 @@ const AuthPage = () => {
       let errMsg = "Invalid email or password. Please try again.";
       if (err.errors && err.errors.length > 0) errMsg = err.errors[0].longMessage;
       else if (err.message) errMsg = err.message;
+
+      // If already signed in, sign out and auto retry
+      if (errMsg.toLowerCase().includes("already signed in") || errMsg.toLowerCase().includes("session")) {
+        try {
+          await signOut();
+          const retryRes = await signIn.create({
+            identifier: signInEmail.trim(),
+            password: signInPassword,
+          });
+          if (retryRes.status === "complete") {
+            await setSignInActive({ session: retryRes.createdSessionId });
+            navigate('/auth-sync');
+            return;
+          }
+        } catch (retryErr) {
+          setError("Previous session cleared. Please click Sign In once more now.");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       setError(errMsg);
       setIsLoading(false);
     }
@@ -395,6 +434,20 @@ const AuthPage = () => {
                 </button>
               </div>
             </div>
+
+            {/* Active session switch account banner */}
+            {userId && (
+              <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs flex items-center justify-between gap-2">
+                <span className="text-amber-800 font-bold">Another account is currently logged in</span>
+                <button
+                  type="button"
+                  onClick={handleSwitchAccount}
+                  className="px-3 py-1.5 bg-[#e31837] text-white rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-[#c8102e] transition shadow-xs shrink-0"
+                >
+                  Logout / Switch
+                </button>
+              </div>
+            )}
 
             {/* Alerts */}
             {error && (
