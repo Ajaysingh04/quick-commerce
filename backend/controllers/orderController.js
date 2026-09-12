@@ -409,10 +409,12 @@ export const getAssignedOrders = async (req, res) => {
 // @route   PUT /api/orders/:id/status
 // @access  Private/Admin or Delivery
 export const updateOrderStatus = async (req, res) => {
-  const { status, paymentStatus, deliveryPartnerId } = req.body;
+  const { status, paymentStatus, deliveryPartnerId, codPaidViaQr } = req.body;
 
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id)
+      .populate('store', 'name bannerImage coordinates deliveryAddress')
+      .populate('user', 'name phone');
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
@@ -422,7 +424,14 @@ export const updateOrderStatus = async (req, res) => {
       // Delivery partners can claim or change transitions
       if (['confirmed', 'out-for-delivery', 'delivered'].includes(status)) {
         order.status = status;
-        if (status === 'delivered') order.deliveredAt = new Date();
+        if (status === 'out-for-delivery' && !order.pickedUpAt) order.pickedUpAt = new Date();
+        if (status === 'delivered') {
+          order.deliveredAt = new Date();
+          if (codPaidViaQr) {
+            order.codPaidViaQr = true;
+            order.paymentDetails.status = 'completed';
+          }
+        }
       }
       if (!order.deliveryPartner) {
         order.deliveryPartner = req.user._id;
@@ -430,7 +439,14 @@ export const updateOrderStatus = async (req, res) => {
     } else if (req.user.role === 'admin' || req.user.role === 'partner') {
       if (status) {
         order.status = status;
-        if (status === 'delivered') order.deliveredAt = new Date();
+        if (status === 'out-for-delivery' && !order.pickedUpAt) order.pickedUpAt = new Date();
+        if (status === 'delivered') {
+          order.deliveredAt = new Date();
+          if (codPaidViaQr) {
+            order.codPaidViaQr = true;
+            order.paymentDetails.status = 'completed';
+          }
+        }
       }
       if (paymentStatus) order.paymentDetails.status = paymentStatus;
       if (deliveryPartnerId) order.deliveryPartner = deliveryPartnerId;
@@ -444,14 +460,21 @@ export const updateOrderStatus = async (req, res) => {
         orderId: order._id,
         status: order.status,
         paymentStatus: order.paymentDetails.status,
-        deliveryPartner: order.deliveryPartner
+        deliveryPartner: order.deliveryPartner,
+        pickedUpAt: order.pickedUpAt,
+        deliveredAt: order.deliveredAt,
+        codPaidViaQr: order.codPaidViaQr
       });
 
       // Emit to admin dashboard
       global.io.emit('adminOrderUpdate', {
         orderId: order._id,
         status: order.status,
-        paymentStatus: order.paymentDetails.status
+        paymentStatus: order.paymentDetails.status,
+        pickedUpAt: order.pickedUpAt,
+        deliveredAt: order.deliveredAt,
+        deliveryPartner: order.deliveryPartner,
+        codPaidViaQr: order.codPaidViaQr
       });
 
       // Send live notification popup to Admin
@@ -486,6 +509,116 @@ export const updateOrderStatus = async (req, res) => {
 
     res.json(order);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Store Pickup QR Scan by Delivery Partner
+// @route   POST /api/orders/:id/pickup-scan
+// @access  Private/Delivery or Admin or Partner
+export const pickupScanOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('store', 'name bannerImage coordinates deliveryAddress')
+      .populate('user', 'name phone email');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.pickedUpAt = order.pickedUpAt || new Date();
+    order.status = 'out-for-delivery';
+    if (!order.deliveryPartner && req.user.role === 'delivery') {
+      order.deliveryPartner = req.user._id;
+    }
+
+    await order.save();
+
+    const riderName = req.user?.name || 'Delivery Partner';
+
+    if (global.io) {
+      global.io.to(`order_${order._id}`).emit('orderStatusUpdated', {
+        orderId: order._id,
+        status: 'out-for-delivery',
+        pickedUpAt: order.pickedUpAt,
+        deliveryPartner: order.deliveryPartner
+      });
+
+      global.io.to(`order_${order._id}`).emit('orderPickedUp', {
+        orderId: order._id,
+        pickedUpAt: order.pickedUpAt,
+        deliveryPartner: order.deliveryPartner
+      });
+
+      global.io.emit('adminOrderUpdate', {
+        orderId: order._id,
+        status: 'out-for-delivery',
+        pickedUpAt: order.pickedUpAt,
+        deliveryPartner: order.deliveryPartner
+      });
+
+      global.io.emit('adminNotification', {
+        title: 'Order Picked Up',
+        message: `${riderName} picked up order #${String(order._id).slice(-6)} from store`,
+        orderId: order._id,
+        status: 'out-for-delivery',
+        date: new Date()
+      });
+    }
+
+    res.json({
+      message: 'Pickup verified successfully. Customer details unlocked.',
+      order
+    });
+  } catch (error) {
+    console.error('Pickup scan error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Submit 2-way rating for order (Rider or Customer)
+// @route   POST /api/orders/:id/rate
+// @access  Private (User or Delivery or Admin)
+export const rateOrder = async (req, res) => {
+  const { riderRating, customerRating, feedback } = req.body;
+
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (!order.rating) {
+      order.rating = {};
+    }
+
+    if (riderRating !== undefined) {
+      order.rating.riderRating = Number(riderRating);
+    }
+    if (customerRating !== undefined) {
+      order.rating.customerRating = Number(customerRating);
+    }
+    if (feedback) {
+      order.rating.feedback = feedback;
+    }
+
+    await order.save();
+
+    if (global.io) {
+      global.io.to(`order_${order._id}`).emit('orderRated', {
+        orderId: order._id,
+        rating: order.rating
+      });
+
+      global.io.emit('adminOrderUpdate', {
+        orderId: order._id,
+        rating: order.rating
+      });
+    }
+
+    res.json({ message: 'Rating submitted successfully', rating: order.rating });
+  } catch (error) {
+    console.error('Rating submission error:', error);
     res.status(500).json({ message: error.message });
   }
 };

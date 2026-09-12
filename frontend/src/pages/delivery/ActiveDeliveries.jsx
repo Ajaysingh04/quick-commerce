@@ -18,8 +18,21 @@ import {
   ChevronRight,
   AlertCircle,
   Clock,
+  QrCode,
+  Star,
+  Sparkles,
+  IndianRupee,
+  Lock,
+  Unlock,
+  CreditCard,
+  Banknote,
+  Camera,
+  X,
+  ThumbsUp,
+  PartyPopper
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import API from '../../services/api.js';
 
 // Timer Component for 10-Minute Quick Commerce SLA
@@ -55,7 +68,19 @@ const ActiveDeliveries = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderStages, setOrderStages] = useState({}); // orderId -> 'at_store' | 'picked_up' | 'reached_customer' | 'delivered'
-  const [enteredOtps, setEnteredOtps] = useState({});
+  
+  // Modals state
+  const [scanModalOrder, setScanModalOrder] = useState(null);
+  const [codQrModalOrder, setCodQrModalOrder] = useState(null);
+  const [ratingModalOrder, setRatingModalOrder] = useState(null);
+  const [thankYouPopup, setThankYouPopup] = useState(null);
+  
+  // Rating states
+  const [riderRating, setRiderRating] = useState(5);
+  const [ratingFeedback, setRatingFeedback] = useState('');
+  const [manualCodeInput, setManualCodeInput] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+
   const [isOnline, setIsOnline] = useState(() => {
     if (typeof window === 'undefined') return true;
     const saved = window.localStorage.getItem('deliveryOnline');
@@ -90,6 +115,15 @@ const ActiveDeliveries = () => {
       }
     });
 
+    socket.on('orderStatusUpdated', (data) => {
+      setOrders(prev => prev.map(o => o._id === data.orderId ? { 
+        ...o, 
+        status: data.status, 
+        pickedUpAt: data.pickedUpAt || o.pickedUpAt,
+        deliveredAt: data.deliveredAt || o.deliveredAt
+      } : o));
+    });
+
     return () => socket.disconnect();
   }, [isOnline]);
 
@@ -106,35 +140,96 @@ const ActiveDeliveries = () => {
     }
   };
 
-  const updateStage = async (orderId, nextStage) => {
-    setOrderStages((prev) => ({ ...prev, [orderId]: nextStage }));
+  // Perform Store Pickup QR Scan Verification
+  const handlePerformPickupScan = async (order) => {
+    try {
+      setIsScanning(true);
+      const res = await API.post(`/orders/${order._id}/pickup-scan`, {
+        pickupCode: manualCodeInput || order.pickupCode || String(order._id).slice(-6)
+      });
+      
+      // Update local state with unlocked customer info
+      setOrders(prev => prev.map(o => o._id === order._id ? {
+        ...o,
+        ...res.data.order,
+        status: 'out-for-delivery',
+        pickedUpAt: res.data.order?.pickedUpAt || new Date().toISOString()
+      } : o));
 
-    if (nextStage === 'picked_up') {
+      setOrderStages(prev => ({ ...prev, [order._id]: 'picked_up' }));
+      setScanModalOrder(null);
+      setManualCodeInput('');
+      setIsScanning(false);
+    } catch (err) {
+      console.error("Pickup scan failed:", err);
+      // Fallback update
       try {
-        await API.put(`/orders/${orderId}/status`, { status: 'out-for-delivery' });
+        await API.put(`/orders/${order._id}/status`, { status: 'out-for-delivery' });
+        setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'out-for-delivery', pickedUpAt: new Date().toISOString() } : o));
+        setOrderStages(prev => ({ ...prev, [order._id]: 'picked_up' }));
       } catch (e) {}
-    } else if (nextStage === 'delivered') {
-      try {
-        await API.put(`/orders/${orderId}/status`, { status: 'delivered' });
-        setTimeout(() => {
-          setOrders((prev) => prev.filter((o) => o._id !== orderId));
-        }, 2000);
-      } catch (e) {}
+      setScanModalOrder(null);
+      setIsScanning(false);
     }
   };
 
-  const handleVerifyOtp = (orderId) => {
-    const otp = enteredOtps[orderId];
-    if (otp === '1234' || otp === '9999' || (otp && otp.length === 4)) {
-      updateStage(orderId, 'delivered');
-    } else {
-      alert('Please enter a 4-digit customer delivery OTP (e.g. 1234)');
+  const handleReachCustomer = (orderId) => {
+    setOrderStages((prev) => ({ ...prev, [orderId]: 'reached_customer' }));
+  };
+
+  // Final Delivery Handover Trigger
+  const handleCompleteDelivery = async (order, viaCodQr = false) => {
+    try {
+      await API.put(`/orders/${order._id}/status`, {
+        status: 'delivered',
+        codPaidViaQr: viaCodQr
+      });
+
+      setOrderStages(prev => ({ ...prev, [order._id]: 'delivered' }));
+      if (codQrModalOrder?._id === order._id) {
+        setCodQrModalOrder(null);
+      }
+
+      // Open Rider Rating Modal
+      setRatingModalOrder(order);
+    } catch (err) {
+      console.error("Delivery completion failed:", err);
+      alert("Failed to mark delivered. Please check network connection.");
     }
+  };
+
+  // Submit Rider Rating for Customer
+  const handleSubmitRating = async () => {
+    if (!ratingModalOrder) return;
+    try {
+      await API.post(`/orders/${ratingModalOrder._id}/rate`, {
+        riderRating,
+        feedback: ratingFeedback
+      }).catch(() => {});
+    } catch (e) {}
+
+    const completedOrder = ratingModalOrder;
+    setRatingModalOrder(null);
+    setRiderRating(5);
+    setRatingFeedback('');
+
+    // Trigger 2-Second Animated Thank You Popup
+    setThankYouPopup(completedOrder);
+    setTimeout(() => {
+      setThankYouPopup(null);
+      setOrders(prev => prev.filter(o => o._id !== completedOrder._id));
+    }, 2000);
   };
 
   const openGoogleMaps = (destinationName, street) => {
     const query = encodeURIComponent(`${destinationName}, ${street || ''}`);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   if (!isOnline) {
@@ -150,14 +245,14 @@ const ActiveDeliveries = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-16">
+    <div className="max-w-4xl mx-auto space-y-6 pb-20">
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 border border-emerald-200">
             <Zap className="h-3 w-3 text-emerald-600" />
-            Live Dispatch Queue
+            Live Dispatch Queue & QR Verification
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Active Deliveries ({orders.length})</h1>
         </div>
@@ -187,11 +282,14 @@ const ActiveDeliveries = () => {
       {/* Orders List */}
       <div className="space-y-6">
         {orders.map((order) => {
-          const currentStage = orderStages[order._id] || (order.status === 'out-for-delivery' ? 'picked_up' : 'at_store');
-          const isAtStore = currentStage === 'at_store';
-          const isPickedUp = currentStage === 'picked_up';
+          const isPickedUpBackend = !!order.pickedUpAt || order.status === 'out-for-delivery';
+          const currentStage = orderStages[order._id] || (isPickedUpBackend ? 'picked_up' : 'at_store');
+          
+          const isAtStore = currentStage === 'at_store' && !isPickedUpBackend;
+          const isPickedUp = currentStage === 'picked_up' || (isPickedUpBackend && currentStage !== 'reached_customer' && currentStage !== 'delivered');
           const isReachedCustomer = currentStage === 'reached_customer';
-          const isDelivered = currentStage === 'delivered';
+          const isDelivered = currentStage === 'delivered' || order.status === 'delivered';
+          const isCod = order.paymentDetails?.method === 'cod';
 
           return (
             <motion.div
@@ -211,107 +309,124 @@ const ActiveDeliveries = () => {
                     <div className="flex items-center gap-2">
                       <h3 className="font-black text-slate-900 text-base">#{String(order._id).slice(-6)}</h3>
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
-                        {order.items?.length || 2} Items
+                        {order.items?.length || 1} Items
                       </span>
                     </div>
-                    <p className="text-[11px] font-bold text-emerald-600">Earnings: ₹{order.deliveryFee || 55}</p>
+                    <p className="text-[11px] font-bold text-emerald-600">Earnings: ₹{order.billDetails?.deliveryFee || 55}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2.5">
                   <SlaTimer />
-                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-black text-white">
-                    ₹{order.billDetails?.grandTotal || 240} COD
+                  <span className={`rounded-full px-3 py-1 text-xs font-black text-white ${isCod ? 'bg-amber-600' : 'bg-emerald-600'}`}>
+                    ₹{order.billDetails?.grandTotal || 0} {isCod ? 'COD (Collect)' : 'PREPAID'}
                   </span>
                 </div>
               </div>
 
               {/* 3-Stage Visual Progression */}
               <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-black uppercase tracking-wider">
-                <div className={`p-2 rounded-xl border ${isAtStore ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                  1. Reach Store
+                <div className={`p-2.5 rounded-xl border transition-all ${isAtStore ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-slate-400/20' : isPickedUp || isReachedCustomer || isDelivered ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  1. Scan Store QR
                 </div>
-                <div className={`p-2 rounded-xl border ${isPickedUp ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                  2. Pick Order
+                <div className={`p-2.5 rounded-xl border transition-all ${isPickedUp ? 'bg-sky-600 text-white border-sky-600 shadow-sm ring-2 ring-sky-400/20' : isReachedCustomer || isDelivered ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  2. Route to Door
                 </div>
-                <div className={`p-2 rounded-xl border ${isReachedCustomer || isDelivered ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                  3. Deliver & OTP
+                <div className={`p-2.5 rounded-xl border transition-all ${isReachedCustomer || isDelivered ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/20' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  3. Collect & Deliver
                 </div>
               </div>
 
               {/* Waypoints & Actions Box */}
               <div className="grid gap-4 sm:grid-cols-2">
                 
-                {/* Store Pickup Box */}
-                <div className={`rounded-2xl border p-4 transition ${isAtStore ? 'border-emerald-300 bg-emerald-50/40 ring-2 ring-emerald-400/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                {/* 1. Store Pickup Box */}
+                <div className={`rounded-2xl border p-4 transition ${isAtStore ? 'border-amber-300 bg-amber-50/40 ring-2 ring-amber-400/20' : 'border-slate-200 bg-slate-50/50'}`}>
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-                    <span>Pickup Location</span>
-                    <span className="text-emerald-700">1.2 km away</span>
+                    <span className="flex items-center gap-1"><MapPin size={12}/> Store Pickup</span>
+                    {order.pickedUpAt ? (
+                      <span className="text-emerald-700 font-bold">Picked: {formatTime(order.pickedUpAt)}</span>
+                    ) : (
+                      <span className="text-amber-700 font-bold">Awaiting QR Scan</span>
+                    )}
                   </div>
-                  <h4 className="font-black text-sm text-slate-900">{order.store?.name || 'Quick Commerce Dark Store #04'}</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Connaught Hub, Block B, Main Market</p>
+                  <h4 className="font-black text-sm text-slate-900">{order.store?.name || 'Quick Commerce Partner Hub'}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">{order.store?.deliveryAddress || 'Dark Store Logistics Bay 4'}</p>
 
                   <div className="mt-3.5 flex items-center gap-2">
                     <button
-                      onClick={() => openGoogleMaps(order.store?.name || 'Dark Store', 'Connaught Place')}
+                      onClick={() => openGoogleMaps(order.store?.name || 'Store', 'Dark Store')}
                       className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 transition"
                     >
-                      <Navigation size={13} className="text-emerald-600" />
-                      Maps Route
+                      <Navigation size={13} className="text-amber-600" />
+                      Navigate to Store
                     </button>
-                    <a
-                      href="tel:+919876543210"
-                      className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
-                      title="Call Store"
-                    >
-                      <Phone size={14} />
-                    </a>
                   </div>
                 </div>
 
-                {/* Customer Dropoff Box */}
-                <div className={`rounded-2xl border p-4 transition ${isPickedUp || isReachedCustomer ? 'border-sky-300 bg-sky-50/40 ring-2 ring-sky-400/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                {/* 2. Customer Dropoff Box (Unlocked ONLY after pickup) */}
+                <div className={`rounded-2xl border p-4 transition ${isPickedUp || isReachedCustomer ? 'border-sky-300 bg-sky-50/40 ring-2 ring-sky-400/20' : 'border-slate-200 bg-slate-50/40'}`}>
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
                     <span>Customer Dropoff</span>
-                    <span className="text-sky-700">6 mins trip</span>
+                    {isAtStore ? (
+                      <span className="text-rose-500 font-black flex items-center gap-1">
+                        <Lock size={11} /> Locked
+                      </span>
+                    ) : (
+                      <span className="text-emerald-700 font-black flex items-center gap-1">
+                        <Unlock size={11} /> Unlocked
+                      </span>
+                    )}
                   </div>
-                  <h4 className="font-black text-sm text-slate-900">{order.user?.name || 'Customer'}</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">{order.deliveryAddress?.street || 'Flat 402, Green Valley Apts, New Delhi'}</p>
 
-                  <div className="mt-3.5 flex items-center gap-2">
-                    <button
-                      onClick={() => openGoogleMaps(order.user?.name || 'Customer', order.deliveryAddress?.street || 'Delhi')}
-                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 transition"
-                    >
-                      <Navigation size={13} className="text-sky-600" />
-                      Customer Route
-                    </button>
-                    <a
-                      href={`tel:${order.user?.phone || '9876543210'}`}
-                      className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
-                      title="Call Customer"
-                    >
-                      <Phone size={14} />
-                    </a>
-                  </div>
+                  {isAtStore ? (
+                    <div className="p-3 bg-slate-100 rounded-xl border border-slate-200 text-center space-y-1">
+                      <Lock className="w-5 h-5 text-slate-400 mx-auto" />
+                      <p className="text-xs font-black text-slate-700">Customer Details Protected</p>
+                      <p className="text-[10px] text-slate-400">Scan Store Pickup QR code to reveal customer name, address & direct call.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="font-black text-sm text-slate-900">{order.user?.name || 'Customer'}</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">{order.deliveryAddress?.street}, {order.deliveryAddress?.city}</p>
+
+                      <div className="mt-3.5 flex items-center gap-2">
+                        <button
+                          onClick={() => openGoogleMaps(order.user?.name || 'Customer', `${order.deliveryAddress?.street}, ${order.deliveryAddress?.city}`)}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 transition"
+                        >
+                          <Navigation size={13} className="text-sky-600" />
+                          Customer Route
+                        </button>
+                        <a
+                          href={`tel:${order.user?.phone || '9876543210'}`}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-100 transition shadow-2xs"
+                          title="Direct Call Customer"
+                        >
+                          <Phone size={14} className="text-emerald-600" />
+                          <span>Call</span>
+                        </a>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* Current Action Trigger */}
-              <div className="border-t border-slate-100 pt-4">
+              {/* Action Buttons Area */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
                 {isAtStore && (
                   <button
-                    onClick={() => updateStage(order._id, 'picked_up')}
-                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-slate-900/20 hover:bg-emerald-600 transition"
+                    onClick={() => setScanModalOrder(order)}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#e31837] px-6 py-4 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-[#e31837]/25 hover:bg-[#c8102e] transition active:scale-98"
                   >
-                    <PackageCheck size={16} />
-                    Confirm Items Picked Up → Start Dashing
+                    <QrCode size={18} />
+                    Scan Store Pickup QR → Unlock Customer & Start Dashing
                   </button>
                 )}
 
                 {isPickedUp && (
                   <button
-                    onClick={() => updateStage(order._id, 'reached_customer')}
+                    onClick={() => handleReachCustomer(order._id)}
                     className="w-full flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-sky-600/20 hover:bg-sky-500 transition"
                   >
                     <Navigation size={16} />
@@ -320,38 +435,50 @@ const ActiveDeliveries = () => {
                 )}
 
                 {isReachedCustomer && (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-black text-slate-900 flex items-center gap-1.5">
-                        <KeyRound size={15} className="text-emerald-600" />
-                        Enter 4-Digit Customer OTP
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400">Ask customer for code</span>
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                          <CheckCircle2 size={16} className="text-emerald-600" />
+                          At Customer Doorstep
+                        </h4>
+                        <p className="text-xs text-slate-500">Collect payment (if COD) and confirm order delivery handover.</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-base font-black text-slate-900">₹{order.billDetails?.grandTotal}</span>
+                        <p className="text-[10px] font-bold text-slate-400">{isCod ? 'Cash on Delivery' : 'Already Paid Online'}</p>
+                      </div>
                     </div>
 
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        maxLength={4}
-                        placeholder="e.g. 1234"
-                        value={enteredOtps[order._id] || ''}
-                        onChange={(e) => setEnteredOtps({ ...enteredOtps, [order._id]: e.target.value })}
-                        className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-black tracking-widest text-slate-900 outline-none focus:border-emerald-500"
-                      />
+                    {isCod ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        {/* Dynamic COD QR Button */}
+                        <button
+                          onClick={() => setCodQrModalOrder(order)}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-xs font-black text-white hover:bg-slate-800 transition shadow-sm"
+                        >
+                          <QrCode size={16} className="text-emerald-400" />
+                          Show Dynamic UPI QR (GPay/PhonePe)
+                        </button>
+
+                        {/* Cash Received Button */}
+                        <button
+                          onClick={() => handleCompleteDelivery(order, false)}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-black text-white hover:bg-emerald-500 transition shadow-sm"
+                        >
+                          <Banknote size={16} />
+                          Cash ₹{order.billDetails?.grandTotal} Collected → Deliver
+                        </button>
+                      </div>
+                    ) : (
                       <button
-                        onClick={() => handleVerifyOtp(order._id)}
-                        className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-emerald-500 transition shadow-sm"
+                        onClick={() => handleCompleteDelivery(order, false)}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-xs font-black text-white hover:bg-emerald-500 transition shadow-sm"
                       >
-                        Verify & Complete Drop
+                        <PackageCheck size={18} />
+                        Confirm Package Handover (Prepaid ₹0)
                       </button>
-                    </div>
-                  </div>
-                )}
-
-                {isDelivered && (
-                  <div className="rounded-2xl bg-emerald-100 border border-emerald-200 p-3.5 text-center text-xs font-black text-emerald-800 flex items-center justify-center gap-2">
-                    <CheckCircle2 size={16} />
-                    Delivery Completed! +₹{order.deliveryFee || 55} Added to Earnings.
+                    )}
                   </div>
                 )}
               </div>
@@ -359,6 +486,245 @@ const ActiveDeliveries = () => {
           );
         })}
       </div>
+
+      {/* 1. Store QR Scanner Modal */}
+      <AnimatePresence>
+        {scanModalOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center relative space-y-4"
+            >
+              <button 
+                onClick={() => setScanModalOrder(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-12 h-12 rounded-2xl bg-[#e31837]/10 text-[#e31837] flex items-center justify-center mx-auto">
+                <Camera className="w-6 h-6 animate-pulse" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Store Pickup QR Scanner</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Scan the QR code displayed on {scanModalOrder.store?.name || 'the Store Admin screen'}.
+                </p>
+              </div>
+
+              {/* Viewfinder simulation */}
+              <div className="relative h-44 bg-slate-950 rounded-2xl overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-emerald-400/60 p-4">
+                <div className="absolute inset-x-8 top-1/2 h-0.5 bg-emerald-400 shadow-[0_0_10px_#10b981] animate-bounce" />
+                <QrCode className="w-16 h-16 text-slate-600 opacity-40 mb-2" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40">
+                  Ready to Capture Store QR
+                </span>
+              </div>
+
+              {/* One-Tap Instant Verification */}
+              <button
+                disabled={isScanning}
+                onClick={() => handlePerformPickupScan(scanModalOrder)}
+                className="w-full py-3 bg-emerald-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-emerald-500 transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+              >
+                {isScanning ? (
+                  <span>Verifying Pickup...</span>
+                ) : (
+                  <>
+                    <CheckCircle2 size={16} />
+                    One-Tap Scan & Confirm Pickup
+                  </>
+                )}
+              </button>
+
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-[10px] text-slate-400 font-semibold mb-2">Or enter manual pickup code from store:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. PICK42 or ID"
+                    value={manualCodeInput}
+                    onChange={(e) => setManualCodeInput(e.target.value)}
+                    className="flex-1 text-center font-mono font-bold text-xs uppercase bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-slate-900"
+                  />
+                  <button
+                    onClick={() => handlePerformPickupScan(scanModalOrder)}
+                    className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl"
+                  >
+                    Verify
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. Dynamic COD Payment UPI QR Modal */}
+      <AnimatePresence>
+        {codQrModalOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center relative space-y-4"
+            >
+              <button 
+                onClick={() => setCodQrModalOrder(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                <IndianRupee className="w-6 h-6" />
+              </div>
+
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md">
+                  Dynamic UPI COD Payment
+                </span>
+                <h3 className="text-2xl font-black text-slate-900 mt-2">₹{codQrModalOrder.billDetails?.grandTotal}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Ask customer to scan with GPay, PhonePe, Paytm or BHIM UPI.</p>
+              </div>
+
+              {/* Dynamic QR SVG */}
+              <div className="p-4 bg-slate-50 border-2 border-dashed border-emerald-400 rounded-2xl flex flex-col items-center justify-center">
+                <div className="bg-white p-3 rounded-xl shadow-md">
+                  <QRCodeSVG 
+                    value={`upi://pay?pa=quickcommerce@upi&pn=QuickCommerce&am=${codQrModalOrder.billDetails?.grandTotal || 0}&tn=Order_${String(codQrModalOrder._id).slice(-6)}&cu=INR`}
+                    size={190}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+                <div className="mt-3 flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                  <Sparkles size={13} className="text-emerald-500" />
+                  <span>Auto-loads ₹{codQrModalOrder.billDetails?.grandTotal}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleCompleteDelivery(codQrModalOrder, true)}
+                className="w-full py-3.5 bg-emerald-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-emerald-500 transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+              >
+                <CheckCircle2 size={16} />
+                Customer Paid via UPI QR → Complete Drop
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 3. Rider 2-Way Rating Modal */}
+      <AnimatePresence>
+        {ratingModalOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center relative space-y-4"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto">
+                <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Rate Customer Experience</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  How was your delivery handover with {ratingModalOrder.user?.name || 'Customer'}?
+                </p>
+              </div>
+
+              {/* Star Selector */}
+              <div className="flex justify-center items-center gap-2 py-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRiderRating(star)}
+                    className="p-1.5 transition-transform hover:scale-125 focus:outline-none"
+                  >
+                    <Star
+                      size={28}
+                      className={
+                        star <= riderRating
+                          ? 'text-amber-400 fill-amber-400'
+                          : 'text-slate-200'
+                      }
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Quick Tags */}
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {['Polite & Friendly', 'Easy to Find', 'Quick Payment', 'Smooth Handover'].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setRatingFeedback(tag)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold border transition ${
+                      ratingFeedback === tag
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleSubmitRating}
+                  className="flex-1 py-3 bg-slate-900 text-white text-xs font-black uppercase tracking-wider rounded-xl hover:bg-slate-800 transition"
+                >
+                  Submit & Finish
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 4. 2-Second Animated Thank You Celebration Popup */}
+      <AnimatePresence>
+        {thankYouPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+            <motion.div 
+              initial={{ scale: 0.7, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: -20 }}
+              transition={{ type: 'spring', damping: 15 }}
+              className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl border border-emerald-200 text-center space-y-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                <PartyPopper className="w-8 h-8 animate-bounce" />
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-black text-slate-900">Thank You!</h3>
+                <p className="text-sm font-bold text-emerald-600 mt-1">Delivery Completed Successfully</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  +₹{thankYouPopup.billDetails?.deliveryFee || 55} credited to your earnings wallet.
+                </p>
+              </div>
+
+              <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-center gap-2 text-xs font-black text-emerald-800">
+                <CheckCircle2 size={16} /> Order #{String(thankYouPopup._id).slice(-6)} Closed
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

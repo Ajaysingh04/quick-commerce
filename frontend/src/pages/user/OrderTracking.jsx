@@ -40,6 +40,21 @@ const OrderTracking = () => {
       if (data.status) {
         setStatus(data.status);
       }
+      setOrderDetails(prev => prev ? {
+        ...prev,
+        status: data.status || prev.status,
+        pickedUpAt: data.pickedUpAt || prev.pickedUpAt,
+        deliveredAt: data.deliveredAt || prev.deliveredAt
+      } : prev);
+    });
+
+    socket.on('orderPickedUp', (data) => {
+      setStatus('out-for-delivery');
+      setOrderDetails(prev => prev ? {
+        ...prev,
+        status: 'out-for-delivery',
+        pickedUpAt: data.pickedUpAt || new Date().toISOString()
+      } : prev);
     });
 
     socket.on('coordinatesUpdated', (data) => {
@@ -89,31 +104,39 @@ const OrderTracking = () => {
   }, [orderId]);
 
   useEffect(() => {
-    if (status === 'delivered' && !reviewSubmitted) {
+    if (status === 'delivered' && !reviewSubmitted && !orderDetails?.rating?.customerRating) {
       setTimeout(() => {
         setShowReviewModal(true);
-      }, 2500);
+      }, 2000);
     }
-  }, [status, reviewSubmitted]);
+  }, [status, reviewSubmitted, orderDetails]);
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
-    if (!orderDetails?.store) return;
-    
     setSubmittingReview(true);
     setReviewError('');
     try {
       const { default: API } = await import('../../services/api.js');
-      await API.post('/reviews', {
-        storeId: orderDetails.store._id || orderDetails.store,
-        rating: reviewRating,
-        comment: reviewComment
-      });
+      // 1. Submit to order rate endpoint
+      await API.post(`/orders/${orderId}/rate`, {
+        customerRating: reviewRating,
+        feedback: reviewComment
+      }).catch(() => {});
+
+      // 2. Submit to store reviews endpoint if store exists
+      if (orderDetails?.store) {
+        await API.post('/reviews', {
+          storeId: orderDetails.store._id || orderDetails.store,
+          rating: reviewRating,
+          comment: reviewComment
+        }).catch(() => {});
+      }
+
       setReviewSubmitted(true);
       setTimeout(() => setShowReviewModal(false), 2000);
     } catch (err) {
       setReviewError(err.response?.data?.message || 'Failed to submit review');
-      } finally {
+    } finally {
       setSubmittingReview(false);
     }
   };
@@ -318,8 +341,8 @@ const OrderTracking = () => {
               </div>
             </div>
             
-            {/* ETA */}
-            <motion.div whileHover={{ scale: 1.02 }} className="bg-emerald-50 rounded-[2rem] p-5 w-full flex items-center justify-between border border-emerald-200/50 shadow-sm">
+            {/* ETA & Live Timestamps */}
+            <motion.div whileHover={{ scale: 1.02 }} className="bg-emerald-50 rounded-[2rem] p-5 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-emerald-200/50 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
                   <Clock className="w-5 h-5 text-emerald-600" />
@@ -329,7 +352,19 @@ const OrderTracking = () => {
                   <p className="text-lg font-black text-slate-800">{status === 'delivered' ? 'Completed' : '10-15 Minutes'}</p>
                 </div>
               </div>
-              {status !== 'delivered' && <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse"></span>}
+
+              <div className="flex flex-wrap gap-2">
+                {orderDetails?.pickedUpAt && (
+                  <span className="text-[11px] font-bold bg-white px-3 py-1 rounded-full text-sky-700 border border-sky-200 shadow-2xs">
+                    🛵 Picked: {new Date(orderDetails.pickedUpAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+                {orderDetails?.deliveredAt && (
+                  <span className="text-[11px] font-bold bg-white px-3 py-1 rounded-full text-emerald-700 border border-emerald-200 shadow-2xs">
+                    🎉 Delivered: {new Date(orderDetails.deliveredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
             </motion.div>
 
           </motion.div>

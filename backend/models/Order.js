@@ -45,7 +45,15 @@ const orderSchema = new mongoose.Schema({
     lat: { type: Number },
     lng: { type: Number }
   },
-  deliveredAt: { type: Date }
+  pickedUpAt: { type: Date },
+  deliveredAt: { type: Date },
+  pickupCode: { type: String },
+  rating: {
+    riderRating: { type: Number, min: 1, max: 5 },
+    customerRating: { type: Number, min: 1, max: 5 },
+    feedback: { type: String }
+  },
+  codPaidViaQr: { type: Boolean, default: false }
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../services/api.js';
+import { io } from 'socket.io-client';
 import {
   IndianRupee,
   ShoppingCart,
@@ -25,7 +26,10 @@ import {
   RefreshCw,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Star,
+  ShieldCheck,
+  QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -124,6 +128,30 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchAdminData();
+
+    const getSocketUrl = () => {
+      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (isLocalhost) return 'http://localhost:5000';
+      return import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    };
+
+    const socket = io(getSocketUrl());
+
+    socket.on('adminOrderUpdate', (data) => {
+      setOrders((prev) =>
+        prev.map((o) => (o._id === data.orderId ? { ...o, ...data } : o))
+      );
+      setSelectedOrder((prev) => (prev?._id === data.orderId ? { ...prev, ...data } : prev));
+    });
+
+    socket.on('orderRated', (data) => {
+      setOrders((prev) =>
+        prev.map((o) => (o._id === data.orderId ? { ...o, rating: data.rating } : o))
+      );
+      setSelectedOrder((prev) => (prev?._id === data.orderId ? { ...prev, rating: data.rating } : prev));
+    });
+
+    return () => socket.disconnect();
   }, []);
 
   const fetchAdminData = async () => {
@@ -564,6 +592,63 @@ const Dashboard = () => {
                   <div className="text-slate-500">{selectedOrder.user?.email || 'N/A'}</div>
                 </div>
 
+                {/* Pickup & Delivery Timestamps */}
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 space-y-2.5">
+                  <div className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Lifecycle Timestamps</div>
+                  <div className="flex justify-between items-center text-slate-700">
+                    <span className="flex items-center gap-1.5 font-bold">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" /> Order Placed:
+                    </span>
+                    <span className="font-mono font-bold">{new Date(selectedOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-700">
+                    <span className="flex items-center gap-1.5 font-bold text-sky-700">
+                      <QrCode className="w-3.5 h-3.5 text-sky-600" /> Store Picked Up:
+                    </span>
+                    <span className="font-mono font-bold text-sky-700">
+                      {selectedOrder.pickedUpAt ? new Date(selectedOrder.pickedUpAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Pending Pickup'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-700">
+                    <span className="flex items-center gap-1.5 font-bold text-emerald-700">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Handover Delivered:
+                    </span>
+                    <span className="font-mono font-bold text-emerald-700">
+                      {selectedOrder.deliveredAt ? new Date(selectedOrder.deliveredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'In Transit'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2-Way Ratings (if available) */}
+                {selectedOrder.rating && (selectedOrder.rating.customerRating || selectedOrder.rating.riderRating) && (
+                  <div className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 space-y-2">
+                    <div className="font-bold text-amber-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 2-Way Rating
+                    </div>
+                    {selectedOrder.rating.customerRating && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Customer Rating:</span>
+                        <span className="font-black text-amber-700 flex items-center gap-1">
+                          {selectedOrder.rating.customerRating} / 5 ★
+                        </span>
+                      </div>
+                    )}
+                    {selectedOrder.rating.riderRating && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Rider Rating:</span>
+                        <span className="font-black text-amber-700 flex items-center gap-1">
+                          {selectedOrder.rating.riderRating} / 5 ★
+                        </span>
+                      </div>
+                    )}
+                    {selectedOrder.rating.feedback && (
+                      <p className="text-[11px] text-slate-500 italic pt-1 border-t border-amber-100">
+                        "{selectedOrder.rating.feedback}"
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Status Stage Controls */}
                 <div className="rounded-2xl border border-slate-100 p-4">
                   <div className="font-bold text-slate-400 text-[10px] uppercase tracking-wider mb-3">Order Status Progression</div>
@@ -589,7 +674,10 @@ const Dashboard = () => {
                   <div className="font-bold text-slate-400 text-[10px] uppercase tracking-wider mb-2">Billing Details</div>
                   <div className="flex justify-between text-slate-600">
                     <span>Payment Mode</span>
-                    <span className="font-bold text-slate-900 uppercase">{selectedOrder.paymentDetails?.method || 'COD'}</span>
+                    <span className="font-bold text-slate-900 uppercase">
+                      {selectedOrder.paymentDetails?.method || 'COD'}
+                      {selectedOrder.codPaidViaQr && ' (Dynamic UPI QR Paid)'}
+                    </span>
                   </div>
                   <div className="flex justify-between border-t border-slate-100 pt-2 text-sm font-black text-slate-900">
                     <span>Grand Total</span>

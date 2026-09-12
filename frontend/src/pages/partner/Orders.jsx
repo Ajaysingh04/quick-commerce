@@ -2,266 +2,387 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import API from '../../services/api';
 import { 
- Clock, ChevronRight, MapPin, Truck, ShoppingBag, CheckCircle, AlertCircle, RotateCcw
+  Clock, ChevronRight, MapPin, Truck, ShoppingBag, CheckCircle, AlertCircle, RotateCcw,
+  QrCode, X, Sparkles, CheckCircle2, ShieldCheck, Timer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Orders = () => {
- const [orders, setOrders] = useState([]);
- const [loading, setLoading] = useState(true);
- const [filter, setFilter] = useState('New');
- const { user } = useSelector(state => state.auth);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('New');
+  const [activeQrOrder, setActiveQrOrder] = useState(null);
+  const { user } = useSelector(state => state.auth);
 
- const fetchOrders = async () => {
- try {
- const res = await API.get('/orders/partner');
- setOrders(res.data);
- } catch (error) {
- console.error("Failed to fetch partner orders:", error);
- } finally {
- setLoading(false);
- }
- };
+  const fetchOrders = async () => {
+    try {
+      const res = await API.get('/orders/partner');
+      setOrders(res.data);
+    } catch (error) {
+      console.error("Failed to fetch partner orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
- useEffect(() => {
- fetchOrders();
+  useEffect(() => {
+    fetchOrders();
 
- // Socket.io connection for live updates
- const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
- 
- if (user?._id) {
- socket.on(`newOrderPartner_${user._id}`, (newOrder) => {
- setOrders(prev => [newOrder, ...prev]);
- // Also play a sound or show toast in a real app
- });
- }
+    const socketUrl = () => {
+      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (isLocalhost) return 'http://localhost:5000';
+      return import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    };
 
- // Also listen to general status updates if admin or delivery changes it
- socket.on('orderStatusUpdated', (data) => {
- setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o));
- });
+    const socket = io(socketUrl());
+    
+    if (user?._id) {
+      socket.on(`newOrderPartner_${user._id}`, (newOrder) => {
+        setOrders(prev => [newOrder, ...prev]);
+      });
+    }
 
- return () => socket.disconnect();
- }, [user]);
+    // Listen to status updates
+    socket.on('orderStatusUpdated', (data) => {
+      setOrders(prev => prev.map(o => o._id === data.orderId ? { 
+        ...o, 
+        status: data.status,
+        pickedUpAt: data.pickedUpAt || o.pickedUpAt,
+        deliveredAt: data.deliveredAt || o.deliveredAt,
+        deliveryPartner: data.deliveryPartner || o.deliveryPartner
+      } : o));
+    });
 
- const handleStatusUpdate = async (orderId, newStatus) => {
- try {
- await API.put(`/orders/${orderId}/status`, { status: newStatus });
- setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
- } catch (err) {
- console.error("Failed to update status:", err);
- alert("Failed to update order status");
- }
- };
+    socket.on('orderPickedUp', (data) => {
+      setOrders(prev => prev.map(o => o._id === data.orderId ? { 
+        ...o, 
+        status: 'out-for-delivery',
+        pickedUpAt: data.pickedUpAt || new Date().toISOString()
+      } : o));
+      if (activeQrOrder?._id === data.orderId) {
+        // Auto-close QR popup when rider scans it
+        setTimeout(() => setActiveQrOrder(null), 1500);
+      }
+    });
 
- const getFilteredOrders = () => {
- if (filter === 'New') return orders.filter(o => ['pending', 'placed'].includes(o.status));
- if (filter === 'Packing') return orders.filter(o => o.status === 'preparing');
- if (filter === 'Ready') return orders.filter(o => o.status === 'ready');
- if (filter === 'History') return orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
- if (filter === 'Refunds') return orders.filter(o => o.status.includes('refund'));
- return orders;
- };
+    return () => socket.disconnect();
+  }, [user, activeQrOrder]);
 
- const filteredOrders = getFilteredOrders();
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      const res = await API.put(`/orders/${orderId}/status`, { status: newStatus });
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, ...res.data, status: newStatus } : o));
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert("Failed to update order status");
+    }
+  };
 
- if (loading) return <div className="p-8 text-center animate-pulse text-slate-500">Loading orders...</div>;
+  const getFilteredOrders = () => {
+    if (filter === 'New') return orders.filter(o => ['pending', 'placed'].includes(o.status));
+    if (filter === 'Packing') return orders.filter(o => o.status === 'preparing');
+    if (filter === 'Ready') return orders.filter(o => o.status === 'ready' || o.status === 'out-for-delivery');
+    if (filter === 'History') return orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
+    if (filter === 'Refunds') return orders.filter(o => o.status.includes('refund'));
+    return orders;
+  };
 
- const formatTime = (dateString) => {
- if (!dateString) return '';
- const date = new Date(dateString);
- return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
- };
+  const filteredOrders = getFilteredOrders();
 
- return (
- <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden flex flex-col flex-1 min-h-[500px]">
- 
- {/* Header */}
- <div className="p-6 border-b border-gray-200 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-[#f5f6fa]/50 ">
- <div>
- <h2 className="text-xl font-black text-slate-800 ">Order Management</h2>
- <p className="text-xs text-slate-500 mt-1">Accept, pack, and dispatch orders in real-time.</p>
- </div>
- <div className="flex flex-wrap gap-2">
- {['New', 'Packing', 'Ready', 'History', 'Refunds'].map(f => {
- const count = 
- f === 'New' ? orders.filter(o=>['pending', 'placed'].includes(o.status)).length : 
- f === 'Packing' ? orders.filter(o=>o.status==='preparing').length :
- f === 'Ready' ? orders.filter(o=>o.status==='ready').length :
- f === 'History' ? orders.filter(o=>['delivered', 'cancelled'].includes(o.status)).length :
- f === 'Refunds' ? orders.filter(o=>o.status.includes('refund')).length : 0;
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
 
- return (
- <button 
- key={f}
- onClick={() => setFilter(f)}
- className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
- filter === f 
- ? 'bg-[#e31837] text-white shadow-lg shadow-[#e31837]/20' 
- : 'bg-white text-slate-600 border border-gray-200 hover:border-[#e31837]'
- }`}
- >
- {f} 
- {count > 0 && <span className={`px-1.5 py-0.5 rounded text-[9px] ${filter === f ? 'bg-white/20' : 'bg-brand-100 text-[#c8102e]'}`}>{count}</span>}
- </button>
- )
- })}
- </div>
- </div>
+  if (loading) return <div className="p-8 text-center animate-pulse text-slate-500 font-bold">Loading orders...</div>;
 
- {/* Order List */}
- <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#f5f6fa] custom-scrollbar">
- <AnimatePresence>
- {filteredOrders.length > 0 ? (
- filteredOrders.map((order) => (
- <motion.div 
- key={order._id}
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, scale: 0.95 }}
- className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col lg:flex-row gap-6 hover:shadow-md transition-shadow group"
- >
- {/* Order Details */}
- <div className="flex-1">
- <div className="flex justify-between items-start mb-3">
- <div>
- <div className="flex items-center gap-3">
- <span className="text-[10px] font-mono font-black bg-slate-100 px-2 py-1 rounded-md text-slate-600 border border-gray-200 ">
- {order._id}
- </span>
- <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1"><Clock className="w-3 h-3"/> {formatTime(order.createdAt)}</span>
- </div>
- <h3 className="text-lg font-black text-slate-800 mt-2">{order.user?.name}</h3>
- <p className="text-xs text-slate-500 flex items-center gap-1 mt-1 font-medium">
- <MapPin className="w-3.5 h-3.5 text-[#e31837]" /> {order.deliveryAddress?.street}, {order.deliveryAddress?.city}
- </p>
- </div>
- <div className="text-right">
- <p className="text-xl font-black text-slate-900 ">₹{order.billDetails?.grandTotal}</p>
- <span className="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider border border-emerald-200">
- {order.paymentDetails?.method}
- </span>
- </div>
- </div>
+  return (
+    <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden flex flex-col flex-1 min-h-[500px]">
+      
+      {/* Header */}
+      <div className="p-6 border-b border-gray-200 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-[#f5f6fa]/50 ">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-black text-slate-800">Order Management & QR Dispatch</h2>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
+              Live Sync
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">Show Pickup QR to riders, pack items, and track live delivery handovers.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {['New', 'Packing', 'Ready', 'History', 'Refunds'].map(f => {
+            const count = 
+              f === 'New' ? orders.filter(o=>['pending', 'placed'].includes(o.status)).length : 
+              f === 'Packing' ? orders.filter(o=>o.status==='preparing').length :
+              f === 'Ready' ? orders.filter(o=>['ready', 'out-for-delivery'].includes(o.status)).length :
+              f === 'History' ? orders.filter(o=>['delivered', 'cancelled'].includes(o.status)).length :
+              f === 'Refunds' ? orders.filter(o=>o.status.includes('refund')).length : 0;
 
- {/* Items */}
- <div className="border-t border-gray-200 pt-3 mt-3">
- <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-2">Order Items</p>
- <div className="flex flex-wrap gap-2">
- {order.items?.map((item, idx) => (
- <div key={idx} className="text-xs font-semibold bg-[#f5f6fa] px-3 py-1.5 rounded-lg text-slate-700 border border-gray-200 ">
- <span className="text-[#e31837] font-black mr-1">{item.quantity}x</span> {item.product?.name}
- </div>
- ))}
- </div>
- </div>
+            return (
+              <button 
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  filter === f 
+                    ? 'bg-[#e31837] text-white shadow-lg shadow-[#e31837]/20' 
+                    : 'bg-white text-slate-600 border border-gray-200 hover:border-[#e31837]'
+                }`}
+              >
+                {f} 
+                {count > 0 && <span className={`px-1.5 py-0.5 rounded text-[9px] ${filter === f ? 'bg-white/20' : 'bg-brand-100 text-[#c8102e]'}`}>{count}</span>}
+              </button>
+            )
+          })}
+        </div>
+      </div>
 
- {/* Refund Reason (if applicable) */}
- {order.status === 'refund_requested' && (
- <div className="mt-3 p-3 bg-[#e31837]/10 rounded-xl border border-rose-100 flex gap-2">
- <AlertCircle className="w-4 h-4 text-[#e31837] shrink-0 mt-0.5" />
- <div>
- <p className="text-[10px] font-black uppercase tracking-wider text-[#c8102e] mb-0.5">Customer Issue</p>
- <p className="text-xs font-medium text-rose-800 ">{order.reason}</p>
- </div>
- </div>
- )}
+      {/* Order List */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#f5f6fa] custom-scrollbar">
+        <AnimatePresence>
+          {filteredOrders.length > 0 ? (
+            filteredOrders.map((order) => (
+              <motion.div 
+                key={order._id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col lg:flex-row gap-6 hover:shadow-md transition-shadow group"
+              >
+                {/* Order Details */}
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono font-black bg-slate-100 px-2 py-1 rounded-md text-slate-700 border border-gray-200">
+                          #{String(order._id).slice(-6)}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3"/> Placed: {formatTime(order.createdAt)}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-black text-slate-800 mt-2">{order.user?.name || 'Customer'}</h3>
+                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-1 font-medium">
+                        <MapPin className="w-3.5 h-3.5 text-[#e31837]" /> {order.deliveryAddress?.street}, {order.deliveryAddress?.city}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-black text-slate-900">₹{order.billDetails?.grandTotal}</p>
+                      <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
+                        order.paymentDetails?.method === 'cod'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                      }`}>
+                        {order.paymentDetails?.method}
+                      </span>
+                    </div>
+                  </div>
 
- {/* Delivery Partner Details */}
- {order.deliveryPartner && (
- <div className="mt-3 flex items-center gap-3 bg-blue-50 p-2.5 rounded-xl border border-blue-100 ">
- <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 ">
- <Truck className="w-4 h-4" />
- </div>
- <div>
- <p className="text-[9px] font-black uppercase tracking-wider text-blue-500">Assigned Rider</p>
- <p className="text-xs font-bold text-blue-900 ">{order.deliveryPartner.name} • {order.deliveryPartner.phone}</p>
- </div>
- </div>
- )}
- </div>
+                  {/* Items */}
+                  <div className="border-t border-gray-200 pt-3 mt-3">
+                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-2">Order Items ({order.items?.length || 0})</p>
+                    <div className="flex flex-wrap gap-2">
+                      {order.items?.map((item, idx) => (
+                        <div key={idx} className="text-xs font-semibold bg-[#f5f6fa] px-3 py-1.5 rounded-lg text-slate-700 border border-gray-200">
+                          <span className="text-[#e31837] font-black mr-1">{item.quantity}x</span> {item.product?.name || 'Item'}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
- {/* Actions */}
- <div className="lg:w-48 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-6">
- <div className="mb-4">
- <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-1">Status</p>
- <span className={`inline-flex px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider
- ${order.status === 'placed' ? 'bg-blue-100 text-blue-600 border border-blue-200' : 
- order.status === 'preparing' ? 'bg-orange-100 text-orange-600 border border-orange-200' : 
- order.status === 'ready' ? 'bg-purple-100 text-purple-600 border border-purple-200' : 
- order.status === 'delivered' ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' :
- order.status.includes('refund') ? 'bg-rose-100 text-[#c8102e] border border-rose-200' :
- 'bg-slate-100 text-slate-600 border border-gray-200'}`}
- >
- {order.status === 'preparing' ? 'packing' : order.status.replace('_', ' ')}
- </span>
- </div>
- 
- <div className="space-y-2 mt-auto">
- {order.status === 'placed' && (
- <>
- <button 
- onClick={() => handleStatusUpdate(order._id, 'preparing')}
- className="w-full py-2.5 bg-[#e31837] text-white font-bold rounded-xl text-xs hover:bg-[#c8102e] transition-colors shadow-md shadow-[#e31837]/20"
- >
- Accept & Pack
- </button>
- <button 
- onClick={() => handleStatusUpdate(order._id, 'cancelled')}
- className="w-full py-2 bg-[#e31837]/10 text-[#c8102e] font-bold rounded-xl text-xs hover:bg-rose-100 transition-colors border border-transparent"
- >
- Reject
- </button>
- </>
- )}
- {order.status === 'preparing' && (
- <button 
- onClick={() => handleStatusUpdate(order._id, 'ready')}
- className="w-full py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-transform active:scale-95 shadow-md shadow-emerald-500/20"
- >
- <CheckCircle className="w-4 h-4" /> Mark as Packed
- </button>
- )}
- {order.status === 'ready' && (
- <button 
- disabled
- className="w-full py-2.5 bg-slate-100 text-slate-400 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed"
- >
- Waiting for Rider...
- </button>
- )}
- {order.status === 'refund_requested' && (
- <>
- <button 
- onClick={() => handleStatusUpdate(order._id, 'refund_approved')}
- className="w-full py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-xs hover:bg-emerald-600 transition-colors"
- >
- Approve Refund
- </button>
- <button 
- onClick={() => handleStatusUpdate(order._id, 'refund_rejected')}
- className="w-full py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs hover:bg-slate-200 :bg-slate-700 transition-colors"
- >
- Reject Request
- </button>
- </>
- )}
- </div>
- </div>
- </motion.div>
- ))
- ) : (
- <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3 py-12">
- <ShoppingBag className="w-12 h-12 opacity-20" />
- <p className="font-semibold text-sm">No orders in this category.</p>
- </div>
- )}
- </AnimatePresence>
- </div>
+                  {/* Pickup & Delivery Timestamps Badges */}
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    {order.pickedUpAt && (
+                      <span className="inline-flex items-center gap-1.5 bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-black px-2.5 py-1 rounded-lg">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
+                        Picked Up: {formatTime(order.pickedUpAt)}
+                      </span>
+                    )}
 
- </div>
- );
+                    {order.deliveredAt && (
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black px-2.5 py-1 rounded-lg">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        Delivered: {formatTime(order.deliveredAt)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Refund Reason (if applicable) */}
+                  {order.status === 'refund_requested' && (
+                    <div className="mt-3 p-3 bg-[#e31837]/10 rounded-xl border border-rose-100 flex gap-2">
+                      <AlertCircle className="w-4 h-4 text-[#e31837] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-[#c8102e] mb-0.5">Customer Issue</p>
+                        <p className="text-xs font-medium text-rose-800 ">{order.reason}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delivery Partner Details */}
+                  {order.deliveryPartner && (
+                    <div className="mt-3 flex items-center gap-3 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <Truck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-wider text-blue-500">Assigned Rider</p>
+                        <p className="text-xs font-bold text-blue-900">{order.deliveryPartner.name} • {order.deliveryPartner.phone || 'Available'}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="lg:w-52 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-6 space-y-3">
+                  <div>
+                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-1">Status</p>
+                    <span className={`inline-flex px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider
+                      ${order.status === 'placed' ? 'bg-blue-100 text-blue-600 border border-blue-200' : 
+                      order.status === 'preparing' ? 'bg-orange-100 text-orange-600 border border-orange-200' : 
+                      order.status === 'ready' ? 'bg-purple-100 text-purple-600 border border-purple-200' : 
+                      order.status === 'out-for-delivery' ? 'bg-sky-100 text-sky-700 border border-sky-200 animate-pulse' :
+                      order.status === 'delivered' ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' :
+                      order.status.includes('refund') ? 'bg-rose-100 text-[#c8102e] border border-rose-200' :
+                      'bg-slate-100 text-slate-600 border border-gray-200'}`}
+                    >
+                      {order.status === 'preparing' ? 'packing' : order.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {/* Show Pickup QR Button */}
+                    {['preparing', 'ready', 'placed'].includes(order.status) && (
+                      <button
+                        onClick={() => setActiveQrOrder(order)}
+                        className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-slate-800 transition shadow-sm"
+                      >
+                        <QrCode className="w-4 h-4 text-emerald-400" />
+                        Show Pickup QR
+                      </button>
+                    )}
+
+                    {order.status === 'placed' && (
+                      <>
+                        <button 
+                          onClick={() => handleStatusUpdate(order._id, 'preparing')}
+                          className="w-full py-2.5 bg-[#e31837] text-white font-bold rounded-xl text-xs hover:bg-[#c8102e] transition-colors shadow-md shadow-[#e31837]/20"
+                        >
+                          Accept & Pack
+                        </button>
+                        <button 
+                          onClick={() => handleStatusUpdate(order._id, 'cancelled')}
+                          className="w-full py-2 bg-[#e31837]/10 text-[#c8102e] font-bold rounded-xl text-xs hover:bg-rose-100 transition-colors border border-transparent"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {order.status === 'preparing' && (
+                      <button 
+                        onClick={() => handleStatusUpdate(order._id, 'ready')}
+                        className="w-full py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-transform active:scale-95 shadow-md shadow-emerald-500/20"
+                      >
+                        <CheckCircle className="w-4 h-4" /> Mark as Packed
+                      </button>
+                    )}
+                    {order.status === 'ready' && !order.pickedUpAt && (
+                      <div className="text-center p-2 rounded-xl bg-purple-50 border border-purple-100 text-purple-700 text-[11px] font-bold">
+                        Awaiting Rider QR Scan
+                      </div>
+                    )}
+                    {order.status === 'out-for-delivery' && (
+                      <div className="text-center p-2 rounded-xl bg-sky-50 border border-sky-100 text-sky-700 text-[11px] font-bold flex items-center justify-center gap-1">
+                        <Truck className="w-3.5 h-3.5 animate-bounce" /> Rider On Route
+                      </div>
+                    )}
+                    {order.status === 'refund_requested' && (
+                      <>
+                        <button 
+                          onClick={() => handleStatusUpdate(order._id, 'refund_approved')}
+                          className="w-full py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-xs hover:bg-emerald-600 transition-colors"
+                        >
+                          Approve Refund
+                        </button>
+                        <button 
+                          onClick={() => handleStatusUpdate(order._id, 'refund_rejected')}
+                          className="w-full py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors"
+                        >
+                          Reject Request
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3 py-12">
+              <ShoppingBag className="w-12 h-12 opacity-20" />
+              <p className="font-semibold text-sm">No orders in this category.</p>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Pickup QR Code Modal */}
+      <AnimatePresence>
+        {activeQrOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center relative space-y-4"
+            >
+              <button 
+                onClick={() => setActiveQrOrder(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-12 h-12 rounded-2xl bg-[#e31837]/10 text-[#e31837] flex items-center justify-center mx-auto">
+                <QrCode className="w-6 h-6" />
+              </div>
+
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-1 rounded-md">
+                  Store Pickup Verification
+                </span>
+                <h3 className="text-lg font-black text-slate-900 mt-2">Order #{String(activeQrOrder._id).slice(-6)}</h3>
+                <p className="text-xs text-slate-500 mt-1">Show this QR code to the delivery rider to confirm order handover.</p>
+              </div>
+
+              {/* QR Code Container */}
+              <div className="p-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center">
+                <div className="bg-white p-3 rounded-xl shadow-inner">
+                  <QRCodeSVG 
+                    value={JSON.stringify({ orderId: activeQrOrder._id, action: 'pickup', code: activeQrOrder.pickupCode || String(activeQrOrder._id).slice(-6) })}
+                    size={180}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+                <div className="mt-3 flex items-center gap-2 text-xs font-mono font-black text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                  <span>PICKUP CODE:</span>
+                  <span className="text-[#e31837] tracking-widest">{activeQrOrder.pickupCode || String(activeQrOrder._id).slice(-6).toUpperCase()}</span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-400 font-medium">
+                Scanning this QR will automatically mark the order as <span className="font-bold text-slate-700">Out for Delivery</span> and record the pickup timestamp.
+              </p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+    </div>
+  );
 };
 
 export default Orders;
