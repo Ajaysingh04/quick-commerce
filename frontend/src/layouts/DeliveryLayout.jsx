@@ -1,297 +1,408 @@
 import { useEffect, useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
 import { useAuth } from '@clerk/clerk-react';
 import { useSettings } from '../context/SettingsContext.jsx';
-import { 
- LayoutDashboard, MapPin, Wallet, History, Settings, 
- LogOut, Bell, Menu, X, Navigation, Bike, CheckCircle2, TriangleAlert
+import {
+  LayoutDashboard,
+  MapPin,
+  Wallet,
+  History,
+  Settings,
+  LogOut,
+  Bell,
+  Menu,
+  X,
+  Navigation,
+  Bike,
+  CheckCircle2,
+  ShieldAlert,
+  Shield,
+  PhoneCall,
+  Zap,
+  Radio,
+  BatteryCharging,
+  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DeliveryLayout = () => {
- const [isSidebarOpen, setSidebarOpen] = useState(false);
- const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
- const [isOnline, setIsOnline] = useState(() => {
-   if (typeof window === 'undefined') return true;
-   const saved = window.localStorage.getItem('deliveryOnline');
-   return saved === null ? true : saved === 'true';
- });
- const [showNotifications, setShowNotifications] = useState(false);
- const [showProfileMenu, setShowProfileMenu] = useState(false);
- const dispatch = useDispatch();
- const navigate = useNavigate();
- const { signOut } = useAuth();
- const { settings } = useSettings();
- const { user } = useSelector(state => state.auth);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  const [isOnline, setIsOnline] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = window.localStorage.getItem('deliveryOnline');
+    return saved === null ? true : saved === 'true';
+  });
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showSosModal, setShowSosModal] = useState(false);
 
- const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'R';
+  // Shift Timer Simulation
+  const [shiftSeconds, setShiftSeconds] = useState(13240); // ~3.6 hours
 
- useEffect(() => {
-   const handleResize = () => {
-     const desktop = window.innerWidth >= 1024;
-     setIsDesktop(desktop);
-     setSidebarOpen(desktop);
-   };
-   handleResize();
-   window.addEventListener('resize', handleResize);
-   return () => window.removeEventListener('resize', handleResize);
- }, []);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { signOut } = useAuth();
+  const { settings } = useSettings();
+  const { user } = useSelector((state) => state.auth);
 
- // Sync online state to localStorage and dispatch custom event
- useEffect(() => {
-   window.localStorage.setItem('deliveryOnline', isOnline);
-   window.dispatchEvent(new CustomEvent('deliveryOnlineChanged', { detail: isOnline }));
- }, [isOnline]);
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'R';
 
- const toggleSidebar = () => setSidebarOpen(prev => !prev);
- const closeSidebar = () => setSidebarOpen(false);
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      setSidebarOpen(desktop);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
- const handleLogout = () => {
-   signOut().catch(() => {}).finally(() => {
-     dispatch(logout());
-     window.location.href = '/';
-   });
- };
+  useEffect(() => {
+    let interval;
+    if (isOnline) {
+      interval = setInterval(() => {
+        setShiftSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isOnline]);
 
- const navItems = [
-   { name: 'Dashboard', path: '/delivery/dashboard', icon: LayoutDashboard },
-   { name: 'Active Orders', path: '/delivery/active', icon: MapPin },
-   { name: 'Earnings', path: '/delivery/earnings', icon: Wallet },
-   { name: 'History', path: '/delivery/history', icon: History },
-   { name: 'Settings', path: '/delivery/settings', icon: Settings },
- ];
+  const formatShiftTime = (totalSeconds) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
 
- return (
-   <div className="flex h-screen bg-[#f8f9fa] text-slate-900 overflow-hidden font-sans selection:bg-[#e31837] selection:text-white">
-     {/* Mobile Sidebar Overlay */}
-     <AnimatePresence>
-       {isSidebarOpen && !isDesktop && (
-         <motion.div 
-           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
-           onClick={closeSidebar}
-         />
-       )}
-     </AnimatePresence>
+  useEffect(() => {
+    window.localStorage.setItem('deliveryOnline', isOnline);
+    window.dispatchEvent(new CustomEvent('deliveryOnlineChanged', { detail: isOnline }));
+  }, [isOnline]);
 
-     {/* Sidebar */}
-     <motion.aside 
-       initial={false}
-       animate={{ width: isDesktop ? 280 : isSidebarOpen ? 280 : 0, x: isDesktop ? 0 : isSidebarOpen ? 0 : -300 }}
-       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-       className={`fixed lg:static z-50 h-full bg-slate-950 border-r border-white/5 flex flex-col overflow-hidden shadow-2xl ${!isDesktop && !isSidebarOpen ? 'pointer-events-none' : ''}`}
-     >
-       <div className="relative h-full flex flex-col z-10">
-         {/* Top Logo */}
-         <div className="p-6 flex items-center justify-between mt-2">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-gradient-to-br from-[#e31837] to-[#ff4d6d] rounded-xl flex items-center justify-center shadow-lg shadow-[#e31837]/30">
-                <Bike className="text-white w-6 h-6" />
-             </div>
-             <span className="font-black text-2xl tracking-tight text-white">
-               Rider<span className="text-[#e31837]">App</span>
-             </span>
-           </div>
-           <button onClick={closeSidebar} className="lg:hidden text-white/50 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10">
-             <X size={20} />
-           </button>
-         </div>
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+  const closeSidebar = () => setSidebarOpen(false);
 
-         {/* Navigation */}
-         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-           {navItems.map((item, i) => (
-             <motion.div key={item.name} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
-               <NavLink
-                 to={item.path}
-                 onClick={() => !isDesktop && closeSidebar()}
-                 className={({ isActive }) => 
-                   `group relative flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 overflow-hidden ${
-                     isActive 
-                       ? 'text-white shadow-[0_0_20px_rgba(227,24,55,0.15)]' 
-                       : 'text-slate-400 hover:text-white hover:bg-white/5'
-                   }`
-                 }
-               >
-                 {({ isActive }) => (
-                   <>
-                     {isActive && (
-                       <motion.div 
-                         layoutId="active-pill"
-                         className="absolute inset-0 bg-gradient-to-r from-[#e31837]/20 to-transparent border-l-4 border-[#e31837]" 
-                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                       />
-                     )}
-                     <item.icon size={22} className={`relative z-10 transition-transform duration-300 ${isActive ? 'text-[#e31837]' : 'group-hover:scale-110'}`} />
-                     <span className={`relative z-10 font-bold ${isActive ? 'text-white' : ''}`}>{item.name}</span>
-                   </>
-                 )}
-               </NavLink>
-             </motion.div>
-           ))}
-         </nav>
+  const handleLogout = () => {
+    signOut().catch(() => {}).finally(() => {
+      dispatch(logout());
+      window.location.href = '/login';
+    });
+  };
 
-         {/* Bottom Action */}
-         <div className="p-6 mt-auto">
-           <button 
-             onClick={handleLogout}
-             className="group relative flex items-center justify-center gap-3 px-4 py-3.5 w-full rounded-2xl text-white overflow-hidden"
-           >
-             <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl transition-colors group-hover:bg-[#e31837]/10 group-hover:border-[#e31837]/30" />
-             <LogOut size={20} className="relative z-10 group-hover:text-[#e31837] transition-colors" />
-             <span className="relative z-10 font-bold">Sign Out</span>
-           </button>
-         </div>
-         
-         {/* Decorative Gradient */}
-         <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#e31837]/10 to-transparent pointer-events-none" />
-       </div>
-     </motion.aside>
+  const navItems = [
+    { name: 'Dashboard', path: '/delivery/dashboard', icon: LayoutDashboard },
+    { name: 'Active Orders', path: '/delivery/active', icon: MapPin },
+    { name: 'Earnings & Payouts', path: '/delivery/earnings', icon: Wallet },
+    { name: 'Trip History', path: '/delivery/history', icon: History },
+    { name: 'Profile & KYC', path: '/delivery/settings', icon: Settings },
+  ];
 
-     {/* Main Content Area */}
-     <div className="flex-1 flex flex-col min-w-0 relative">
-       {/* Floating Top Navbar */}
-       <div className="p-4 sm:p-6 pb-0 absolute top-0 w-full z-30">
-         <header className="h-16 bg-white/70 backdrop-blur-xl border border-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex items-center justify-between px-4 sm:px-6">
-           
-           <div className="flex items-center gap-4">
-             <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors lg:hidden">
-               <Menu size={20} />
-             </button>
-             {/* Desktop Right Actions */}
-             <div className="hidden md:flex items-center gap-4">
-               <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-4 py-2 rounded-full font-medium border border-slate-100">
-                 <Navigation size={14} className="text-[#e31837]" />
-                 <span>Zone: <strong className="text-slate-900 font-bold">Downtown</strong></span>
-               </div>
-             </div>
-           </div>
+  return (
+    <div className="flex h-screen bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans antialiased">
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && !isDesktop && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+      </AnimatePresence>
 
-           <div className="flex items-center gap-3 sm:gap-5">
-             {/* Dynamic Online Toggle */}
-             <div 
-               onClick={() => setIsOnline(!isOnline)}
-               className={`relative flex items-center gap-3 p-1.5 pr-4 rounded-full cursor-pointer transition-all duration-300 border ${
-                 isOnline ? 'bg-emerald-50 border-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-               }`}
-             >
-               <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${isOnline ? 'bg-emerald-500 text-white' : 'bg-slate-300 text-slate-500'}`}>
-                 {isOnline && <motion.div className="absolute w-8 h-8 rounded-full border-2 border-emerald-500 animate-ping opacity-50" />}
-                 <Bike size={16} className="relative z-10" />
-               </div>
-               <span className={`text-sm font-black tracking-wide ${isOnline ? 'text-emerald-600' : 'text-slate-400'}`}>
-                 {isOnline ? 'ONLINE' : 'OFFLINE'}
-               </span>
-             </div>
+      {/* Desktop & Mobile Slide Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isDesktop ? 270 : isSidebarOpen ? 270 : 0, x: isDesktop ? 0 : isSidebarOpen ? 0 : -300 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className={`fixed lg:static z-50 h-full bg-[#0B132B] border-r border-slate-800/80 flex flex-col overflow-hidden shadow-2xl ${
+          !isDesktop && !isSidebarOpen ? 'pointer-events-none' : ''
+        }`}
+      >
+        <div className="relative h-full flex flex-col z-10 text-white">
+          
+          {/* Brand Logo Header */}
+          <div className="p-5 flex items-center justify-between border-b border-slate-800/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                <Bike className="text-slate-950 w-5 h-5 font-black" />
+              </div>
+              <div>
+                <span className="font-black text-lg tracking-tight text-white">
+                  Rider<span className="text-emerald-400">Dash</span>
+                </span>
+                <div className="text-[9px] uppercase font-bold text-emerald-300 tracking-wider">Fulfillment Fleet</div>
+              </div>
+            </div>
+            <button onClick={closeSidebar} className="lg:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10">
+              <X size={18} />
+            </button>
+          </div>
 
-             <div className="w-px h-8 bg-slate-200 hidden sm:block"></div>
+          {/* Rider Status Badge Box */}
+          <div className="p-3.5 border-b border-slate-800/60">
+            <div className="rounded-2xl border border-white/5 bg-slate-900/60 p-3 backdrop-blur-md">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                  <span className="text-xs font-black text-white">{isOnline ? 'ON DUTY' : 'OFF DUTY'}</span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{formatShiftTime(shiftSeconds)}</span>
+                </div>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-slate-400 font-semibold">
+                <span>GPS: High Accuracy</span>
+                <span className="text-emerald-400 font-bold">Zone: Hub #04</span>
+              </div>
+            </div>
+          </div>
 
-             {/* Notifications */}
-             <div className="relative">
-               <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors border border-slate-100">
-                 <Bell size={20} />
-                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#e31837] rounded-full border-2 border-white"></span>
-               </button>
-               
-               <AnimatePresence>
-                 {showNotifications && (
-                   <motion.div
-                     initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                     exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                     className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 shadow-2xl shadow-slate-200/50 rounded-2xl z-50 overflow-hidden"
-                   >
-                     <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-slate-50/50">
-                       <div className="flex items-center gap-2">
-                         <h3 className="font-bold text-slate-900">Notifications</h3>
-                         <span className="text-[10px] font-bold text-[#e31837] bg-[#e31837]/10 px-2 py-0.5 rounded-full">2 New</span>
-                       </div>
-                       <button 
-                         onClick={() => setShowNotifications(false)}
-                         className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
-                       >
-                         <X size={16} />
-                       </button>
-                     </div>
-                     <div className="max-h-[300px] overflow-y-auto">
-                       <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4">
-                         <div className="w-10 h-10 rounded-full bg-[#e31837]/10 flex items-center justify-center shrink-0">
-                           <MapPin size={18} className="text-[#e31837]" />
-                         </div>
-                         <div>
-                           <p className="text-sm text-slate-800 font-bold">New delivery request!</p>
-                           <p className="text-xs text-slate-500 mt-1">2 mins ago</p>
-                         </div>
-                       </div>
-                       <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4 border-t border-gray-50">
-                         <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                           <CheckCircle2 size={18} className="text-emerald-500" />
-                         </div>
-                         <div>
-                           <p className="text-sm text-slate-600 font-medium">KYC verification approved.</p>
-                           <p className="text-xs text-slate-400 mt-1">1 hour ago</p>
-                         </div>
-                       </div>
-                     </div>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-             </div>
+          {/* Navigation Links */}
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto no-scrollbar">
+            {navItems.map((item, i) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                onClick={() => !isDesktop && closeSidebar()}
+                className={({ isActive }) =>
+                  `group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 overflow-hidden ${
+                    isActive
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-white border border-emerald-400/30 shadow-[0_4px_20px_rgba(16,185,129,0.15)]'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-xl transition ${
+                      isActive ? 'bg-emerald-500 text-slate-950 font-black shadow-md' : 'bg-slate-800/80 text-slate-400 group-hover:text-white'
+                    }`}>
+                      <item.icon size={16} />
+                    </div>
+                    <span className="relative z-10 font-bold">{item.name}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
 
-             {/* Profile */}
-             <div className="relative">
-               <div 
-                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                 className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#c8102e] to-[#e31837] flex items-center justify-center shadow-lg shadow-[#e31837]/20 cursor-pointer relative overflow-hidden ring-2 ring-white"
-               >
-                 <div className="absolute inset-0 bg-white/20 hover:opacity-0 transition-opacity" />
-                 <span className="text-sm font-black text-white relative z-10">{userInitial}</span>
-               </div>
+          {/* Safety SOS Quick Button */}
+          <div className="px-3.5 pb-2">
+            <button
+              onClick={() => setShowSosModal(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-black uppercase tracking-wider text-rose-300 hover:bg-rose-500/20 transition"
+            >
+              <ShieldAlert className="h-4 w-4 text-rose-400" />
+              Emergency SOS
+            </button>
+          </div>
 
-               <AnimatePresence>
-                 {showProfileMenu && (
-                   <motion.div
-                     initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                     exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                     className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 shadow-2xl shadow-slate-200/50 rounded-2xl z-50 overflow-hidden"
-                   >
-                     <div className="p-4 border-b border-gray-50 bg-slate-50/50">
-                       <p className="font-bold text-slate-900 truncate">{user?.name || 'Rider'}</p>
-                       <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                     </div>
-                     <div className="p-2">
-                       <button 
-                         onClick={() => { setShowProfileMenu(false); navigate('/delivery/settings'); }}
-                         className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors"
-                       >
-                         <Settings size={16} /> Preferences
-                       </button>
-                       <button 
-                         onClick={handleLogout}
-                         className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm font-semibold text-[#e31837] hover:bg-red-50 rounded-xl transition-colors mt-1"
-                       >
-                         <LogOut size={16} /> Logout
-                       </button>
-                     </div>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-             </div>
-           </div>
-         </header>
-       </div>
+          {/* Bottom Rider Profile & Sign Out */}
+          <div className="p-3.5 border-t border-slate-800/80">
+            <div className="flex items-center gap-2.5 rounded-2xl border border-white/5 bg-slate-900/60 p-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-xs font-black text-slate-950 shadow-md">
+                {userInitial}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-black text-white">{user?.name || 'Delivery Partner'}</p>
+                <p className="truncate text-[10px] text-emerald-400 font-bold">⭐ 4.9 (420+ trips)</p>
+              </div>
+            </div>
 
-       {/* Page Content */}
-       <main className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar pt-28 px-4 sm:px-6 pb-6 relative z-10">
-         <Outlet />
-       </main>
-     </div>
-   </div>
- );
+            <button
+              onClick={handleLogout}
+              className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white transition"
+            >
+              <LogOut size={14} />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </motion.aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            
+            <div className="flex items-center gap-3">
+              <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition lg:hidden border border-slate-200">
+                <Menu size={18} />
+              </button>
+              
+              {/* Location / Zone pill */}
+              <div className="hidden sm:flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs">
+                <Navigation size={13} className="text-emerald-600 animate-pulse" />
+                <span>Active Zone: <strong className="text-slate-900">Connaught Hub (Surge 1.2x)</strong></span>
+              </div>
+            </div>
+
+            {/* Right Action Bar */}
+            <div className="flex items-center gap-2.5 sm:gap-4">
+              
+              {/* Duty Switch Button */}
+              <button
+                type="button"
+                onClick={() => setIsOnline(!isOnline)}
+                className={`relative flex items-center gap-2.5 px-3.5 py-1.5 rounded-full cursor-pointer transition-all duration-300 border shadow-xs ${
+                  isOnline
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : 'bg-slate-100 border-slate-300 text-slate-600'
+                }`}
+              >
+                <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-ping' : 'bg-slate-400'}`} />
+                <span className="text-xs font-black tracking-wider uppercase">
+                  {isOnline ? 'Online' : 'Offline'}
+                </span>
+              </button>
+
+              {/* SOS Mobile Quick Trigger */}
+              <button
+                onClick={() => setShowSosModal(true)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 border border-rose-200 text-rose-600 sm:hidden"
+                title="Emergency SOS"
+              >
+                <ShieldAlert size={16} />
+              </button>
+
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-2xs"
+                >
+                  <Bell size={17} />
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-black text-white">
+                    2
+                  </span>
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 overflow-hidden"
+                    >
+                      <div className="p-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h4 className="font-bold text-xs text-slate-900 uppercase tracking-wider">Fleet Alerts</h4>
+                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Active</span>
+                      </div>
+                      <div className="divide-y divide-slate-100 text-xs">
+                        <div className="p-3.5 hover:bg-slate-50 transition cursor-pointer">
+                          <p className="font-bold text-slate-900">High Surge Active</p>
+                          <p className="text-slate-500 text-[11px] mt-0.5">+₹25 bonus on next 3 deliveries in your area.</p>
+                        </div>
+                        <div className="p-3.5 hover:bg-slate-50 transition cursor-pointer">
+                          <p className="font-bold text-slate-900">KYC Verified</p>
+                          <p className="text-slate-500 text-[11px] mt-0.5">Your driving license is approved for deliveries.</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Profile Avatar */}
+              <div
+                onClick={() => navigate('/delivery/settings')}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-xs font-black text-slate-950 cursor-pointer shadow-xs"
+              >
+                {userInitial}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content Viewport */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-6">
+          <Outlet />
+        </main>
+
+        {/* Mobile Bottom Quick Bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 lg:hidden px-4 py-2 flex items-center justify-around">
+          {navItems.slice(0, 4).map((item) => {
+            const Icon = item.icon;
+            const active = location.pathname === item.path;
+            return (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
+                  active ? 'text-emerald-600 font-black' : 'text-slate-400 font-semibold'
+                }`}
+              >
+                <Icon size={18} />
+                <span className="text-[10px]">{item.name.split(' ')[0]}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Emergency SOS Modal */}
+      <AnimatePresence>
+        {showSosModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-rose-200"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-4 mx-auto">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="text-center text-lg font-black text-slate-900">Emergency & Safety SOS</h3>
+              <p className="mt-1 text-center text-xs font-medium text-slate-500">
+                Are you facing an on-road emergency or security incident? Choose an option below for immediate assistance.
+              </p>
+
+              <div className="mt-5 space-y-2.5">
+                <a
+                  href="tel:112"
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-xs font-black uppercase tracking-wider text-white shadow-md hover:bg-rose-700 transition"
+                >
+                  <PhoneCall className="h-4 w-4" />
+                  Call Police / Emergency (112)
+                </a>
+                <a
+                  href="tel:+919876543210"
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-800 hover:bg-slate-100 transition"
+                >
+                  <Shield className="h-4 w-4 text-emerald-600" />
+                  24x7 Rider Support Desk
+                </a>
+              </div>
+
+              <button
+                onClick={() => setShowSosModal(false)}
+                className="mt-4 w-full text-center text-xs font-bold text-slate-400 hover:text-slate-600"
+              >
+                Close / False Alarm
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 export default DeliveryLayout;

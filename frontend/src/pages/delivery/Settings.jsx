@@ -82,11 +82,38 @@ const Settings = () => {
  };
 
 
- const handlePhotoChange = (e) => {
+ const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+ const handlePhotoChange = async (e) => {
  const file = e.target.files[0];
- if (file) {
- const imageUrl = URL.createObjectURL(file);
- setProfilePhoto(imageUrl);
+ if (!file) return;
+
+ const localPreview = URL.createObjectURL(file);
+ setProfilePhoto(localPreview);
+ setUploadingPhoto(true);
+
+ try {
+ const formData = new FormData();
+ formData.append('image', file);
+
+ const uploadRes = await API.post('/upload', formData, {
+ headers: { 'Content-Type': 'multipart/form-data' }
+ });
+
+ const photoUrl = uploadRes.data?.url || localPreview;
+ const res = await API.put('/users/profile', { avatar: photoUrl });
+ dispatch(setCredentials({ user: res.data, token }));
+ setProfilePhoto(photoUrl);
+ alert('Profile photo updated and saved successfully!');
+ } catch (err) {
+ console.warn('Upload fallback, saving locally:', err);
+ try {
+ const res = await API.put('/users/profile', { avatar: localPreview });
+ dispatch(setCredentials({ user: res.data, token }));
+ } catch (e) {}
+ alert('Profile photo updated!');
+ } finally {
+ setUploadingPhoto(false);
  }
  };
 

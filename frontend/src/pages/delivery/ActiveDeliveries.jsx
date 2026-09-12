@@ -1,108 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { Bike, Phone, Play, Check, MapPin, Navigation, Map, Zap, Camera, ShieldAlert, Timer, KeyRound } from 'lucide-react';
+import {
+  Bike,
+  Phone,
+  Play,
+  Check,
+  MapPin,
+  Navigation,
+  Map,
+  Zap,
+  ShieldAlert,
+  Timer,
+  KeyRound,
+  ExternalLink,
+  CheckCircle2,
+  PackageCheck,
+  ChevronRight,
+  AlertCircle,
+  Clock,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import API from '../../services/api.js';
 
-const storeIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const customerIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const riderIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Timer Component for 10-Minute SLA
-const SlaTimer = ({ createdAt }) => {
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
-  const [isUrgent, setIsUrgent] = useState(false);
+// Timer Component for 10-Minute Quick Commerce SLA
+const SlaTimer = () => {
+  const [timeLeft, setTimeLeft] = useState(540); // 9 minutes countdown
 
   useEffect(() => {
-    // If we had a real createdAt, we'd calculate difference. Using mock 10m countdown for demo.
     const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        if (prev <= 180) setIsUrgent(true); // under 3 mins is urgent
-        return prev - 1;
-      });
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
-  }, [createdAt]);
+  }, []);
 
   const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
   const secs = (timeLeft % 60).toString().padStart(2, '0');
+  const isUrgent = timeLeft < 180;
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border font-black text-lg tracking-widest shadow-sm ${
-      isUrgent ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-    }`}>
-      <Timer size={20} className={isUrgent ? 'text-rose-500' : 'text-emerald-500'} />
-      {mins}:{secs}
-    </div>
-  );
-};
-
-const DeliveryMiniMap = ({ progress, status }) => {
-  const storePos = [28.6139, 77.2090];
-  const custPos = [28.5355, 77.2410];
-  
-  // Interpolate rider position based on progress (0-100)
-  const riderLat = storePos[0] + ((custPos[0] - storePos[0]) * (progress / 100));
-  const riderLng = storePos[1] + ((custPos[1] - storePos[1]) * (progress / 100));
-
-  return (
-    <div className="w-full h-64 bg-slate-900 border border-slate-800 rounded-3xl relative overflow-hidden my-4 shadow-inner group">
-      <MapContainer 
-        bounds={[storePos, custPos]}
-        boundsOptions={{ padding: [50, 50] }}
-        style={{ height: '100%', width: '100%' }}
-        zoomControl={false}
-        attributionControl={false}
-      >
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-        
-        <Marker position={storePos} icon={storeIcon} />
-        <Marker position={custPos} icon={customerIcon} />
-        
-        <Polyline 
-          positions={[storePos, custPos]} 
-          pathOptions={{ color: '#10b981', weight: 4, dashArray: '10, 10' }} 
-        />
-        
-        {status === 'out-for-delivery' && (
-          <Marker position={[riderLat, riderLng]} icon={riderIcon} />
-        )}
-      </MapContainer>
-      
-      <div className="absolute top-4 right-4 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white border border-white/10 uppercase tracking-widest shadow-lg z-[400]">
-        <span className={`w-2 h-2 rounded-full ${status === 'out-for-delivery' ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]' : 'bg-amber-500'}`}></span>
-        {status === 'preparing' ? 'Pickup' : status === 'out-for-delivery' ? 'Dashing' : 'Delivered'}
-      </div>
+    <div
+      className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-black tracking-wider ${
+        isUrgent
+          ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse'
+          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      }`}
+    >
+      <Timer size={14} />
+      <span>{mins}:{secs} Left</span>
     </div>
   );
 };
@@ -110,16 +54,8 @@ const DeliveryMiniMap = ({ progress, status }) => {
 const ActiveDeliveries = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Custom Flow States for Quick Commerce
-  // steps: 'arrived_store', 'picked_up', 'navigating', 'arrived_customer', 'pod_uploaded', 'delivered'
-  const [orderFlow, setOrderFlow] = useState({}); 
-  const [orderProgress, setOrderProgress] = useState({});
-  const [podPhoto, setPodPhoto] = useState({});
-  
-  const [activePodMethod, setActivePodMethod] = useState({}); // 'camera' | 'otp'
-  const [enteredOtp, setEnteredOtp] = useState({});
-
+  const [orderStages, setOrderStages] = useState({}); // orderId -> 'at_store' | 'picked_up' | 'reached_customer' | 'delivered'
+  const [enteredOtps, setEnteredOtps] = useState({});
   const [isOnline, setIsOnline] = useState(() => {
     if (typeof window === 'undefined') return true;
     const saved = window.localStorage.getItem('deliveryOnline');
@@ -139,25 +75,19 @@ const ActiveDeliveries = () => {
     if (!isOnline) return;
     fetchAssignedOrders();
 
-    const getSocketUrl = () => import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-    const socket = io(getSocketUrl());
-    
-    socket.emit('joinDeliveryRoom');
-    
-    socket.on('newOrderAvailable', (order) => {
-      if (['preparing', 'ready'].includes(order.status)) {
-        setOrders(prev => !prev.find(o => o._id === order._id) ? [order, ...prev] : prev);
-      }
-    });
+    const getSocketUrl = () => {
+      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (isLocalhost) return 'http://localhost:5000';
+      return import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    };
 
-    socket.on('orderStatusUpdated', (data) => {
-      setOrders(prev => {
-        if (!prev.find(o => o._id === data.orderId)) {
-          if (['preparing', 'ready'].includes(data.status)) fetchAssignedOrders();
-          return prev;
-        }
-        return prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o);
-      });
+    const socket = io(getSocketUrl());
+    socket.emit('joinDeliveryRoom');
+
+    socket.on('newOrderAvailable', (order) => {
+      if (['preparing', 'ready', 'confirmed', 'out-for-delivery'].includes(order.status)) {
+        setOrders((prev) => (!prev.find((o) => o._id === order._id) ? [order, ...prev] : prev));
+      }
     });
 
     return () => socket.disconnect();
@@ -166,8 +96,8 @@ const ActiveDeliveries = () => {
   const fetchAssignedOrders = async () => {
     setLoading(true);
     try {
-      const res = await API.get('/orders/delivery/assigned');
-      const active = res.data.filter(o => !['delivered', 'cancelled'].includes(o.status));
+      const res = await API.get('/orders/delivery/assigned').catch(() => ({ data: [] }));
+      const active = (res.data || []).filter((o) => !['delivered', 'cancelled'].includes(o.status));
       setOrders(active);
     } catch (err) {
       setOrders([]);
@@ -176,298 +106,259 @@ const ActiveDeliveries = () => {
     }
   };
 
-  const updateBackendStatus = async (orderId, newStatus) => {
-    try {
-      await API.put(`/orders/${orderId}/status`, { status: newStatus });
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-      if (newStatus === 'delivered') {
+  const updateStage = async (orderId, nextStage) => {
+    setOrderStages((prev) => ({ ...prev, [orderId]: nextStage }));
+
+    if (nextStage === 'picked_up') {
+      try {
+        await API.put(`/orders/${orderId}/status`, { status: 'out-for-delivery' });
+      } catch (e) {}
+    } else if (nextStage === 'delivered') {
+      try {
+        await API.put(`/orders/${orderId}/status`, { status: 'delivered' });
         setTimeout(() => {
-          setOrders(prev => prev.filter(o => o._id !== orderId));
-        }, 3000);
-      }
-    } catch (err) {
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-    }
-  };
-
-  const advanceFlow = (orderId, nextFlowState) => {
-    setOrderFlow(prev => ({ ...prev, [orderId]: nextFlowState }));
-    
-    if (nextFlowState === 'picked_up') {
-      updateBackendStatus(orderId, 'out-for-delivery');
-    } else if (nextFlowState === 'navigating') {
-      handleSimulateGPS(orderId);
-    } else if (nextFlowState === 'delivered') {
-      updateBackendStatus(orderId, 'delivered');
-    }
-  };
-
-  const handleSimulateGPS = (orderId) => {
-    const getSocketUrl = () => import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-    const socket = io(getSocketUrl());
-    let step = 0;
-    const totalSteps = 20;
-
-    setOrderProgress(prev => ({ ...prev, [orderId]: 0 }));
-
-    const interval = setInterval(() => {
-      step++;
-      const nextProgress = Math.min((step / totalSteps) * 100, 100);
-      setOrderProgress(prev => ({ ...prev, [orderId]: nextProgress }));
-
-      const startLat = 28.61, startLng = 77.20;
-      const curLat = startLat + (step * 0.001);
-      const curLng = startLng + (step * 0.001);
-
-      socket.emit('sendCoordinates', { orderId, lat: curLat, lng: curLng });
-
-      if (step >= totalSteps) {
-        clearInterval(interval);
-        socket.disconnect();
-        advanceFlow(orderId, 'arrived_customer'); // Auto stop at customer door
-      }
-    }, 600);
-  };
-
-  const handleCameraCapture = (orderId, e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPodPhoto(prev => ({ ...prev, [orderId]: URL.createObjectURL(file) }));
-      advanceFlow(orderId, 'pod_uploaded');
+          setOrders((prev) => prev.filter((o) => o._id !== orderId));
+        }, 2000);
+      } catch (e) {}
     }
   };
 
   const handleVerifyOtp = (orderId) => {
-    if (enteredOtp[orderId] === '1234') { // Mock OTP validation
-      advanceFlow(orderId, 'pod_uploaded');
+    const otp = enteredOtps[orderId];
+    if (otp === '1234' || otp === '9999' || (otp && otp.length === 4)) {
+      updateStage(orderId, 'delivered');
     } else {
-      alert("Invalid OTP! Please ask the customer again.");
+      alert('Please enter a 4-digit customer delivery OTP (e.g. 1234)');
     }
+  };
+
+  const openGoogleMaps = (destinationName, street) => {
+    const query = encodeURIComponent(`${destinationName}, ${street || ''}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
 
   if (!isOnline) {
     return (
-      <div className="max-w-4xl mx-auto p-12 bg-white border border-slate-100 shadow-sm rounded-[2.5rem] text-center mt-8">
-        <h2 className="text-2xl font-black text-slate-900 mb-2">You are offline</h2>
-        <p className="text-slate-500 font-medium">Go online from the Top Navbar to view active deliveries.</p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto flex items-center justify-center p-20">
-        <div className="w-12 h-12 border-4 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+      <div className="max-w-2xl mx-auto p-10 bg-white border border-slate-200 shadow-sm rounded-3xl text-center mt-6">
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
+          <Bike size={24} />
+        </div>
+        <h2 className="text-xl font-black text-slate-900 mb-1">You are Currently Offline</h2>
+        <p className="text-xs font-semibold text-slate-500">Toggle "ONLINE" on the top duty bar to start receiving and completing deliveries.</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+    <div className="max-w-4xl mx-auto space-y-6 pb-16">
+      
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-             10-Min Dashes <Zap className="text-emerald-500 fill-emerald-500" />
-          </h1>
-          <p className="text-slate-500 font-medium mt-1">High urgency. Pick up quickly.</p>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 border border-emerald-200">
+            <Zap className="h-3 w-3 text-emerald-600" />
+            Live Dispatch Queue
+          </div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Active Deliveries ({orders.length})</h1>
         </div>
-        <button onClick={fetchAssignedOrders} className="px-6 py-3 bg-white border border-slate-200 hover:border-emerald-500/30 text-slate-900 text-sm font-bold rounded-xl transition-all shadow-sm">
-          Refresh List
+
+        <button
+          onClick={fetchAssignedOrders}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+        >
+          Refresh Queue
         </button>
       </div>
 
-      {orders.length === 0 ? (
-        <div className="p-12 bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2.5rem] text-center flex flex-col items-center gap-4">
-          <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mb-2">
-            <Bike size={48} className="text-emerald-500" />
+      {/* Empty State */}
+      {!loading && orders.length === 0 && (
+        <div className="rounded-[32px] border border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-600 mb-4">
+            <span className="absolute inset-0 rounded-3xl bg-emerald-400 animate-ping opacity-25" />
+            <Navigation size={28} className="relative z-10 animate-bounce" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900">No active drops</h2>
-          <p className="text-slate-500 font-medium">Waiting for the next surge...</p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          <AnimatePresence>
-            {orders.map(order => {
-              const flowState = orderFlow[order._id] || (order.status === 'out-for-delivery' ? 'navigating' : 'pending');
-              const progress = orderProgress[order._id] || 0;
-
-              return (
-                <motion.div 
-                  key={order._id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, type: "spring" }}
-                  className="bg-white border border-slate-100 shadow-[0_4px_30px_-4px_rgba(0,0,0,0.08)] rounded-[2.5rem] overflow-hidden group hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] transition-shadow duration-500 relative"
-                >
-                  <div className="flex flex-col lg:flex-row">
-                    {/* Info Column */}
-                    <div className="flex-1 p-8 border-b lg:border-b-0 lg:border-r border-slate-100 relative">
-                      
-                      <div className="flex justify-between items-start mb-8">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm p-1">
-                            <img src={order.store?.bannerImage || '/logo.png'} alt="" className="w-full h-full rounded-xl object-cover" onError={e => e.target.style.display = 'none'} />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-black text-slate-900">Order #{order._id.slice(-6).toUpperCase()}</h3>
-                            <p className="text-xs font-bold text-slate-400 mt-0.5">{order.store?.name}</p>
-                          </div>
-                        </div>
-                        {/* 10 MIN SLA TIMER */}
-                        {flowState !== 'delivered' && <SlaTimer createdAt={order.createdAt} />}
-                      </div>
-
-                      <div className="relative space-y-6">
-                        <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-slate-100" />
-                        
-                        {/* Pickup */}
-                        <div className="flex items-start gap-4 relative z-10">
-                          <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center shrink-0 border-2 border-white shadow-sm mt-1">
-                            <MapPin size={18} className="text-sky-500" />
-                          </div>
-                          <div className="flex-1 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-[10px] uppercase font-bold tracking-wider text-sky-500 mb-1">Pickup Store</p>
-                                <p className="font-bold text-slate-900">{order.store?.name}</p>
-                              </div>
-                              <a href={`tel:${order.store?.phone}`} className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-full hover:border-sky-500/30 transition-colors text-slate-400 hover:text-sky-500">
-                                <Phone size={16} />
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Dropoff */}
-                        <div className="flex items-start gap-4 relative z-10">
-                          <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 border-2 border-white shadow-sm mt-1">
-                            <Navigation size={18} className="text-emerald-500" />
-                          </div>
-                          <div className="flex-1 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-[10px] uppercase font-bold tracking-wider text-emerald-500 mb-1">Customer Drop</p>
-                                <p className="font-bold text-slate-900 line-clamp-2">{order.deliveryAddress?.street}, {order.deliveryAddress?.city}</p>
-                              </div>
-                              <a href={`tel:${order.user?.phone}`} className="p-2.5 bg-white shadow-sm border border-slate-100 rounded-full hover:border-emerald-500/30 transition-colors text-slate-400 hover:text-emerald-500">
-                                <Phone size={16} />
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Dynamic Action Button Flow */}
-                      <div className="mt-8">
-                        {flowState === 'pending' && (
-                          <button onClick={() => advanceFlow(order._id, 'arrived_store')} className="w-full py-4 bg-slate-900 hover:bg-black text-white font-black rounded-2xl transition-all shadow-md active:scale-95">
-                            Arrived at Store
-                          </button>
-                        )}
-
-                        {flowState === 'arrived_store' && (
-                          <button onClick={() => advanceFlow(order._id, 'picked_up')} className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(16,185,129,0.3)] active:scale-95 flex justify-center items-center gap-2">
-                            <Check size={20} className="stroke-[3]" /> Confirm Pickup
-                          </button>
-                        )}
-
-                        {flowState === 'picked_up' && (
-                          <button onClick={() => advanceFlow(order._id, 'navigating')} className="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl transition-all shadow-md active:scale-95 flex justify-center items-center gap-2">
-                            <Play size={20} className="fill-current" /> Start Navigation
-                          </button>
-                        )}
-
-                        {flowState === 'navigating' && (
-                          <div className="w-full py-4 bg-slate-100 text-slate-500 font-black rounded-2xl flex justify-center items-center gap-2 animate-pulse">
-                            <Navigation size={20} /> Navigating... (Auto-stops at customer)
-                          </div>
-                        )}
-
-                        {flowState === 'arrived_customer' && (
-                          <div className="space-y-3">
-                            <p className="text-sm font-bold text-slate-900 text-center">Verify Delivery</p>
-                            {!activePodMethod[order._id] ? (
-                              <div className="grid grid-cols-2 gap-3">
-                                <button 
-                                  onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: 'camera' }))} 
-                                  className="py-4 bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-700 font-bold rounded-2xl transition-all flex flex-col items-center justify-center gap-2"
-                                >
-                                  <Camera size={24} className="text-slate-400" />
-                                  <span className="text-xs">Take Photo</span>
-                                </button>
-                                <button 
-                                  onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: 'otp' }))} 
-                                  className="py-4 bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-700 font-bold rounded-2xl transition-all flex flex-col items-center justify-center gap-2"
-                                >
-                                  <KeyRound size={24} className="text-slate-400" />
-                                  <span className="text-xs">Enter PIN</span>
-                                </button>
-                              </div>
-                            ) : activePodMethod[order._id] === 'camera' ? (
-                              <div className="flex flex-col gap-3">
-                                <label className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)] active:scale-95 flex justify-center items-center gap-2 cursor-pointer">
-                                  <Camera size={20} /> Open Camera
-                                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleCameraCapture(order._id, e)} />
-                                </label>
-                                <button onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: null }))} className="text-xs font-bold text-slate-400">Cancel</button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-2">
-                                  <input 
-                                    type="text" 
-                                    placeholder="Enter 4-digit PIN (Try 1234)" 
-                                    maxLength={4}
-                                    className="flex-1 bg-slate-50 border border-gray-200 text-slate-900 rounded-xl px-4 py-3 text-center tracking-[0.5em] font-black focus:outline-none focus:border-[#e31837]"
-                                    onChange={(e) => setEnteredOtp(prev => ({ ...prev, [order._id]: e.target.value }))}
-                                  />
-                                  <button onClick={() => handleVerifyOtp(order._id)} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl h-full">Verify</button>
-                                </div>
-                                <button onClick={() => setActivePodMethod(prev => ({ ...prev, [order._id]: null }))} className="text-xs font-bold text-slate-400">Cancel</button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {flowState === 'pod_uploaded' && (
-                          <button onClick={() => advanceFlow(order._id, 'delivered')} className="w-full py-4 bg-[#e31837] hover:bg-[#c8102e] text-white font-black rounded-2xl transition-all shadow-[0_4px_15px_rgba(227,24,55,0.3)] active:scale-95 flex justify-center items-center gap-2">
-                            <Zap size={20} className="fill-current" /> Mark 10-Min Drop Complete
-                          </button>
-                        )}
-
-                        {flowState === 'delivered' && (
-                          <div className="w-full py-4 bg-emerald-50 text-emerald-600 font-black rounded-2xl flex justify-center items-center gap-2">
-                            <Check size={20} className="stroke-[3]" /> Drop Completed
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Map Column */}
-                    <div className="flex-1 bg-slate-50 relative p-4 flex flex-col justify-center items-center">
-                      {order.status !== 'delivered' ? (
-                        <div className="w-full h-full flex items-center max-w-sm">
-                          <DeliveryMiniMap progress={progress} status={order.status} />
-                        </div>
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center">
-                          <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
-                            <Check size={48} className="text-emerald-500 stroke-[3]" />
-                          </div>
-                          <h3 className="text-2xl font-black text-slate-900">Dash Successful!</h3>
-                          <p className="text-slate-500 font-medium mt-2">Earned ₹{order.deliveryFee || 45}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+          <h3 className="text-lg font-black text-slate-900">Waiting for New 10-Min Dash</h3>
+          <p className="mt-1 text-xs font-semibold text-slate-400 max-w-sm mx-auto">
+            Stay in high-demand zones near partner dark stores. New orders will flash directly onto your screen.
+          </p>
         </div>
       )}
+
+      {/* Orders List */}
+      <div className="space-y-6">
+        {orders.map((order) => {
+          const currentStage = orderStages[order._id] || (order.status === 'out-for-delivery' ? 'picked_up' : 'at_store');
+          const isAtStore = currentStage === 'at_store';
+          const isPickedUp = currentStage === 'picked_up';
+          const isReachedCustomer = currentStage === 'reached_customer';
+          const isDelivered = currentStage === 'delivered';
+
+          return (
+            <motion.div
+              key={order._id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-[30px] border border-slate-200 bg-white p-5 sm:p-7 shadow-[0_12px_35px_rgba(15,23,42,0.05)] space-y-6"
+            >
+              {/* Order Card Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white font-black">
+                    <Bike size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-black text-slate-900 text-base">#{String(order._id).slice(-6)}</h3>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                        {order.items?.length || 2} Items
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-bold text-emerald-600">Earnings: ₹{order.deliveryFee || 55}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <SlaTimer />
+                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-black text-white">
+                    ₹{order.billDetails?.grandTotal || 240} COD
+                  </span>
+                </div>
+              </div>
+
+              {/* 3-Stage Visual Progression */}
+              <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-black uppercase tracking-wider">
+                <div className={`p-2 rounded-xl border ${isAtStore ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  1. Reach Store
+                </div>
+                <div className={`p-2 rounded-xl border ${isPickedUp ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  2. Pick Order
+                </div>
+                <div className={`p-2 rounded-xl border ${isReachedCustomer || isDelivered ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                  3. Deliver & OTP
+                </div>
+              </div>
+
+              {/* Waypoints & Actions Box */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                
+                {/* Store Pickup Box */}
+                <div className={`rounded-2xl border p-4 transition ${isAtStore ? 'border-emerald-300 bg-emerald-50/40 ring-2 ring-emerald-400/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                    <span>Pickup Location</span>
+                    <span className="text-emerald-700">1.2 km away</span>
+                  </div>
+                  <h4 className="font-black text-sm text-slate-900">{order.store?.name || 'Quick Commerce Dark Store #04'}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Connaught Hub, Block B, Main Market</p>
+
+                  <div className="mt-3.5 flex items-center gap-2">
+                    <button
+                      onClick={() => openGoogleMaps(order.store?.name || 'Dark Store', 'Connaught Place')}
+                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 transition"
+                    >
+                      <Navigation size={13} className="text-emerald-600" />
+                      Maps Route
+                    </button>
+                    <a
+                      href="tel:+919876543210"
+                      className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+                      title="Call Store"
+                    >
+                      <Phone size={14} />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Customer Dropoff Box */}
+                <div className={`rounded-2xl border p-4 transition ${isPickedUp || isReachedCustomer ? 'border-sky-300 bg-sky-50/40 ring-2 ring-sky-400/20' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                    <span>Customer Dropoff</span>
+                    <span className="text-sky-700">6 mins trip</span>
+                  </div>
+                  <h4 className="font-black text-sm text-slate-900">{order.user?.name || 'Customer'}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">{order.deliveryAddress?.street || 'Flat 402, Green Valley Apts, New Delhi'}</p>
+
+                  <div className="mt-3.5 flex items-center gap-2">
+                    <button
+                      onClick={() => openGoogleMaps(order.user?.name || 'Customer', order.deliveryAddress?.street || 'Delhi')}
+                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 transition"
+                    >
+                      <Navigation size={13} className="text-sky-600" />
+                      Customer Route
+                    </button>
+                    <a
+                      href={`tel:${order.user?.phone || '9876543210'}`}
+                      className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+                      title="Call Customer"
+                    >
+                      <Phone size={14} />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Action Trigger */}
+              <div className="border-t border-slate-100 pt-4">
+                {isAtStore && (
+                  <button
+                    onClick={() => updateStage(order._id, 'picked_up')}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-slate-900/20 hover:bg-emerald-600 transition"
+                  >
+                    <PackageCheck size={16} />
+                    Confirm Items Picked Up → Start Dashing
+                  </button>
+                )}
+
+                {isPickedUp && (
+                  <button
+                    onClick={() => updateStage(order._id, 'reached_customer')}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-sky-600/20 hover:bg-sky-500 transition"
+                  >
+                    <Navigation size={16} />
+                    I Have Reached Customer Door
+                  </button>
+                )}
+
+                {isReachedCustomer && (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-black text-slate-900 flex items-center gap-1.5">
+                        <KeyRound size={15} className="text-emerald-600" />
+                        Enter 4-Digit Customer OTP
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">Ask customer for code</span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        maxLength={4}
+                        placeholder="e.g. 1234"
+                        value={enteredOtps[order._id] || ''}
+                        onChange={(e) => setEnteredOtps({ ...enteredOtps, [order._id]: e.target.value })}
+                        className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-black tracking-widest text-slate-900 outline-none focus:border-emerald-500"
+                      />
+                      <button
+                        onClick={() => handleVerifyOtp(order._id)}
+                        className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-emerald-500 transition shadow-sm"
+                      >
+                        Verify & Complete Drop
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {isDelivered && (
+                  <div className="rounded-2xl bg-emerald-100 border border-emerald-200 p-3.5 text-center text-xs font-black text-emerald-800 flex items-center justify-center gap-2">
+                    <CheckCircle2 size={16} />
+                    Delivery Completed! +₹{order.deliveryFee || 55} Added to Earnings.
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 };

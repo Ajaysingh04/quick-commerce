@@ -420,7 +420,7 @@ export const updateOrderStatus = async (req, res) => {
     // Role safety restrictions
     if (req.user.role === 'delivery') {
       // Delivery partners can claim or change transitions
-      if (status === 'out-for-delivery' || status === 'delivered') {
+      if (['confirmed', 'out-for-delivery', 'delivered'].includes(status)) {
         order.status = status;
         if (status === 'delivered') order.deliveredAt = new Date();
       }
@@ -446,11 +446,36 @@ export const updateOrderStatus = async (req, res) => {
         paymentStatus: order.paymentDetails.status,
         deliveryPartner: order.deliveryPartner
       });
+
       // Emit to admin dashboard
       global.io.emit('adminOrderUpdate', {
         orderId: order._id,
         status: order.status,
         paymentStatus: order.paymentDetails.status
+      });
+
+      // Send live notification popup to Admin
+      const riderName = req.user?.name || 'Delivery Partner';
+      let notifTitle = 'Order Update';
+      let notifMsg = `Order #${String(order._id).slice(-6)} is now ${order.status}`;
+
+      if (order.status === 'confirmed') {
+        notifTitle = 'Order Claimed';
+        notifMsg = `${riderName} accepted order #${String(order._id).slice(-6)}`;
+      } else if (order.status === 'out-for-delivery') {
+        notifTitle = 'Out For Delivery';
+        notifMsg = `${riderName} picked up order #${String(order._id).slice(-6)} and is on the way!`;
+      } else if (order.status === 'delivered') {
+        notifTitle = 'Order Delivered';
+        notifMsg = `${riderName} successfully delivered order #${String(order._id).slice(-6)}`;
+      }
+
+      global.io.emit('adminNotification', {
+        title: notifTitle,
+        message: notifMsg,
+        orderId: order._id,
+        status: order.status,
+        date: new Date()
       });
 
       // If it became preparing or ready, let delivery partners know!
