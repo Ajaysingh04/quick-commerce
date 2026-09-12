@@ -28,7 +28,10 @@ import {
   PanelLeftOpen,
   Sparkles,
   CheckCheck,
-  CircleUser
+  CircleUser,
+  ShieldCheck,
+  Activity,
+  Zap,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -43,9 +46,14 @@ const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    const socket = io(socketUrl);
+
+    socket.on('connect', () => setIsConnected(true));
+    socket.on('disconnect', () => setIsConnected(false));
 
     socket.on('adminNotification', (data) => {
       const newNotification = { ...data, id: Date.now() };
@@ -68,14 +76,14 @@ const AdminLayout = () => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Live Orders', path: '/admin/orders', icon: ShoppingCart },
+    { name: 'Live Orders', path: '/admin/orders', icon: ShoppingCart, badge: 'Live' },
     { name: 'Dark Stores', path: '/admin/stores', icon: Store },
     { name: 'Categories', path: '/admin/categories', icon: Tag },
     { name: 'Inventory', path: '/admin/products', icon: Utensils },
     { name: 'Customers', path: '/admin/users', icon: Users },
     { name: 'Delivery Partners', path: '/admin/delivery-partners', icon: Users },
     { name: 'Store Partners', path: '/admin/store-partners', icon: Store },
-    { name: 'Offers', path: '/admin/coupons', icon: Tag },
+    { name: 'Offers & Coupons', path: '/admin/coupons', icon: Tag },
     { name: 'Reviews', path: '/admin/reviews', icon: Star },
     { name: 'Support', path: '/admin/support', icon: MessageSquare },
     { name: 'Banners', path: '/admin/banners', icon: ImageIcon },
@@ -84,33 +92,34 @@ const AdminLayout = () => {
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
-  const sidebarWidth = isSidebarCollapsed ? 'w-[92px]' : 'w-[260px]';
+  const sidebarWidth = isSidebarCollapsed ? 'w-[84px]' : 'w-[270px]';
 
   return (
-    <div className="min-h-screen flex bg-slate-100 text-slate-900 font-sans relative">
+    <div className="min-h-screen flex bg-[#F1F5F9] text-slate-900 font-sans relative antialiased">
+      {/* Real-time Toast Notifications */}
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
         <AnimatePresence>
           {notifications.map((notif) => (
             <motion.div
               key={notif.id}
-              initial={{ opacity: 0, x: 50, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 min-w-[300px] flex gap-4 items-start pointer-events-auto"
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              className="bg-slate-900 text-white rounded-2xl shadow-2xl border border-white/10 p-4 min-w-[320px] flex gap-3.5 items-start pointer-events-auto backdrop-blur-xl"
             >
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                <Bell className="w-5 h-5 text-emerald-600" />
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                <Bell className="w-4 h-4 text-emerald-400" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-slate-800 text-sm">{notif.title}</h4>
-                <p className="text-slate-600 text-xs mt-1 leading-relaxed">{notif.message}</p>
-                <div className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
-                  {new Date(notif.date).toLocaleTimeString()}
+                <h4 className="font-bold text-white text-sm">{notif.title || 'New Notification'}</h4>
+                <p className="text-slate-300 text-xs mt-1 leading-relaxed">{notif.message}</p>
+                <div className="text-[10px] font-bold text-emerald-400 mt-2 uppercase tracking-wider">
+                  {new Date(notif.date || Date.now()).toLocaleTimeString()}
                 </div>
               </div>
               <button
                 onClick={() => setNotifications((prev) => prev.filter((n) => n.id !== notif.id))}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -119,18 +128,20 @@ const AdminLayout = () => {
         </AnimatePresence>
       </div>
 
-      <aside className={`hidden md:flex flex-col h-screen sticky top-0 bg-[#0F172A] text-white shrink-0 shadow-[0_20px_60px_rgba(15,23,42,0.35)] z-20 overflow-hidden border-r border-slate-800 transition-all duration-300 ${sidebarWidth}`}>
-        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-800">
-          <Link to="/" className="flex items-center gap-3 min-w-0 overflow-hidden" title="Back to home">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
+      {/* Desktop Sidebar */}
+      <aside className={`hidden md:flex flex-col h-screen sticky top-0 bg-[#0B132B] text-white shrink-0 shadow-[0_25px_60px_rgba(0,0,0,0.35)] z-20 overflow-hidden border-r border-slate-800/80 transition-all duration-300 ${sidebarWidth}`}>
+        {/* Brand Header */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-800/80">
+          <Link to="/" className="flex items-center gap-3 min-w-0 overflow-hidden group" title="Visit Storefront">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition">
+              <Sparkles className="w-5 h-5 text-slate-950 font-black" />
             </div>
             {!isSidebarCollapsed && (
               <div className="min-w-0">
                 <div className="font-black text-lg tracking-tight text-white truncate">
                   {settings?.adminHeaderText || settings?.siteTitle || 'RoseDash'}
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Operations</div>
+                <div className="text-[10px] uppercase font-bold tracking-[0.2em] text-emerald-400">HQ Console</div>
               </div>
             )}
           </Link>
@@ -138,72 +149,80 @@ const AdminLayout = () => {
           <button
             type="button"
             onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-            className="hidden lg:inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/40 text-slate-300 hover:text-white hover:border-slate-600 transition-colors"
+            className="hidden lg:inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-slate-300 hover:text-white hover:border-slate-500 transition-colors"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
           </button>
         </div>
 
-        <div className="px-4 py-4 border-b border-slate-800">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-3 py-2 flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-slate-800 flex items-center justify-center text-[10px] font-black text-emerald-300">
-              Q
-            </div>
+        {/* Live Sync Pill */}
+        <div className="px-3.5 py-3 border-b border-slate-800/60">
+          <div className="rounded-2xl border border-white/5 bg-slate-900/60 px-3 py-2 flex items-center gap-2.5 backdrop-blur-md">
+            <span className={`h-2.5 w-2.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
             {!isSidebarCollapsed && (
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-white truncate">Quick Commerce</p>
-                  <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
-                    Live
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-400">HQ Workspace</div>
+              <div className="flex-1 flex items-center justify-between min-w-0">
+                <span className="text-xs font-bold text-slate-300 truncate">
+                  {isConnected ? 'Realtime Engine' : 'Reconnecting...'}
+                </span>
+                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300 border border-emerald-500/20">
+                  Live
+                </span>
               </div>
             )}
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="space-y-1.5">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const active = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
+        {/* Navigation Links */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 no-scrollbar">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const active = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
 
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`group relative flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-all duration-200 ${
-                    active
-                      ? 'bg-emerald-500/10 text-white border border-emerald-500/20 shadow-[inset_2px_0_0_#22C55E]'
-                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                  }`}
-                  title={isSidebarCollapsed ? item.name : undefined}
-                >
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-800 text-slate-300 group-hover:text-white'}`}>
-                    <Icon className="h-4 w-4" />
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`group relative flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 ${
+                  active
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-white border border-emerald-400/30 shadow-[0_4px_20px_rgba(16,185,129,0.15)]'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                }`}
+                title={isSidebarCollapsed ? item.name : undefined}
+              >
+                <div className={`flex h-8 w-8 items-center justify-center rounded-xl transition ${
+                  active ? 'bg-emerald-500 text-slate-950 font-black shadow-md' : 'bg-slate-800/80 text-slate-400 group-hover:text-white'
+                }`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                {!isSidebarCollapsed && (
+                  <div className="flex-1 flex items-center justify-between min-w-0">
+                    <span className="truncate">{item.name}</span>
+                    {item.badge && (
+                      <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
+                        {item.badge}
+                      </span>
+                    )}
                   </div>
-                  {!isSidebarCollapsed && <span>{item.name}</span>}
-                </Link>
-              );
-            })}
-          </div>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="border-t border-slate-800 p-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-black text-white">
+        {/* Bottom Profile & Logout */}
+        <div className="border-t border-slate-800/80 p-3.5">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-slate-900/60 p-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-xs font-black text-slate-950 shadow-md">
               AD
             </div>
             {!isSidebarCollapsed && (
               <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-bold text-white">Admin User</p>
-                  <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
-                    Online
-                  </span>
+                <div className="flex items-center justify-between gap-1">
+                  <p className="truncate text-xs font-black text-white">Super Admin</p>
+                  <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[8px] font-bold text-emerald-300">Active</span>
                 </div>
-                <p className="truncate text-[11px] text-slate-400">admin@quickcommerce.com</p>
+                <p className="truncate text-[10px] text-slate-400">admin@quickcommerce.com</p>
               </div>
             )}
           </div>
@@ -211,91 +230,97 @@ const AdminLayout = () => {
           {!isSidebarCollapsed && (
             <button
               onClick={handleLogout}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2.5 text-sm font-bold text-rose-200 transition hover:border-rose-400/30 hover:bg-rose-500/15"
+              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-300 transition hover:bg-rose-500/20"
             >
-              <LogOut className="h-4 w-4" />
-              Logout
+              <LogOut className="h-3.5 w-3.5" />
+              Sign Out
             </button>
           )}
         </div>
       </aside>
 
-      <div className="flex-grow flex flex-col min-w-0 bg-[#f8fafc] md:rounded-tl-[32px] md:shadow-[inset_1px_0_0_rgba(148,163,184,0.24)]">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-4 px-4 py-4 md:px-8">
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col min-w-0 bg-[#F8FAFC]">
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-4 px-4 py-3.5 md:px-8">
             <div className="flex items-center gap-3 md:hidden">
-              <button onClick={() => setIsSidebarOpen(true)} className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600">
+              <button onClick={() => setIsSidebarOpen(true)} className="rounded-xl border border-slate-200 bg-white p-2 text-slate-700 shadow-sm">
                 <Menu className="h-5 w-5" />
               </button>
+              <span className="font-black text-base text-slate-900">Admin Control</span>
             </div>
 
+            {/* Quick Search */}
             <div className="hidden md:flex flex-1 items-center gap-4">
-              <div className="relative w-full max-w-xl">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search orders, products, stores, customers..."
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white"
+                  placeholder="Quick search across orders, products, stores..."
+                  className="w-full rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2 pl-10 pr-4 text-xs font-medium text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:shadow-sm"
                 />
               </div>
             </div>
 
+            {/* Header Right Action Items */}
             <div className="flex items-center gap-3">
-              <button className="hidden md:inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300">
-                <Plus className="h-4 w-4" />
-                Quick Action
-              </button>
+              <Link
+                to="/"
+                target="_blank"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:border-emerald-300 hover:text-emerald-700 transition"
+              >
+                <Store className="h-3.5 w-3.5 text-emerald-600" />
+                Live Store
+              </Link>
 
-              <button className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 hover:text-slate-900">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-white">
-                  7
+              <button className="relative rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 hover:text-slate-900 shadow-xs transition">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-white shadow-xs">
+                  3
                 </span>
               </button>
 
-              <button className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 hover:text-slate-900">
-                <CheckCheck className="h-5 w-5" />
-              </button>
-
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-slate-900 to-slate-700 text-sm font-black text-white">
-                  AD
+              <div className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 shadow-xs">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-slate-900 to-slate-700 text-xs font-black text-white">
+                  A
                 </div>
-                <div className="hidden sm:block">
-                  <div className="text-sm font-bold text-slate-900">Admin</div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Super Admin</div>
+                <div className="hidden sm:block text-left">
+                  <div className="text-xs font-black text-slate-900 leading-tight">Admin Console</div>
+                  <div className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Full Access</div>
                 </div>
-                <ChevronDown className="hidden sm:block h-4 w-4 text-slate-400" />
               </div>
             </div>
           </div>
         </header>
 
+        {/* Page Viewport */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </main>
       </div>
 
+      {/* Mobile Drawer */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden" role="dialog" aria-modal="true">
-          <div onClick={() => setIsSidebarOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-          <div className="relative w-[280px] bg-[#0F172A] p-4 shadow-2xl">
-            <div className="mb-5 flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
-                  <Sparkles className="h-5 w-5" />
+          <div onClick={() => setIsSidebarOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+          <div className="relative w-[280px] bg-[#0B132B] p-4 shadow-2xl flex flex-col h-full text-white">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-slate-950 font-black">
+                  <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="text-lg font-black text-white">{settings?.siteTitle || 'RoseDash'}</div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Operations</div>
+                  <div className="text-base font-black text-white">{settings?.siteTitle || 'RoseDash'}</div>
+                  <div className="text-[9px] uppercase font-bold text-emerald-400">Admin HQ</div>
                 </div>
               </div>
-              <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg border border-slate-700 p-2 text-slate-300">
+              <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg border border-slate-700 p-1.5 text-slate-300">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <nav className="space-y-1.5">
+            <nav className="flex-1 space-y-1 overflow-y-auto no-scrollbar py-2">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const active = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
@@ -304,35 +329,23 @@ const AdminLayout = () => {
                     key={item.name}
                     to={item.path}
                     onClick={() => setIsSidebarOpen(false)}
-                    className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition ${
-                      active ? 'border border-emerald-500/20 bg-emerald-500/10 text-white' : 'text-slate-300 hover:bg-slate-800/70'
+                    className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-bold transition ${
+                      active ? 'border border-emerald-400/30 bg-emerald-500/15 text-white' : 'text-slate-400 hover:bg-white/5'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 text-emerald-400" />
                     {item.name}
                   </Link>
                 );
               })}
             </nav>
 
-            <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/50 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-black text-white">
-                  AD
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-white">Admin User</p>
-                  <p className="text-[11px] text-slate-400">admin@quickcommerce.com</p>
-                </div>
-              </div>
-            </div>
-
             <button
               onClick={handleLogout}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2.5 text-sm font-bold text-rose-200"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-300"
             >
-              <LogOut className="h-4 w-4" />
-              Logout
+              <LogOut className="h-3.5 w-3.5" />
+              Sign Out
             </button>
           </div>
         </div>
