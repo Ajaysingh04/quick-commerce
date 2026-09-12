@@ -55,10 +55,13 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
       }
     }
 
+    const effectiveStoreId = product?.store?._id || product?.store || storeId;
+    const effectiveStoreName = product?.store?.name || storeName;
+
     dispatch(
       addToCart({
         item: product,
-        store: { id: storeId, name: storeName },
+        store: { id: effectiveStoreId, name: effectiveStoreName },
       })
     );
   };

@@ -120,24 +120,37 @@ export const createOrder = async (req, res) => {
   let { storeId, items, deliveryAddress, paymentMethod, couponCode, preVerified, razorpayPaymentDetails } = req.body;
 
   try {
-    // Prevent CastError and handle deleted mock stores from frontend cache
-    if (mongoose.Types.ObjectId.isValid(storeId)) {
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'No items in order' });
+    }
+
+    // 1. Resolve actual store from product items if storeId is missing, invalid or fallback
+    let resolvedStoreId = null;
+    for (const item of items) {
+      if (mongoose.Types.ObjectId.isValid(item.productId)) {
+        const productDoc = await Product.findById(item.productId);
+        if (productDoc && productDoc.store) {
+          resolvedStoreId = productDoc.store.toString();
+          break;
+        }
+      }
+    }
+
+    if (resolvedStoreId && mongoose.Types.ObjectId.isValid(resolvedStoreId)) {
+      storeId = resolvedStoreId;
+    } else if (mongoose.Types.ObjectId.isValid(storeId)) {
       const exists = await Store.findById(storeId);
       if (!exists) {
-        const fallback = await Store.findOne({});
+        const fallback = await Store.findOne({ status: 'approved' }) || await Store.findOne({});
         if (fallback) storeId = fallback._id.toString();
       }
     } else {
-      const fallback = await Store.findOne({});
+      const fallback = await Store.findOne({ status: 'approved' }) || await Store.findOne({});
       if (fallback) {
         storeId = fallback._id.toString();
       } else {
         storeId = new mongoose.Types.ObjectId().toString();
       }
-    }
-
-    if (!items || items.length === 0) {
-      return res.status(400).json({ message: 'No items in order' });
     }
 
     // 1. Calculate subtotals and pull product item details
@@ -367,12 +380,22 @@ export const getAllOrders = async (req, res) => {
 // @access  Private/Partner
 export const getPartnerOrders = async (req, res) => {
   try {
-    // 1. Find all stores owned by this partner
-    const stores = await Store.find({ owner: req.user._id });
+    // 1. Find all stores owned by this partner or where partner is staff
+    const stores = await Store.find({
+      $or: [
+        { owner: req.user._id },
+        { 'staff.user': req.user._id }
+      ]
+    });
     const storeIds = stores.map(r => r._id);
     
     // 2. Find all orders belonging to those stores
-    const orders = await Order.find({ store: { $in: storeIds } })
+    let query = { store: { $in: storeIds } };
+    if (req.user.role === 'admin' && storeIds.length === 0) {
+      query = {}; // Admin can view all
+    }
+
+    const orders = await Order.find(query)
       .populate('user', 'name email phone')
       .populate('deliveryPartner', 'name phone')
       .populate('items.product', 'name image isVeg')
