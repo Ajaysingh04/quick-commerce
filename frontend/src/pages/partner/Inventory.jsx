@@ -64,15 +64,35 @@ const Inventory = () => {
 
  const fetchCategories = async () => {
     try {
-      const res = await API.get('/products/categories');
-      const fetchedValues = (res.data || []).map((item) => item?.name).filter(Boolean);
-      const validCategories = CANONICAL_CATEGORY_OPTIONS.filter((name) =>
-        fetchedValues.includes(name) || fetchedValues.length === 0
-      );
-      setDbCategories(validCategories);
+      const res = await API.get('/products/categories?all=true');
+      const apiCats = Array.isArray(res.data) ? res.data : [];
+      
+      const catMap = new Map();
+
+      // Populate from API
+      apiCats.forEach(c => {
+        if (c?.name) {
+          catMap.set(c.name.trim().toLowerCase(), {
+            _id: c._id,
+            name: c.name.trim()
+          });
+        }
+      });
+
+      // Populate canonical defaults
+      CANONICAL_CATEGORY_OPTIONS.forEach(name => {
+        if (!catMap.has(name.toLowerCase())) {
+          catMap.set(name.toLowerCase(), {
+            _id: name,
+            name: name
+          });
+        }
+      });
+
+      setDbCategories(Array.from(catMap.values()));
     } catch (err) {
       console.error('Failed to fetch categories:', err);
-      setDbCategories(CANONICAL_CATEGORY_OPTIONS);
+      setDbCategories(CANONICAL_CATEGORY_OPTIONS.map(name => ({ _id: name, name })));
     }
   };
 
@@ -119,7 +139,7 @@ const Inventory = () => {
  stockQuantity: product.stockQuantity || 0,
  weight: product.weight || '',
  sku: product.sku || '',
- category: product.category?.name || '',
+ category: product.category?.name || (typeof product.category === 'string' ? product.category : ''),
  image: product.image || '',
  isVeg: product.isVeg,
  isBestseller: product.isBestseller || false,
@@ -347,9 +367,9 @@ const Inventory = () => {
  <label className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Category</label>
  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2.5 bg-[#f5f6fa] border border-gray-200 rounded-xl text-sm outline-none focus:border-[#e31837] font-semibold text-slate-700 ">
  <option value="">Select Category</option>
- {dbCategories.map(cat => (
-   <option key={cat._id} value={cat.name}>{cat.name}</option>
- ))}
+  {dbCategories.map((cat, idx) => (
+    <option key={cat._id || cat.name || idx} value={cat.name}>{cat.name}</option>
+  ))}
  </select>
  </div>
  
