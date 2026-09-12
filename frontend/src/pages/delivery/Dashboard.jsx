@@ -27,8 +27,10 @@ import {
   Flame,
   Percent,
   Compass,
+  QrCode,
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import RiderQrScannerModal from '../../components/delivery/RiderQrScannerModal.jsx';
 
 const SlideToAccept = ({ onAccept, onDecline }) => {
   const x = useMotionValue(0);
@@ -81,6 +83,7 @@ const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [incomingOrder, setIncomingOrder] = useState(null);
+  const [showDashboardQrScanner, setShowDashboardQrScanner] = useState(false);
   const [isOnline, setIsOnline] = useState(() => {
     if (typeof window === 'undefined') return true;
     const saved = window.localStorage.getItem('deliveryOnline');
@@ -254,6 +257,49 @@ const Dashboard = () => {
         </div>
       </motion.div>
 
+      {/* Rider Quick Action Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <button
+          type="button"
+          onClick={() => setShowDashboardQrScanner(true)}
+          className="flex items-center justify-between p-4 rounded-[24px] bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/10 transition active:scale-98 group border border-slate-800"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black group-hover:scale-105 transition">
+              <QrCode size={24} />
+            </div>
+            <div className="text-left">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">Fast Pickup</span>
+              <h3 className="text-sm sm:text-base font-black text-white">Scan Store Pickup QR</h3>
+              <p className="text-[11px] text-slate-400">Camera / PIN pickup verification</p>
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white">
+            <ArrowRight size={16} />
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => window.location.href = '/delivery/active'}
+          className="flex items-center justify-between p-4 rounded-[24px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/20 transition active:scale-98 group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center font-black group-hover:scale-105 transition">
+              <Bike size={24} />
+            </div>
+            <div className="text-left">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">Active Fleet</span>
+              <h3 className="text-sm sm:text-base font-black text-white">Active Deliveries</h3>
+              <p className="text-[11px] text-emerald-100">Live navigation & door dropoff</p>
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">
+            <ArrowRight size={16} />
+          </div>
+        </button>
+      </div>
+
       {/* KPI Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -377,6 +423,15 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
+
+      {/* Global Rider QR Scanner Modal */}
+      <RiderQrScannerModal
+        isOpen={showDashboardQrScanner}
+        onClose={() => setShowDashboardQrScanner(false)}
+        onScanSuccess={() => {
+          window.location.href = '/delivery/active';
+        }}
+      />
 
     </div>
   );

@@ -34,6 +34,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import API from '../../services/api.js';
+import RiderQrScannerModal from '../../components/delivery/RiderQrScannerModal.jsx';
 
 // Timer Component for 10-Minute Quick Commerce SLA
 const SlaTimer = () => {
@@ -488,80 +489,23 @@ const ActiveDeliveries = () => {
       </div>
 
       {/* 1. Store QR Scanner Modal */}
-      <AnimatePresence>
-        {scanModalOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 text-center relative space-y-4"
-            >
-              <button 
-                onClick={() => setScanModalOrder(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="w-12 h-12 rounded-2xl bg-[#e31837]/10 text-[#e31837] flex items-center justify-center mx-auto">
-                <Camera className="w-6 h-6 animate-pulse" />
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black text-slate-900">Store Pickup QR Scanner</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Scan the QR code displayed on {scanModalOrder.store?.name || 'the Store Admin screen'}.
-                </p>
-              </div>
-
-              {/* Viewfinder simulation */}
-              <div className="relative h-44 bg-slate-950 rounded-2xl overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-emerald-400/60 p-4">
-                <div className="absolute inset-x-8 top-1/2 h-0.5 bg-emerald-400 shadow-[0_0_10px_#10b981] animate-bounce" />
-                <QrCode className="w-16 h-16 text-slate-600 opacity-40 mb-2" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40">
-                  Ready to Capture Store QR
-                </span>
-              </div>
-
-              {/* One-Tap Instant Verification */}
-              <button
-                disabled={isScanning}
-                onClick={() => handlePerformPickupScan(scanModalOrder)}
-                className="w-full py-3 bg-emerald-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-emerald-500 transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
-              >
-                {isScanning ? (
-                  <span>Verifying Pickup...</span>
-                ) : (
-                  <>
-                    <CheckCircle2 size={16} />
-                    One-Tap Scan & Confirm Pickup
-                  </>
-                )}
-              </button>
-
-              <div className="pt-2 border-t border-slate-100">
-                <p className="text-[10px] text-slate-400 font-semibold mb-2">Or enter manual pickup code from store:</p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. PICK42 or ID"
-                    value={manualCodeInput}
-                    onChange={(e) => setManualCodeInput(e.target.value)}
-                    className="flex-1 text-center font-mono font-bold text-xs uppercase bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-slate-900"
-                  />
-                  <button
-                    onClick={() => handlePerformPickupScan(scanModalOrder)}
-                    className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl"
-                  >
-                    Verify
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <RiderQrScannerModal
+        isOpen={Boolean(scanModalOrder)}
+        onClose={() => setScanModalOrder(null)}
+        targetOrder={scanModalOrder}
+        onScanSuccess={(updatedOrder) => {
+          if (scanModalOrder) {
+            setOrders(prev => prev.map(o => o._id === scanModalOrder._id ? {
+              ...o,
+              ...updatedOrder,
+              status: 'out-for-delivery',
+              pickedUpAt: updatedOrder?.pickedUpAt || new Date().toISOString()
+            } : o));
+            setOrderStages(prev => ({ ...prev, [scanModalOrder._id]: 'picked_up' }));
+          }
+          setScanModalOrder(null);
+        }}
+      />
 
       {/* 2. Dynamic COD Payment UPI QR Modal */}
       <AnimatePresence>

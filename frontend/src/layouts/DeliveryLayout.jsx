@@ -24,8 +24,11 @@ import {
   Radio,
   BatteryCharging,
   Clock,
+  QrCode,
+  Camera,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import RiderQrScannerModal from '../components/delivery/RiderQrScannerModal.jsx';
 
 const DeliveryLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -38,6 +41,7 @@ const DeliveryLayout = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSosModal, setShowSosModal] = useState(false);
+  const [showGlobalQrScanner, setShowGlobalQrScanner] = useState(false);
 
   // Shift Timer Simulation
   const [shiftSeconds, setShiftSeconds] = useState(13240); // ~3.6 hours
@@ -194,6 +198,17 @@ const DeliveryLayout = () => {
             ))}
           </nav>
 
+          {/* Scan Store QR Quick Button */}
+          <div className="px-3.5 pb-2">
+            <button
+              onClick={() => setShowGlobalQrScanner(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-xs font-black uppercase tracking-wider text-emerald-300 hover:bg-emerald-500/20 transition shadow-sm"
+            >
+              <QrCode className="h-4 w-4 text-emerald-400" />
+              Scan Store QR
+            </button>
+          </div>
+
           {/* Safety SOS Quick Button */}
           <div className="px-3.5 pb-2">
             <button
@@ -233,35 +248,47 @@ const DeliveryLayout = () => {
         
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="flex items-center justify-between gap-2.5 px-3 sm:px-6 py-2.5 sm:py-3">
             
-            <div className="flex items-center gap-3">
-              <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition lg:hidden border border-slate-200">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition lg:hidden border border-slate-200 shrink-0">
                 <Menu size={18} />
               </button>
               
               {/* Location / Zone pill */}
-              <div className="hidden sm:flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs">
-                <Navigation size={13} className="text-emerald-600 animate-pulse" />
-                <span>Active Zone: <strong className="text-slate-900">Connaught Hub (Surge 1.2x)</strong></span>
+              <div className="hidden sm:flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs truncate">
+                <Navigation size={13} className="text-emerald-600 animate-pulse shrink-0" />
+                <span className="truncate">Active Zone: <strong className="text-slate-900">Connaught Hub (Surge 1.2x)</strong></span>
               </div>
             </div>
 
             {/* Right Action Bar */}
-            <div className="flex items-center gap-2.5 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               
+              {/* Scan Store QR Top Button */}
+              <button
+                type="button"
+                onClick={() => setShowGlobalQrScanner(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition active:scale-95 shadow-sm text-xs font-black"
+                title="Scan Store Pickup QR"
+              >
+                <QrCode size={15} className="text-emerald-400" />
+                <span className="hidden sm:inline">Scan QR</span>
+                <span className="sm:hidden text-[11px]">Scan</span>
+              </button>
+
               {/* Duty Switch Button */}
               <button
                 type="button"
                 onClick={() => setIsOnline(!isOnline)}
-                className={`relative flex items-center gap-2.5 px-3.5 py-1.5 rounded-full cursor-pointer transition-all duration-300 border shadow-xs ${
+                className={`relative flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl cursor-pointer transition-all duration-300 border shadow-xs ${
                   isOnline
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                     : 'bg-slate-100 border-slate-300 text-slate-600'
                 }`}
               >
                 <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-ping' : 'bg-slate-400'}`} />
-                <span className="text-xs font-black tracking-wider uppercase">
+                <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase">
                   {isOnline ? 'Online' : 'Offline'}
                 </span>
               </button>
@@ -269,7 +296,7 @@ const DeliveryLayout = () => {
               {/* SOS Mobile Quick Trigger */}
               <button
                 onClick={() => setShowSosModal(true)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 border border-rose-200 text-rose-600 sm:hidden"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 border border-rose-200 text-rose-600 sm:hidden shrink-0"
                 title="Emergency SOS"
               >
                 <ShieldAlert size={16} />
@@ -279,7 +306,7 @@ const DeliveryLayout = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-2xs"
+                  className="relative p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-2xs"
                 >
                   <Bell size={17} />
                   <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-black text-white">
@@ -317,7 +344,7 @@ const DeliveryLayout = () => {
               {/* Profile Avatar */}
               <div
                 onClick={() => navigate('/delivery/settings')}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-xs font-black text-slate-950 cursor-pointer shadow-xs"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-xs font-black text-slate-950 cursor-pointer shadow-xs shrink-0"
               >
                 {userInitial}
               </div>
@@ -330,26 +357,75 @@ const DeliveryLayout = () => {
           <Outlet />
         </main>
 
-        {/* Mobile Bottom Quick Bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 lg:hidden px-4 py-2 flex items-center justify-around">
-          {navItems.slice(0, 4).map((item) => {
-            const Icon = item.icon;
-            const active = location.pathname === item.path;
-            return (
-              <NavLink
-                key={item.name}
-                to={item.path}
-                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
-                  active ? 'text-emerald-600 font-black' : 'text-slate-400 font-semibold'
-                }`}
-              >
-                <Icon size={18} />
-                <span className="text-[10px]">{item.name.split(' ')[0]}</span>
-              </NavLink>
-            );
-          })}
+        {/* Mobile Bottom Quick Bar with Centered QR Scanner Button */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 lg:hidden px-3 py-1.5 flex items-center justify-between shadow-lg">
+          <NavLink
+            to="/delivery/dashboard"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+                isActive ? 'text-emerald-600 font-black' : 'text-slate-400 font-semibold'
+              }`
+            }
+          >
+            <LayoutDashboard size={18} />
+            <span className="text-[10px]">Home</span>
+          </NavLink>
+
+          <NavLink
+            to="/delivery/active"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+                isActive ? 'text-emerald-600 font-black' : 'text-slate-400 font-semibold'
+              }`
+            }
+          >
+            <MapPin size={18} />
+            <span className="text-[10px]">Active</span>
+          </NavLink>
+
+          {/* Centered Big QR Scan Mobile Button */}
+          <button
+            onClick={() => setShowGlobalQrScanner(true)}
+            className="flex flex-col items-center justify-center -mt-5 h-12 w-12 rounded-2xl bg-gradient-to-tr from-slate-950 to-slate-800 text-emerald-400 border-2 border-white shadow-xl active:scale-95 transition"
+            title="Scan QR Code"
+          >
+            <QrCode size={22} />
+          </button>
+
+          <NavLink
+            to="/delivery/earnings"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+                isActive ? 'text-emerald-600 font-black' : 'text-slate-400 font-semibold'
+              }`
+            }
+          >
+            <Wallet size={18} />
+            <span className="text-[10px]">Earnings</span>
+          </NavLink>
+
+          <NavLink
+            to="/delivery/history"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+                isActive ? 'text-emerald-600 font-black' : 'text-slate-400 font-semibold'
+              }`
+            }
+          >
+            <History size={18} />
+            <span className="text-[10px]">History</span>
+          </NavLink>
         </div>
       </div>
+
+      {/* Global Rider QR Scanner Modal */}
+      <RiderQrScannerModal
+        isOpen={showGlobalQrScanner}
+        onClose={() => setShowGlobalQrScanner(false)}
+        onScanSuccess={() => {
+          navigate('/delivery/active');
+        }}
+      />
 
       {/* Emergency SOS Modal */}
       <AnimatePresence>
