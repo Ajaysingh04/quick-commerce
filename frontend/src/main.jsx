@@ -5,7 +5,7 @@ import './index.css';
 
 import { ClerkProvider } from '@clerk/clerk-react';
 
-const rawPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+const rawPublishableKey = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_YW1hemVkLWxpemFyZC0yNC5jbGVyay5hY2NvdW50cy5kZXYk').trim();
 const hasValidClerkKey = rawPublishableKey &&
   !rawPublishableKey.toLowerCase().includes('your_') &&
   !rawPublishableKey.toLowerCase().includes('replace_') &&

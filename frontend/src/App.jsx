@@ -71,7 +71,7 @@ import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 
 const hasValidClerkKey = () => {
- const value = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '').trim();
+ const value = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_YW1hemVkLWxpemFyZC0yNC5jbGVyay5hY2NvdW50cy5kZXYk').trim();
  return Boolean(value) &&
    !value.toLowerCase().includes('your_') &&
    !value.toLowerCase().includes('replace_') &&
