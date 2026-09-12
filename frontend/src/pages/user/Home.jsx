@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
   BadgeCheck,
@@ -18,6 +18,8 @@ import {
   Store,
   Truck,
   Zap,
+  TrendingUp,
+  Percent,
 } from 'lucide-react';
 import ProductCard from '../../components/common/ProductCard';
 import { useSettings } from '../../context/SettingsContext';
@@ -37,15 +39,31 @@ const Home = () => {
   const [selectedWeeklyCategory, setSelectedWeeklyCategory] = useState('All');
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Countdown timer simulation for Flash Deal
+  const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 45, seconds: 30 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 3, minutes: 0, seconds: 0 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const activeHeroBanners = heroBanners.filter((b) => b.isActive !== false);
   const heroImages = activeHeroBanners.length > 0
     ? activeHeroBanners.map((b) => b.imageUrl).filter(Boolean)
     : [heroFallback];
 
   useEffect(() => {
+    if (heroImages.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 4000);
+    }, 4500);
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
@@ -53,10 +71,10 @@ const Home = () => {
     try {
       const { default: API } = await import('../../services/api.js');
       const [bannersRes, productsRes, categoriesRes, storesRes] = await Promise.all([
-        API.get('/banners/active'),
-        API.get('/products?limit=100'),
-        API.get('/products/categories'),
-        API.get('/stores'),
+        API.get('/banners/active').catch(() => ({ data: [] })),
+        API.get('/products?limit=100').catch(() => ({ data: [] })),
+        API.get('/products/categories').catch(() => ({ data: [] })),
+        API.get('/stores').catch(() => ({ data: [] })),
       ]);
 
       const banners = bannersRes.data || [];
@@ -112,7 +130,13 @@ const Home = () => {
   useEffect(() => {
     fetchData();
 
-    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
+    const getSocketUrl = () => {
+      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (isLocalhost) return 'http://localhost:5000';
+      return import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    };
+
+    const socket = io(getSocketUrl());
     socket.on('contentUpdated', () => fetchData());
 
     return () => socket.disconnect();
@@ -134,317 +158,310 @@ const Home = () => {
       }).slice(0, 6);
 
   const categoryHighlights = [
-    { name: 'Fresh Picks', count: '120+', icon: Sparkles, color: 'from-emerald-500/20 to-emerald-100', accent: 'text-emerald-600' },
-    { name: 'Express Delivery', count: '15 min', icon: Truck, color: 'from-sky-500/20 to-sky-100', accent: 'text-sky-600' },
-    { name: 'Top Rated', count: '4.8/5', icon: Star, color: 'from-amber-500/20 to-amber-100', accent: 'text-amber-600' },
+    { name: 'Fresh Picks', count: '120+', icon: Sparkles, color: 'from-emerald-500/20 via-emerald-500/10 to-transparent', accent: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { name: 'Express Delivery', count: '10-15 min', icon: Truck, color: 'from-sky-500/20 via-sky-500/10 to-transparent', accent: 'text-sky-400', bg: 'bg-sky-500/10' },
+    { name: 'Top Rated Quality', count: '4.9/5', icon: Star, color: 'from-amber-500/20 via-amber-500/10 to-transparent', accent: 'text-amber-400', bg: 'bg-amber-500/10' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 text-slate-900">
-      <div className="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 text-slate-900">
+      <div className="mx-auto max-w-7xl px-4 pb-8 pt-5 sm:px-6 lg:px-8">
+        
+        {/* HERO SECTION */}
         <motion.section
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-[#0F172A] text-white shadow-[0_35px_80px_rgba(15,23,42,0.25)]"
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="relative overflow-hidden rounded-[36px] border border-slate-800/80 bg-[#0B132B] text-white shadow-[0_30px_90px_rgba(11,19,43,0.35)]"
         >
-          <div className="relative grid gap-8 px-5 py-6 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:py-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(148,163,184,0.20),transparent_25%)]" />
+          {/* Ambient Glowing Orbs */}
+          <div className="pointer-events-none absolute -left-20 -top-20 h-96 w-96 rounded-full bg-emerald-500/20 blur-[100px]" />
+          <div className="pointer-events-none absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-blue-600/15 blur-[120px]" />
 
+          <div className="relative grid gap-8 px-6 py-8 sm:px-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-12 lg:py-12">
+            
+            {/* Left Content */}
             <div className="relative z-10 flex flex-col justify-center">
-              <div className="mb-5 inline-flex w-max items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 backdrop-blur-sm">
-                <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-                Fresh. Fast. Premium.
+              <div className="mb-4 inline-flex w-max items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-black tracking-wide text-emerald-300 backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-400 animate-spin-slow" />
+                <span>FRESH • FAST • 10-MIN DELIVERY</span>
               </div>
 
-              <h1 className="max-w-xl text-4xl font-black leading-[0.98] tracking-[-0.06em] text-white sm:text-5xl lg:text-6xl">
-                Delivering daily essentials in a whole new way.
+              <h1 className="max-w-xl text-3xl font-black leading-[1.05] tracking-[-0.05em] text-white sm:text-5xl lg:text-6xl">
+                Daily essentials <br />
+                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                  delivered in 10 mins.
+                </span>
               </h1>
 
-              <p className="mt-5 max-w-lg text-sm font-medium text-slate-300 sm:text-base">
-                From pantry staples to midnight cravings, shop premium groceries and essentials in minutes with lightning-fast doorstep delivery.
+              <p className="mt-4 max-w-lg text-sm font-medium leading-relaxed text-slate-300 sm:text-base">
+                From morning dairy and organic vegetables to midnight munchies, get instant doorstep delivery at local market prices.
               </p>
 
-              <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                <button
+              {/* Action Buttons */}
+              <div className="mt-7 flex flex-wrap items-center gap-3.5">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => navigate('/shop')}
-                  className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-[0_14px_30px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-7 py-3.5 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_12px_35px_rgba(16,185,129,0.4)] transition hover:brightness-110"
                 >
-                  Shop now <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
+                  <ShoppingBag className="h-4 w-4" /> Shop Now
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => navigate('/products')}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15"
                 >
-                  <Play className="h-4 w-4" /> Explore deals
-                </button>
+                  <Percent className="h-4 w-4 text-emerald-400" /> Explore Deals
+                </motion.button>
               </div>
 
+              {/* Highlights Ticker */}
               <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {categoryHighlights.map(({ name, count, icon: Icon, color, accent }) => (
-                  <div key={name} className={`rounded-2xl border border-white/10 bg-gradient-to-br ${color} p-3`}>
-                    <div className={`mb-2 inline-flex rounded-xl bg-white/80 p-2 ${accent}`}>
+                {categoryHighlights.map(({ name, count, icon: Icon, color, accent, bg }) => (
+                  <div key={name} className={`rounded-2xl border border-white/10 bg-gradient-to-br ${color} p-3.5 backdrop-blur-sm`}>
+                    <div className={`mb-2 inline-flex rounded-xl p-2 ${bg} ${accent}`}>
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="text-xs font-medium text-slate-300">{name}</div>
-                    <div className="mt-1 text-base font-black text-white">{count}</div>
+                    <div className="text-[11px] font-semibold text-slate-400">{name}</div>
+                    <div className="mt-0.5 text-sm font-black text-white">{count}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="relative z-10 flex items-center justify-center py-4 lg:py-0">
-              <div className="relative w-full max-w-[520px]">
+            {/* Right Hero Visual Showcase */}
+            <div className="relative z-10 flex items-center justify-center py-2 lg:py-0">
+              <div className="relative w-full max-w-[480px]">
+                
+                {/* Floating Badge 1 */}
                 <motion.div
-                  animate={{ y: [0, -12, 0] }}
-                  transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute -left-5 top-12 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 shadow-2xl backdrop-blur-md"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute -left-4 top-8 z-20 rounded-2xl border border-white/15 bg-slate-900/80 px-3.5 py-2 shadow-2xl backdrop-blur-xl"
                 >
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
+                  <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
                     <BadgeCheck className="h-4 w-4 text-emerald-400" />
-                    4.9 customer rating
+                    <span>100% Quality Checked</span>
                   </div>
                 </motion.div>
 
+                {/* Floating Badge 2 */}
                 <motion.div
-                  animate={{ y: [0, 14, 0] }}
-                  transition={{ duration: 5.4, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute -right-5 bottom-10 rounded-2xl border border-emerald-400/20 bg-emerald-500/20 px-3 py-2 shadow-2xl backdrop-blur-md"
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute -right-4 bottom-8 z-20 rounded-2xl border border-emerald-400/30 bg-emerald-950/80 px-3.5 py-2 shadow-2xl backdrop-blur-xl"
                 >
-                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-100">
-                    <Truck className="h-4 w-4" />
-                    15 min delivery
+                  <div className="flex items-center gap-2 text-xs font-black text-emerald-200">
+                    <Truck className="h-4 w-4 text-emerald-400" />
+                    <span>⚡ Lightning Fast</span>
                   </div>
                 </motion.div>
 
-                <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/50 p-3 shadow-[0_25px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.16),transparent_50%,rgba(16,185,129,0.12))]" />
-                  <div className="relative rounded-[22px] bg-white p-3 shadow-2xl">
-                    <img
-                      src={heroImages[currentSlide] || heroFallback}
-                      alt="Quick commerce essentials"
-                      className="h-[350px] w-full rounded-[18px] object-cover"
-                    />
+                {/* Main Card Frame */}
+                <div className="relative overflow-hidden rounded-[30px] border border-white/15 bg-gradient-to-b from-white/10 to-white/5 p-3 shadow-2xl backdrop-blur-2xl">
+                  <div className="relative overflow-hidden rounded-[24px] bg-slate-950">
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={currentSlide}
+                        src={heroImages[currentSlide] || heroFallback}
+                        alt="Hero Banner"
+                        initial={{ opacity: 0, scale: 1.05 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="h-[340px] w-full object-cover"
+                      />
+                    </AnimatePresence>
 
-                    <div className="mt-3 rounded-2xl bg-slate-50 p-3">
+                    {/* Image Footer Live Pill */}
+                    <div className="absolute bottom-3 left-3 right-3 rounded-2xl border border-white/15 bg-slate-900/80 p-3 backdrop-blur-xl">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Now delivering</p>
-                          <p className="mt-1 text-lg font-black text-slate-900">Fresh groceries</p>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Live Delivery Hub</p>
+                          <p className="mt-0.5 text-sm font-black text-white">Delivering across your city</p>
                         </div>
-                        <div className="rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white">
-                          LIVE
-                        </div>
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs text-slate-600">
-                        <div className="rounded-xl bg-white p-2 shadow-sm">
-                          <div className="text-base font-black text-slate-900">2.4k</div>
-                          <div>orders</div>
-                        </div>
-                        <div className="rounded-xl bg-white p-2 shadow-sm">
-                          <div className="text-base font-black text-slate-900">98%</div>
-                          <div>happy</div>
-                        </div>
-                        <div className="rounded-xl bg-white p-2 shadow-sm">
-                          <div className="text-base font-black text-slate-900">6m</div>
-                          <div>saved</div>
+                        <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300 border border-emerald-500/30">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                          ONLINE
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Carousel Dots */}
+                  {heroImages.length > 1 && (
+                    <div className="mt-3 flex justify-center gap-1.5">
+                      {heroImages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentSlide(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            currentSlide === idx ? 'w-6 bg-emerald-400' : 'w-2 bg-white/30 hover:bg-white/60'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </motion.section>
 
-        <section className="mt-8 rounded-[28px] border border-slate-200/80 bg-white/70 p-4 shadow-[0_22px_40px_rgba(15,23,42,0.04)] backdrop-blur-sm sm:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        {/* POPULAR CATEGORIES */}
+        <section className="mt-10">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Quick browse</div>
-              <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Popular categories</h2>
+              <div className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Quick Browse</div>
+              <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-slate-900">Explore by Category</h2>
             </div>
-
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600">
-              <MapPin className="h-4 w-4 text-emerald-600" />
-              Connaught Place, Delhi
-            </div>
+            <button
+              onClick={() => navigate('/shop')}
+              className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-slate-700 hover:text-emerald-600 transition"
+            >
+              All Categories <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {categories.slice(0, 4).map((category, index) => (
-              <motion.button
-                key={category._id || index}
-                whileHover={{ y: -4 }}
-                onClick={() => navigate(`/category/${category._id}`)}
-                className="group rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-emerald-50 p-4 text-left transition hover:border-emerald-200 hover:shadow-[0_18px_40px_rgba(16,185,129,0.10)]"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-36 rounded-[22px] skeleton-shimmer" />
+              ))
+            ) : (
+              categories.slice(0, 6).map((category, idx) => (
+                <motion.button
+                  key={category._id || idx}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => navigate(`/category/${category._id}`)}
+                  className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_8px_25px_rgba(15,23,42,0.04)] transition hover:border-emerald-300 hover:shadow-[0_16px_35px_rgba(16,185,129,0.12)] text-center"
+                >
+                  <div className="relative mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-b from-emerald-50 to-slate-50 p-2 ring-1 ring-slate-100 transition group-hover:scale-110">
                     <img
                       src={category.image || heroFallback}
                       alt={category.name}
-                      className="h-9 w-9 object-cover"
+                      className="h-full w-full object-contain"
                     />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:text-emerald-600" />
-                </div>
-                <h3 className="mt-4 text-lg font-black text-slate-900">{category.name}</h3>
-                <p className="mt-1 text-sm font-medium text-slate-500">{Math.floor(Math.random() * 80) + 30} essentials</p>
-              </motion.button>
-            ))}
+                  <h3 className="line-clamp-1 text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                    {category.name}
+                  </h3>
+                  <p className="mt-0.5 text-[10px] font-bold text-emerald-600">Explore →</p>
+                </motion.button>
+              ))
+            )}
           </div>
         </section>
 
-        <section className="mt-10">
-          <div className="mb-5 flex items-center justify-between gap-3">
+        {/* CURATED FOR YOU / FRESH PICKS */}
+        <section className="mt-12">
+          <div className="mb-6 flex items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Curated for you</div>
-              <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Fresh picks</h2>
+              <div className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Handpicked Quality</div>
+              <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-slate-900">Fresh & Essential Picks</h2>
             </div>
-            <button onClick={() => navigate('/products')} className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-slate-700">
-              View all <ChevronRight className="h-4 w-4" />
+            <button
+              onClick={() => navigate('/products')}
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-black uppercase tracking-wider text-white shadow-sm transition hover:bg-emerald-600"
+            >
+              View All <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {youMightNeedProducts.length > 0 ? youMightNeedProducts.map((product) => <ProductCard key={product.id} product={product} />) : <div className="col-span-full text-slate-500">No products found.</div>}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-72 rounded-[26px] skeleton-shimmer" />
+              ))
+            ) : youMightNeedProducts.length > 0 ? (
+              youMightNeedProducts.map((product) => <ProductCard key={product.id} product={product} />)
+            ) : (
+              <div className="col-span-full py-8 text-center text-sm font-semibold text-slate-500">
+                No products available at the moment.
+              </div>
+            )}
           </div>
         </section>
 
-        <motion.section 
+        {/* FLASH DEAL LUXURY BANNER */}
+        <motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-12 overflow-hidden rounded-[32px] border border-slate-800 bg-[#0F172A] relative shadow-[0_30px_60px_rgba(15,23,42,0.4)]"
+          className="relative mt-14 overflow-hidden rounded-[36px] border border-slate-800 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0A0F1D] p-6 text-white shadow-[0_30px_70px_rgba(15,23,42,0.4)] sm:p-10 lg:p-12"
         >
-          {/* Subtle background glow */}
-          <div className="absolute top-0 left-1/4 h-[300px] w-[500px] -translate-y-1/2 rounded-full bg-emerald-500/20 blur-[120px]" />
-          
-          <div className="relative z-10 p-6 sm:p-10 lg:p-12">
+          {/* Subtle Ambient Radial Highlights */}
+          <div className="pointer-events-none absolute -left-10 top-0 h-80 w-80 rounded-full bg-emerald-500/15 blur-[90px]" />
+          <div className="pointer-events-none absolute -right-10 bottom-0 h-80 w-80 rounded-full bg-rose-500/15 blur-[90px]" />
+
+          <div className="relative z-10">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400 backdrop-blur-md">
-                  <Flame className="h-3.5 w-3.5" />
-                  Flash deal
+                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-rose-400 backdrop-blur-md">
+                  <Flame className="h-4 w-4 animate-bounce" />
+                  Flash Deals of the Day
                 </div>
                 <h2 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
-                  Weekend essentials <br className="hidden sm:block" />
-                  <span className="text-emerald-400">under ₹299</span>
+                  Mega Savings Fest <br className="hidden sm:block" />
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                    Up to 50% OFF Essentials
+                  </span>
                 </h2>
-                <p className="mt-3 max-w-xl text-sm font-medium text-slate-400 sm:text-base">
-                  Stock up on premium weekend supplies. Incredible quality at unbeatable prices, delivered instantly.
+                <p className="mt-3 max-w-xl text-sm font-medium text-slate-300 sm:text-base">
+                  Stock up on highest rated household & pantry favorites. Limited quantities at exclusive prices.
                 </p>
               </div>
-              <div className="flex w-max items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
-                  <Clock3 className="h-5 w-5 text-emerald-400" />
+
+              {/* Countdown Clock Box */}
+              <div className="flex w-max items-center gap-3.5 rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <Clock3 className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Offer ends in</div>
-                  <div className="text-lg font-black tabular-nums tracking-tight text-white">02<span className="text-emerald-400 opacity-50">:</span>42<span className="text-emerald-400 opacity-50">:</span>18</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Deal Ends In</div>
+                  <div className="mt-0.5 text-xl font-black tracking-tight text-white tabular-nums">
+                    {String(timeLeft.hours).padStart(2, '0')}:
+                    {String(timeLeft.minutes).padStart(2, '0')}:
+                    <span className="text-emerald-400">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-8">
-              {/* Main Products Grid */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                {mostSellingProducts.slice(0, 4).map((product, idx) => (
-                  <motion.div 
-                    key={product.id} 
-                    whileHover={{ y: -4, scale: 1.01 }}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-1 transition-all hover:border-emerald-500/30 hover:shadow-[0_8px_30px_rgba(16,185,129,0.15)]"
-                  >
-                    <div className="relative flex h-[160px] w-full items-center justify-center overflow-hidden rounded-[20px] bg-slate-900/50 p-4">
-                      <img src={product.image} alt={product.name} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110" />
-                      <div className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
-                        {Math.floor(((product.originalPrice || product.price + 80) - product.price) / (product.originalPrice || product.price + 80) * 100)}% OFF
-                      </div>
-                    </div>
-                    <div className="p-4 sm:p-5">
-                      <h3 className="line-clamp-1 text-base font-bold text-white group-hover:text-emerald-400 transition-colors">{product.name}</h3>
-                      <p className="mt-1 text-xs font-medium text-slate-400">{product.weight || '500 g'}</p>
-                      
-                      <div className="mt-4 flex items-end justify-between gap-2">
-                        <div>
-                          <div className="text-xl font-black tracking-tight text-emerald-400">₹{product.price}</div>
-                          <div className="text-xs font-semibold text-slate-500 line-through">₹{product.originalPrice || product.price + 80}</div>
-                        </div>
-                        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-emerald-500">
-                          <ShoppingBag className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Sidebar List */}
-              <div className="flex flex-col overflow-hidden rounded-[28px] border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-transparent">
-                <div className="border-b border-emerald-500/10 bg-emerald-500/5 p-5 sm:px-6">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-emerald-400" />
-                    <span className="text-sm font-black uppercase tracking-[0.15em] text-white">Trending Picks</span>
-                  </div>
+            {/* Flash Deal Products Showcase */}
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {mostSellingProducts.slice(0, 4).map((product) => (
+                <div key={product.id} className="rounded-[26px] bg-slate-900/60 p-2 border border-white/10 backdrop-blur-md">
+                  <ProductCard product={product} />
                 </div>
-                <div className="flex flex-1 flex-col justify-center divide-y divide-white/5 p-2">
-                  {mostSellingProducts.slice(0, 4).map((product) => (
-                    <div key={product.id} className="group flex items-center gap-4 rounded-2xl p-3 transition-colors hover:bg-white/5">
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-slate-900 p-2 border border-white/5">
-                        <img src={product.image} alt={product.name} className="h-full w-full object-contain transition-transform group-hover:scale-110" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{product.name}</div>
-                        <div className="mt-1 flex items-center gap-2">
-                          <div className="text-sm font-black tracking-tight text-emerald-400">₹{product.price}</div>
-                          <div className="text-[10px] font-semibold text-slate-500 line-through">₹{product.originalPrice || product.price + 60}</div>
-                        </div>
-                      </div>
-                      <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/5 text-slate-300 transition-colors hover:bg-emerald-500 hover:text-white">
-                        <ArrowRight className="h-3.5 w-3.5 -rotate-45" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </motion.section>
 
-        <section className="mt-12">
-          <div className="mb-5 flex items-center justify-between gap-3">
+        {/* TRENDING BY CATEGORY */}
+        <section className="mt-14 rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.04)] sm:p-8">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Top picks</div>
-              <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Worth exploring</h2>
+              <div className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Trending Now</div>
+              <h2 className="mt-1 text-2xl font-black tracking-[-0.04em] text-slate-900">Weekly Top Sellers</h2>
             </div>
-            <button onClick={() => navigate('/products')} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-700 transition hover:border-slate-300">
-              Browse all <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-            {allProducts.slice(0, 8).map((product) => (
-              <div key={product.id} className="min-w-[260px] flex-1 sm:min-w-[300px]">
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12 rounded-[30px] border border-slate-200/80 bg-white p-5 shadow-[0_22px_40px_rgba(15,23,42,0.04)] sm:p-6">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">This week</div>
-              <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] text-slate-900">Trending now</h2>
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {['All', 'Fruits & Vegetables', 'Snacks', 'Dairy & Milk', 'Household'].map((pill) => (
+            
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              {['All', 'Fruits & Vegetables', 'Snacks', 'Dairy & Milk'].map((pill) => (
                 <button
                   key={pill}
                   onClick={() => setSelectedWeeklyCategory(pill)}
-                  className={`rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] transition ${selectedWeeklyCategory === pill ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'}`}
+                  className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-wider transition ${
+                    selectedWeeklyCategory === pill
+                      ? 'bg-slate-900 text-white shadow-md'
+                      : 'border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white'
+                  }`}
                 >
                   {pill}
                 </button>
@@ -452,103 +469,92 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredWeeklyProducts.length > 0 ? filteredWeeklyProducts.map((product) => <ProductCard key={product.id + '_weekly'} product={product} />) : <div className="col-span-full text-slate-500">No products available in this category.</div>}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {filteredWeeklyProducts.length > 0 ? (
+              filteredWeeklyProducts.map((product) => (
+                <ProductCard key={product.id + '_weekly'} product={product} />
+              ))
+            ) : (
+              <div className="col-span-full py-10 text-center text-sm font-semibold text-slate-500">
+                No items available in this category.
+              </div>
+            )}
           </div>
         </section>
 
-        <section className="mt-12 rounded-[32px] border border-slate-200 bg-gradient-to-br from-emerald-50 via-white to-slate-50 p-5 shadow-[0_20px_45px_rgba(16,185,129,0.08)] sm:p-7">
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        {/* TRUST & LOCAL STORES */}
+        <section className="mt-14 rounded-[36px] border border-slate-200/80 bg-gradient-to-br from-white via-emerald-50/40 to-slate-50 p-6 shadow-[0_20px_50px_rgba(16,185,129,0.08)] sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-white">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-white shadow-sm">
                 <ShieldCheck className="h-4 w-4" />
-                Trusted delivery
+                Guaranteed Satisfaction
               </div>
-              <h2 className="mt-5 text-3xl font-black tracking-[-0.06em] text-slate-900 sm:text-4xl">
-                A premium quick-commerce experience built for your daily rhythm.
+              <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-slate-900 sm:text-4xl">
+                Superfast delivery directly from verified neighborhood stores.
               </h2>
-              <p className="mt-4 max-w-lg text-base font-medium text-slate-600">
-                Order from neighborhood stores, track updates in real time, and get fast, reliable delivery without the usual hassle.
+              <p className="mt-3.5 max-w-lg text-sm font-medium leading-relaxed text-slate-600 sm:text-base">
+                We partner with top local supermarkets and dark stores so you get the freshest produce, certified brands, and zero-compromise speed.
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+                <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <div className="text-2xl font-black text-slate-900">10k+</div>
-                  <div className="mt-1 text-xs font-medium text-slate-500">orders delivered</div>
+                  <div className="mt-0.5 text-xs font-semibold text-slate-500">Orders Delivered</div>
                 </div>
-                <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-                  <div className="text-2xl font-black text-slate-900">18m</div>
-                  <div className="mt-1 text-xs font-medium text-slate-500">avg. delivery time</div>
+                <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                  <div className="text-2xl font-black text-emerald-600">10-15m</div>
+                  <div className="mt-0.5 text-xs font-semibold text-slate-500">Average Delivery</div>
                 </div>
-                <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-                  <div className="text-2xl font-black text-slate-900">99.9%</div>
-                  <div className="mt-1 text-xs font-medium text-slate-500">service uptime</div>
+                <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                  <div className="text-2xl font-black text-slate-900">99.8%</div>
+                  <div className="mt-0.5 text-xs font-semibold text-slate-500">Happy Shoppers</div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[28px] bg-slate-900 p-5 text-white shadow-[0_18px_45px_rgba(15,23,42,0.18)]">
+            {/* Dark Store Widget */}
+            <div className="rounded-[30px] border border-slate-800 bg-[#0F172A] p-6 text-white shadow-2xl">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Live now</div>
-                  <div className="mt-1 text-xl font-black">Delivery team</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Neighborhood Hub</div>
+                  <div className="mt-0.5 text-lg font-black text-white">Active Stores Nearby</div>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/25 text-emerald-300">
-                  <Zap className="h-5 w-5" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
+                  <Store className="h-5 w-5" />
                 </div>
               </div>
 
-              <div className="mt-6 space-y-3">
-                {allStores.slice(0, 3).map((store) => (
-                  <div key={store._id || store.name} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5">
-                        <Store className="h-5 w-5 text-emerald-300" />
+              <div className="mt-5 space-y-3">
+                {allStores.length > 0 ? (
+                  allStores.slice(0, 3).map((store) => (
+                    <div
+                      key={store._id || store.name}
+                      className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3.5 transition hover:bg-white/10"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
+                          <Store className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-black text-white">{store.name || 'Local Store'}</div>
+                          <div className="text-xs font-medium text-slate-400">{store.category || 'Daily Needs'}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-sm font-bold">{store.name || 'Local Market'}</div>
-                        <div className="text-[11px] text-slate-300">{store.category || 'Groceries'}</div>
+                      <div className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-400 border border-emerald-500/20">
+                        {store.distance ? `${store.distance} km` : '1.8 km'}
                       </div>
                     </div>
-                    <div className="text-right text-xs font-semibold text-slate-200">
-                      {store.distance ? `${store.distance} km` : '2.1 km'}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="py-4 text-center text-xs text-slate-400">Stores loading...</div>
+                )}
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mt-12 rounded-[32px] border border-slate-200 bg-slate-900 p-5 text-white shadow-[0_30px_60px_rgba(15,23,42,0.2)] sm:p-7">
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Download app</div>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.06em] sm:text-4xl">Your daily essentials, one tap away.</h2>
-              <p className="mt-3 max-w-xl text-base font-medium text-slate-300">
-                Enjoy a beautifully designed mobile shopping experience, smart suggestions, and lightning-fast doorstep delivery.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-end">
-              <button className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100">
-                <ShoppingBag className="h-4 w-4" /> Get the app
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10">
-                <Search className="h-4 w-4" /> Browse catalog
-              </button>
-            </div>
-          </div>
-        </section>
       </div>
-
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/10 backdrop-blur-sm">
-          <div className="rounded-full border border-white/20 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 shadow-xl">
-            Loading your market...
-          </div>
-        </div>
-      )}
     </div>
   );
 };

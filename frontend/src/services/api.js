@@ -3,11 +3,19 @@ import { store } from '../store/index.js';
 import { setCredentials, logout } from '../store/authSlice.js';
 
 const getApiUrl = () => {
-  const configuredUrl = import.meta.env.VITE_API_URL;
-  if (configuredUrl && configuredUrl.trim()) return configuredUrl.trim();
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-  const hostname = window.location.hostname;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  const configuredUrl = import.meta.env.VITE_API_URL;
+  if (configuredUrl && configuredUrl.trim()) {
+    // If running in development on localhost and configuredUrl points to onrender, prefer localhost:5000
+    if (isLocalhost && configuredUrl.includes('onrender.com')) {
+      return 'http://localhost:5000/api';
+    }
+    return configuredUrl.trim();
+  }
+
+  if (isLocalhost) {
     return 'http://localhost:5000/api';
   }
 
@@ -15,8 +23,9 @@ const getApiUrl = () => {
 };
 
 const API = axios.create({
- baseURL: getApiUrl(),
- withCredentials: true, // critical to send cookies (refreshToken)
+  baseURL: getApiUrl(),
+  withCredentials: true, // critical to send cookies (refreshToken)
+  timeout: 15000,
 });
 
 // Request interceptor to inject Authorization header
