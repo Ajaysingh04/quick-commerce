@@ -208,77 +208,82 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-20 overflow-hidden relative">
       {/* Dynamic Background Blurs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-400/20 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-teal-400/20 blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[80%] sm:w-[40%] h-[40%] rounded-full bg-emerald-400/20 blur-[80px] sm:blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[80%] sm:w-[40%] h-[40%] rounded-full bg-teal-400/20 blur-[80px] sm:blur-[120px] pointer-events-none"></div>
       
       {/* Premium Gradient Header */}
       <motion.div 
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 h-64 md:h-80 w-full relative overflow-hidden"
+        className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 min-h-[220px] md:h-80 w-full relative overflow-hidden flex items-end pt-6 pb-12 sm:pb-14"
       >
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-end pb-12 relative z-10">
-          <div className="flex flex-col md:flex-row items-center md:items-end gap-6 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-4 sm:gap-6 w-full">
             <motion.div 
               whileHover={{ scale: 1.05, rotate: 2 }}
-              className="w-28 h-28 md:w-36 md:h-36 rounded-[2rem] bg-white/10 backdrop-blur-md p-1 shadow-2xl shrink-0 border border-white/20"
+              className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-2xl sm:rounded-[2rem] bg-white/10 backdrop-blur-md p-1 shadow-2xl shrink-0 border border-white/20"
             >
-              <div className="w-full h-full rounded-[1.8rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-inner">
+              <div className="w-full h-full rounded-xl sm:rounded-[1.8rem] bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-inner">
                 {profileData?.name ? (
-                  <span className="text-5xl md:text-6xl font-black uppercase tracking-tighter">{profileData.name.charAt(0)}</span>
+                  <span className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tighter">{profileData.name.charAt(0)}</span>
                 ) : (
-                  <User className="w-14 h-14" />
+                  <User className="w-10 h-10 sm:w-14 sm:h-14" />
                 )}
               </div>
             </motion.div>
-            <div className="text-white drop-shadow-md text-center md:text-left flex-1 mb-2">
+            <div className="text-white drop-shadow-md text-center md:text-left flex-1 min-w-0 mb-1 sm:mb-2">
               <motion.h1 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-3xl md:text-5xl font-black mb-2 tracking-tight"
+                className="text-2xl sm:text-3xl md:text-5xl font-black mb-1 sm:mb-2 tracking-tight truncate"
               >
                 {profileData?.name || 'Hello, User'}
               </motion.h1>
-              <motion.p 
+              <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-emerald-100 font-medium md:text-lg opacity-90 flex items-center justify-center md:justify-start gap-2"
+                className="text-emerald-100 font-medium text-xs sm:text-base opacity-90 flex flex-wrap items-center justify-center md:justify-start gap-2"
               >
-                <Mail className="w-4 h-4" /> {profileData?.email}
-                <ShieldCheck className="w-4 h-4 text-emerald-400 ml-2" /> <span className="text-emerald-400 text-sm font-bold uppercase tracking-wider">Verified</span>
-              </motion.p>
+                <span className="flex items-center gap-1.5 truncate max-w-full">
+                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <span className="truncate">{profileData?.email}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 rounded-full text-emerald-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider shrink-0">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" /> Verified
+                </span>
+              </motion.div>
             </div>
           </div>
         </div>
       </motion.div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
-        <div className="flex flex-col xl:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
+        <div className="flex flex-col xl:flex-row gap-4 sm:gap-8">
           
-          {/* Glassmorphism Sidebar */}
+          {/* Glassmorphism Sidebar / Top Tabs on Mobile */}
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
             className="w-full xl:w-80 shrink-0"
           >
-            <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white sticky top-24">
-              <nav className="flex flex-row xl:flex-col gap-2 overflow-x-auto xl:overflow-visible pb-2 xl:pb-0 custom-scrollbar">
+            <div className="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-[2.5rem] p-2 sm:p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white sticky top-20 z-10">
+              <nav className="flex flex-row xl:flex-col gap-1.5 sm:gap-2 overflow-x-auto xl:overflow-visible pb-1 xl:pb-0 no-scrollbar">
                 {[
                   { id: 'personal', icon: User, label: 'My Profile', sub: 'Manage details' },
                   { id: 'orders', icon: ShoppingBag, label: 'Orders', sub: 'History & tracking' },
                   { id: 'addresses', icon: MapPin, label: 'Addresses', sub: 'Delivery locations' }
-                ].map((tab, idx) => (
+                ].map((tab) => (
                   <motion.button
                     key={tab.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-4 px-5 py-4 rounded-3xl font-bold transition-all duration-300 text-left outline-none relative overflow-hidden group ${
+                    className={`shrink-0 flex items-center gap-2.5 sm:gap-4 px-3.5 py-2.5 sm:px-5 sm:py-4 rounded-xl sm:rounded-3xl font-bold transition-all duration-300 text-left outline-none relative overflow-hidden group ${
                       activeTab === tab.id 
                         ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20' 
                         : 'bg-transparent text-slate-600 hover:bg-white hover:shadow-sm'
@@ -287,19 +292,19 @@ const UserProfile = () => {
                     {activeTab === tab.id && (
                       <motion.div 
                         layoutId="activeTabIndicator" 
-                        className="absolute inset-0 bg-slate-900 z-0 rounded-3xl"
+                        className="absolute inset-0 bg-slate-900 z-0 rounded-xl sm:rounded-3xl"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
-                    <div className="relative z-10 flex items-center gap-4 w-full">
-                      <div className={`p-2.5 rounded-2xl ${activeTab === tab.id ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200'} transition-colors`}>
-                        <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-white' : 'text-slate-500'}`} />
+                    <div className="relative z-10 flex items-center gap-2.5 sm:gap-4 w-full">
+                      <div className={`p-2 sm:p-2.5 rounded-lg sm:rounded-2xl shrink-0 ${activeTab === tab.id ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200'} transition-colors`}>
+                        <tab.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === tab.id ? 'text-white' : 'text-slate-500'}`} />
                       </div>
-                      <div className="flex-1">
-                        <div className={`text-sm ${activeTab === tab.id ? 'text-white' : 'text-slate-800'}`}>{tab.label}</div>
-                        <div className={`text-[10px] font-medium tracking-wider uppercase mt-0.5 ${activeTab === tab.id ? 'text-white/70' : 'text-slate-400'}`}>{tab.sub}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs sm:text-sm font-bold whitespace-nowrap ${activeTab === tab.id ? 'text-white' : 'text-slate-800'}`}>{tab.label}</div>
+                        <div className={`hidden sm:block text-[10px] font-medium tracking-wider uppercase mt-0.5 truncate ${activeTab === tab.id ? 'text-white/70' : 'text-slate-400'}`}>{tab.sub}</div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 ${activeTab === tab.id ? 'text-white/50' : 'text-transparent group-hover:text-slate-300'} transition-colors`} />
+                      <ChevronRight className={`hidden xl:block w-4 h-4 shrink-0 ${activeTab === tab.id ? 'text-white/50' : 'text-transparent group-hover:text-slate-300'} transition-colors`} />
                     </div>
                   </motion.button>
                 ))}
@@ -308,12 +313,12 @@ const UserProfile = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleLogout}
-                  className="flex items-center gap-4 px-5 py-4 rounded-3xl font-bold transition-all duration-300 text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100"
+                  className="shrink-0 flex items-center gap-2 sm:gap-4 px-3.5 py-2.5 sm:px-5 sm:py-4 rounded-xl sm:rounded-3xl font-bold transition-all duration-300 text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 text-xs sm:text-sm"
                 >
-                  <div className="p-2.5 rounded-2xl bg-rose-100/50">
-                    <LogOut className="w-5 h-5" />
+                  <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-2xl bg-rose-100/50 shrink-0">
+                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <span>Secure Logout</span>
+                  <span className="whitespace-nowrap">Logout</span>
                 </motion.button>
               </nav>
             </div>
@@ -331,12 +336,12 @@ const UserProfile = () => {
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white"
+                  className="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white"
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
-                    <motion.div variants={itemVariants}>
-                      <h2 className="text-3xl font-black text-slate-800 tracking-tight">Personal Details</h2>
-                      <p className="text-sm text-slate-500 mt-2 font-medium">Keep your information up to date.</p>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+                    <motion.div variants={itemVariants} className="flex-1 min-w-0">
+                      <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Personal Details</h2>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">Keep your information up to date.</p>
                     </motion.div>
                     {!isEditing && (
                       <motion.button 
@@ -344,7 +349,7 @@ const UserProfile = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setIsEditing(true)} 
-                        className="flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-6 py-3 rounded-2xl hover:bg-emerald-100 transition-colors shadow-sm"
+                        className="w-full sm:w-auto justify-center flex items-center gap-2 bg-emerald-50 text-emerald-600 font-bold px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-emerald-100 transition-colors shadow-xs sm:shadow-sm text-sm shrink-0"
                       >
                         <Edit className="w-4 h-4" /> Edit Profile
                       </motion.button>
@@ -357,48 +362,54 @@ const UserProfile = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.4 }}
                       onSubmit={handleProfileUpdate} 
-                      className="space-y-6"
+                      className="space-y-4 sm:space-y-6"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2 relative group">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div className="space-y-1.5 sm:space-y-2 relative group">
                           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Full Name</label>
-                          <input type="text" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full bg-white/50 backdrop-blur-sm border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" required />
+                          <input type="text" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full bg-slate-50/70 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" required />
                         </div>
-                        <div className="space-y-2 relative group">
+                        <div className="space-y-1.5 sm:space-y-2 relative group">
                           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Email Address</label>
-                          <input type="email" value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} className="w-full bg-white/50 backdrop-blur-sm border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" required />
+                          <input type="email" value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} className="w-full bg-slate-50/70 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" required />
                         </div>
-                        <div className="space-y-2 relative group">
+                        <div className="space-y-1.5 sm:space-y-2 relative group">
                           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Phone Number</label>
-                          <input type="tel" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-white/50 backdrop-blur-sm border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" placeholder="e.g. 9876543210" />
+                          <input type="tel" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-slate-50/70 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" placeholder="e.g. 9876543210" />
                         </div>
-                        <div className="space-y-2 relative group">
+                        <div className="space-y-1.5 sm:space-y-2 relative group">
                           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Alternate Phone</label>
-                          <input type="tel" value={editForm.alternatePhone} onChange={(e) => setEditForm({...editForm, alternatePhone: e.target.value})} className="w-full bg-white/50 backdrop-blur-sm border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" placeholder="Optional" />
+                          <input type="tel" value={editForm.alternatePhone} onChange={(e) => setEditForm({...editForm, alternatePhone: e.target.value})} className="w-full bg-slate-50/70 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white transition-all outline-none" placeholder="Optional" />
                         </div>
                       </div>
-                      <div className="flex justify-end gap-4 pt-8">
-                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" onClick={() => setIsEditing(false)} className="px-8 py-4 rounded-2xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors">Cancel</motion.button>
-                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="submit" disabled={isUpdating} className="px-10 py-4 rounded-2xl font-bold bg-slate-900 text-white shadow-xl shadow-slate-900/20 disabled:opacity-70 flex items-center gap-2">
+                      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 sm:pt-6">
+                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="button" onClick={() => setIsEditing(false)} className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors text-sm sm:text-base">Cancel</motion.button>
+                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={isUpdating} className="w-full sm:w-auto px-6 py-3 sm:px-10 sm:py-4 rounded-xl sm:rounded-2xl font-bold bg-slate-900 text-white shadow-xl shadow-slate-900/20 disabled:opacity-70 flex items-center justify-center gap-2 text-sm sm:text-base">
                           {isUpdating ? 'Saving...' : 'Save Changes'} <Check className="w-4 h-4" />
                         </motion.button>
                       </div>
                     </motion.form>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-6">
                       {[
                         { label: 'Full Name', value: profileData?.name, icon: User },
                         { label: 'Email Address', value: profileData?.email, icon: Mail },
                         { label: 'Phone Number', value: profileData?.phone, icon: Phone },
                         { label: 'Alternate Phone', value: profileData?.alternatePhone, icon: Phone }
                       ].map((field, i) => (
-                        <motion.div variants={itemVariants} key={i} className="bg-white/60 p-6 rounded-[2rem] border border-white shadow-sm hover:shadow-md transition-shadow group flex gap-5 items-center">
-                          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-                            <field.icon className="w-6 h-6" />
+                        <motion.div 
+                          variants={itemVariants} 
+                          key={i} 
+                          className="bg-white/90 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-slate-100 sm:border-white shadow-xs sm:shadow-sm hover:shadow-md transition-shadow group flex gap-3.5 sm:gap-5 items-center min-w-0 overflow-hidden"
+                        >
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0 group-hover:scale-105 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                            <field.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                           </div>
-                          <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{field.label}</p>
-                            <p className="text-lg font-bold text-slate-800">{field.value || <span className="text-slate-400 italic font-normal text-sm">Not provided</span>}</p>
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 sm:mb-1 truncate">{field.label}</p>
+                            <p className="text-sm sm:text-base md:text-lg font-bold text-slate-800 break-all sm:break-words truncate sm:whitespace-normal" title={field.value || 'Not provided'}>
+                              {field.value || <span className="text-slate-400 italic font-normal text-xs sm:text-sm">Not provided</span>}
+                            </p>
                           </div>
                         </motion.div>
                       ))}
@@ -415,24 +426,26 @@ const UserProfile = () => {
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white"
+                  className="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white"
                 >
-                  <div className="mb-10">
-                    <h2 className="text-3xl font-black text-slate-800 tracking-tight">Order History</h2>
-                    <p className="text-sm text-slate-500 mt-2 font-medium">Your recent purchases and their status.</p>
+                  <div className="mb-6 sm:mb-8">
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Order History</h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">Your recent purchases and their status.</p>
                   </div>
                   
                   {orders.length > 0 ? (
                     <div className="space-y-4">
-                      {orders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage).map((order, i) => (
-                        <motion.div variants={itemVariants} key={order._id} className="bg-white border border-slate-100 hover:border-emerald-200 p-6 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-lg hover:shadow-emerald-500/5 transition-all group">
-                          <div>
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
-                                <ShoppingBag className="w-5 h-5 text-slate-400" />
+                      {orders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage).map((order) => (
+                        <motion.div variants={itemVariants} key={order._id} className="bg-white border border-slate-100 hover:border-emerald-200 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 shadow-sm hover:shadow-lg hover:shadow-emerald-500/5 transition-all group">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 mb-2 sm:mb-3 flex-wrap">
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                                </div>
+                                <span className="text-base sm:text-lg font-black text-slate-800">#{order._id.substring(order._id.length - 6).toUpperCase()}</span>
                               </div>
-                              <span className="text-lg font-black text-slate-800">#{order._id.substring(order._id.length - 6).toUpperCase()}</span>
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl ${
+                              <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl shrink-0 ${
                                 order.status === 'delivered' ? 'bg-emerald-100 text-emerald-600' :
                                 order.status === 'cancelled' ? 'bg-rose-100 text-rose-600' :
                                 'bg-amber-100 text-amber-600'
@@ -440,20 +453,20 @@ const UserProfile = () => {
                                 {order.status}
                               </span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm font-semibold text-slate-500 ml-[52px]">
-                              <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-slate-400" /> {new Date(order.createdAt).toLocaleDateString()}</span>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm font-semibold text-slate-500 mt-1">
+                              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-slate-400" /> {new Date(order.createdAt).toLocaleDateString()}</span>
                               <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                               <span className="text-slate-700">{order.items?.length || 0} item(s)</span>
                               <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                               <span className="text-slate-900 font-black">₹{order.billDetails?.grandTotal || 0}</span>
                             </div>
                           </div>
-                          <div className="shrink-0 flex gap-3 ml-[52px] md:ml-0">
+                          <div className="shrink-0 flex gap-3">
                             <motion.button 
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
                               onClick={() => setSelectedOrder(order)}
-                              className="px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-md hover:shadow-xl transition-all"
+                              className="w-full sm:w-auto px-5 py-2.5 sm:px-6 sm:py-3 bg-slate-900 text-white font-bold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-xl transition-all text-center"
                             >
                               Track / Details
                             </motion.button>
@@ -463,11 +476,11 @@ const UserProfile = () => {
                       
                       {/* Pagination Controls */}
                       {Math.ceil(orders.length / ordersPerPage) > 1 && (
-                        <div className="flex justify-center items-center gap-2 mt-8 pt-4">
+                        <div className="flex justify-center items-center gap-1.5 sm:gap-2 mt-6 sm:mt-8 pt-4">
                           <button 
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-sm disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs sm:text-sm disabled:opacity-50 hover:bg-slate-50 transition-colors"
                           >
                             Prev
                           </button>
@@ -477,7 +490,7 @@ const UserProfile = () => {
                               <button
                                 key={idx}
                                 onClick={() => setCurrentPage(idx + 1)}
-                                className={`w-8 h-8 rounded-xl font-bold text-sm transition-all ${currentPage === idx + 1 ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all ${currentPage === idx + 1 ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
                               >
                                 {idx + 1}
                               </button>
@@ -487,7 +500,7 @@ const UserProfile = () => {
                           <button 
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(orders.length / ordersPerPage)))}
                             disabled={currentPage === Math.ceil(orders.length / ordersPerPage)}
-                            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-sm disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs sm:text-sm disabled:opacity-50 hover:bg-slate-50 transition-colors"
                           >
                             Next
                           </button>
@@ -495,13 +508,13 @@ const UserProfile = () => {
                       )}
                     </div>
                   ) : (
-                    <motion.div variants={itemVariants} className="py-20 text-center bg-white/50 rounded-[3rem] border border-dashed border-slate-200">
-                      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50">
-                        <ShoppingBag className="w-10 h-10 text-slate-300" />
+                    <motion.div variants={itemVariants} className="py-12 sm:py-20 text-center bg-white/50 rounded-2xl sm:rounded-[3rem] border border-dashed border-slate-200 px-4">
+                      <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl shadow-slate-200/50">
+                        <ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10 text-slate-300" />
                       </div>
-                      <h3 className="text-2xl font-black text-slate-800 mb-2">No orders yet</h3>
-                      <p className="text-slate-500 mb-8 max-w-sm mx-auto font-medium">Looks like you haven't placed any orders yet. Discover our amazing products!</p>
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => window.location.href = '/shop'} className="bg-emerald-500 text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-emerald-500/30 transition-all">
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">No orders yet</h3>
+                      <p className="text-slate-500 mb-6 sm:mb-8 max-w-sm mx-auto text-xs sm:text-sm font-medium">Looks like you haven't placed any orders yet. Discover our amazing products!</p>
+                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => window.location.href = '/shop'} className="bg-emerald-500 text-white px-8 py-3.5 sm:px-10 sm:py-4 rounded-xl sm:rounded-2xl font-bold shadow-xl shadow-emerald-500/30 transition-all text-sm sm:text-base">
                         Start Shopping
                       </motion.button>
                     </motion.div>
@@ -518,19 +531,19 @@ const UserProfile = () => {
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white"
+                  className="bg-white/80 backdrop-blur-2xl rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white"
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
-                    <motion.div variants={itemVariants}>
-                      <h2 className="text-3xl font-black text-slate-800 tracking-tight">Saved Addresses</h2>
-                      <p className="text-sm text-slate-500 mt-2 font-medium">Manage your delivery locations.</p>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+                    <motion.div variants={itemVariants} className="flex-1 min-w-0">
+                      <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Saved Addresses</h2>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">Manage your delivery locations.</p>
                     </motion.div>
                     <motion.button 
                       variants={itemVariants}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setIsAddingAddress(!isAddingAddress)} 
-                      className={`flex items-center gap-2 font-bold px-6 py-3 rounded-2xl shadow-sm transition-colors ${isAddingAddress ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/20'}`}
+                      className={`w-full sm:w-auto justify-center flex items-center gap-2 font-bold px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl shadow-sm transition-colors text-sm ${isAddingAddress ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/20'}`}
                     >
                       {isAddingAddress ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                       {isAddingAddress ? 'Cancel' : 'Add New Address'}
@@ -544,18 +557,18 @@ const UserProfile = () => {
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         onSubmit={handleAddAddress} 
-                        className="bg-white rounded-[2.5rem] p-8 mb-10 border border-slate-100 shadow-xl shadow-slate-200/40 space-y-8 overflow-hidden"
+                        className="bg-white rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-8 mb-6 sm:mb-10 border border-slate-100 shadow-xl shadow-slate-200/40 space-y-4 sm:space-y-6 overflow-hidden"
                       >
-                        <h3 className="font-black text-xl text-slate-800 flex items-center gap-2"><MapPin className="text-emerald-500" /> New Delivery Location</h3>
+                        <h3 className="font-black text-lg sm:text-xl text-slate-800 flex items-center gap-2"><MapPin className="text-emerald-500 w-5 h-5 shrink-0" /> New Delivery Location</h3>
                         
-                        <div className="mb-6 bg-slate-50 p-4 rounded-[2rem] border border-slate-100">
-                          <div className="flex justify-between items-center mb-4 px-2">
-                            <label className="block text-xs font-black text-slate-500 uppercase tracking-widest">Pin Location on Map</label>
-                            <button type="button" onClick={handleGetCurrentLocation} className="text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-md">
+                        <div className="mb-4 sm:mb-6 bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-[2rem] border border-slate-100">
+                          <div className="flex justify-between items-center mb-3 sm:mb-4 px-1">
+                            <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest">Pin Location on Map</label>
+                            <button type="button" onClick={handleGetCurrentLocation} className="text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl flex items-center gap-1.5 transition-colors shadow-md">
                               <Navigation className="w-3.5 h-3.5" /> Locate Me
                             </button>
                           </div>
-                          <div className="h-72 w-full rounded-[1.5rem] overflow-hidden border border-slate-200 relative z-0 shadow-inner">
+                          <div className="h-56 sm:h-72 w-full rounded-xl sm:rounded-[1.5rem] overflow-hidden border border-slate-200 relative z-0 shadow-inner">
                             <MapContainer center={mapPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
                               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                               <LocationPicker position={mapPosition} setPosition={(pos) => setMapPosition(pos)} onLocationSelect={reverseGeocode} />
@@ -563,69 +576,69 @@ const UserProfile = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                          <div className="space-y-1.5 sm:space-y-2">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Address Label</label>
-                            <select value={newAddress.label} onChange={e => setNewAddress({...newAddress, label: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all">
+                            <select value={newAddress.label} onChange={e => setNewAddress({...newAddress, label: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all">
                               <option value="Home">Home</option>
                               <option value="Work">Work</option>
                               <option value="Other">Other</option>
                             </select>
                           </div>
-                          <div className="space-y-2">
+                          <div className="space-y-1.5 sm:space-y-2">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Street Address</label>
-                            <input type="text" value={newAddress.street} onChange={e => setNewAddress({...newAddress, street: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required placeholder="Flat, House no, Area" />
+                            <input type="text" value={newAddress.street} onChange={e => setNewAddress({...newAddress, street: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required placeholder="Flat, House no, Area" />
                           </div>
-                          <div className="space-y-2">
+                          <div className="space-y-1.5 sm:space-y-2">
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">City</label>
-                            <input type="text" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required />
+                            <input type="text" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required />
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div className="space-y-1.5 sm:space-y-2">
                               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">State</label>
-                              <input type="text" value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required />
+                              <input type="text" value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5 sm:space-y-2">
                               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">PIN Code</label>
-                              <input type="text" value={newAddress.zipCode} onChange={e => setNewAddress({...newAddress, zipCode: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-slate-800 font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required />
+                              <input type="text" value={newAddress.zipCode} onChange={e => setNewAddress({...newAddress, zipCode: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-slate-800 text-sm sm:text-base font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all" required />
                             </div>
                           </div>
                         </div>
-                        <div className="flex justify-end pt-4">
-                          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="submit" className="px-10 py-4 rounded-2xl font-bold bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 transition-all text-lg">Save Location</motion.button>
+                        <div className="flex justify-end pt-3 sm:pt-4">
+                          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="w-full sm:w-auto px-8 py-3 sm:px-10 sm:py-4 rounded-xl sm:rounded-2xl font-bold bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 transition-all text-sm sm:text-base">Save Location</motion.button>
                         </div>
                       </motion.form>
                     )}
                   </AnimatePresence>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {profileData?.addresses?.length > 0 ? (
                       profileData.addresses.map((address, idx) => (
-                        <motion.div variants={itemVariants} key={idx} className="bg-white border border-slate-100 p-8 rounded-[2.5rem] relative group hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300">
+                        <motion.div variants={itemVariants} key={idx} className="bg-white border border-slate-100 p-4 sm:p-8 rounded-2xl sm:rounded-[2.5rem] relative group hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300">
                           <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-100 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-2xl pointer-events-none"></div>
-                          <div className="flex justify-between items-start mb-6 relative z-10">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
-                                <MapPin className="w-6 h-6" />
+                          <div className="flex justify-between items-start mb-4 sm:mb-6 relative z-10">
+                            <div className="flex items-center gap-2.5 sm:gap-3">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors shrink-0">
+                                <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
                               </div>
-                              <span className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-xl shadow-md">{address.label}</span>
+                              <span className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl shadow-md">{address.label}</span>
                             </div>
-                            <button onClick={() => handleDeleteAddress(idx)} className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-all shadow-sm">
-                              <Trash2 className="w-5 h-5" />
+                            <button onClick={() => handleDeleteAddress(idx)} className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg sm:rounded-xl p-2 sm:p-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-xs sm:shadow-sm" aria-label="Delete address">
+                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                           </div>
-                          <p className="text-slate-800 font-black text-xl leading-tight mb-2 relative z-10">{address.street}</p>
-                          <p className="text-sm font-semibold text-slate-500 relative z-10">{address.city}, {address.state} {address.zipCode}</p>
+                          <p className="text-slate-800 font-black text-base sm:text-xl leading-tight mb-1 sm:mb-2 relative z-10 break-words">{address.street}</p>
+                          <p className="text-xs sm:text-sm font-semibold text-slate-500 relative z-10">{address.city}, {address.state} {address.zipCode}</p>
                         </motion.div>
                       ))
                     ) : (
-                      <motion.div variants={itemVariants} className="col-span-full py-20 text-center bg-white/50 rounded-[3rem] border border-dashed border-slate-200">
-                        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200/50">
-                          <MapPin className="w-10 h-10 text-slate-300" />
+                      <motion.div variants={itemVariants} className="col-span-full py-12 sm:py-20 text-center bg-white/50 rounded-2xl sm:rounded-[3rem] border border-dashed border-slate-200 px-4">
+                        <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl shadow-slate-200/50">
+                          <MapPin className="w-8 h-8 sm:w-10 sm:h-10 text-slate-300" />
                         </div>
-                        <p className="text-slate-800 font-black text-2xl mb-2">No saved addresses</p>
-                        <p className="text-slate-500 font-medium mb-8">Add an address so we can deliver to you quickly.</p>
-                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsAddingAddress(true)} className="text-white bg-slate-900 font-bold px-10 py-4 rounded-2xl shadow-xl shadow-slate-900/20 transition-all">Add Address</motion.button>
+                        <p className="text-slate-800 font-black text-xl sm:text-2xl mb-2">No saved addresses</p>
+                        <p className="text-slate-500 font-medium mb-6 sm:mb-8 text-xs sm:text-sm">Add an address so we can deliver to you quickly.</p>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsAddingAddress(true)} className="text-white bg-slate-900 font-bold px-8 py-3.5 sm:px-10 sm:py-4 rounded-xl sm:rounded-2xl shadow-xl shadow-slate-900/20 transition-all text-sm sm:text-base">Add Address</motion.button>
                       </motion.div>
                     )}
                   </div>

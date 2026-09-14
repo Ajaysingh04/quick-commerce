@@ -180,10 +180,10 @@ const UserLayout = () => {
               <Link to="/support" className={`${location.pathname === '/support' ? 'rounded-full bg-slate-900 px-3 py-1.5 text-white' : 'transition hover:text-slate-900'}`}>Support</Link>
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-xs sm:shadow-sm transition hover:border-slate-300 hover:text-slate-900 shrink-0"
                 aria-label="Search"
               >
                 <Search className="h-4 w-4" />
@@ -194,7 +194,7 @@ const UserLayout = () => {
                   if (!isAuthenticated) navigate('/login');
                   else setIsWishlistOpen(true);
                 }}
-                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-xs sm:shadow-sm transition hover:border-slate-300 hover:text-slate-900 shrink-0"
                 aria-label="Wishlist"
               >
                 <Heart className="h-4 w-4" />
@@ -208,7 +208,7 @@ const UserLayout = () => {
               <button
                 id="cart-icon"
                 onClick={() => setIsCartOpen(true)}
-                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700"
+                className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700 shrink-0"
                 aria-label="Cart"
               >
                 <ShoppingBag className="h-4 w-4" />
@@ -227,7 +227,8 @@ const UserLayout = () => {
                     else if (user?.role === 'partner') navigate('/partner');
                     else navigate('/profile');
                   }}
-                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300"
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-2 sm:px-3 sm:py-2 text-sm font-semibold text-slate-700 shadow-xs sm:shadow-sm transition hover:border-slate-300 shrink-0"
+                  aria-label="Account"
                 >
                   <UserIcon className="h-4 w-4" />
                   <span className="hidden sm:inline">Account</span>
@@ -235,14 +236,14 @@ const UserLayout = () => {
               ) : (
                 <button
                   onClick={() => navigate('/login')}
-                  className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-[0_12px_25px_rgba(16,185,129,0.25)] transition hover:bg-emerald-400"
+                  className="rounded-full bg-emerald-500 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-[0_12px_25px_rgba(16,185,129,0.25)] transition hover:bg-emerald-400 shrink-0"
                 >
                   Sign In
                 </button>
               )}
 
-              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-slate-700">
-                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-slate-700 p-1 shrink-0" aria-label="Menu">
+                {isMobileMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
               </button>
             </div>
           </div>

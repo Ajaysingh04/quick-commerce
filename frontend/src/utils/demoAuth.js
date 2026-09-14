@@ -27,11 +27,12 @@ export const DEMO_PROFILES = {
     avatar: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80',
     storeName: 'Green Grocers Dark Store',
     isVerified: true,
+    isDemo: true,
     title: 'Store Partner / Vendor Hub',
     desc: 'Manage store orders, catalog inventory, promotions, and logistics dispatch.',
     badge: 'Dark Store Ops',
     color: 'from-sky-500 to-indigo-600',
-    targetPath: '/partner/dashboard'
+    targetPath: '/partner/onboarding?demo=true'
   },
   delivery: {
     id: 'demo-delivery-01',
@@ -68,16 +69,18 @@ export const DEMO_PROFILES = {
 
 export const loginAsDemo = async (role, dispatch) => {
   const targetRole = ['admin', 'partner', 'delivery', 'user'].includes(role) ? role : 'admin';
-  const fallbackProfile = DEMO_PROFILES[targetRole];
+  const fallbackProfile = { ...DEMO_PROFILES[targetRole], isDemo: true };
+  localStorage.setItem('isDemoMode', 'true');
 
   try {
     const res = await API.post('/auth/demo-login', { role: targetRole });
     if (res.data?.user && res.data?.token) {
+      const demoUserData = { ...res.data.user, isDemo: true };
       dispatch(setCredentials({
-        user: res.data.user,
+        user: demoUserData,
         token: res.data.token
       }));
-      return res.data.user;
+      return demoUserData;
     }
   } catch (err) {
     console.warn('Backend demo-login endpoint not available, applying client demo credentials:', err.message);
