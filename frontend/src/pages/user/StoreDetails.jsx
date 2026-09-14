@@ -5,7 +5,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import API from '../../services/api.js';
 import { addToCart, updateQuantity } from '../../store/cartSlice.js';
 import { Star, Clock, Info, Check, Plus, Minus, Search, ChevronRight } from 'lucide-react';
-import { STORES, DINING_STORES, MOCK_DISHES } from './Home.jsx';
+
+const STORES = [];
+const DINING_STORES = [];
+const MOCK_DISHES = [];
 
 const getUniqueDishImage = (dishName, idx) => {
  let cleanKw = (dishName || 'product').toLowerCase().replace(/[^a-z0-9]/g, ' ').trim().split(' ')[0];

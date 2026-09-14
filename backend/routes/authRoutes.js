@@ -10,7 +10,8 @@ import {
   forgotPassword,
   resetPassword,
   googleSuccess,
-  clerkSync
+  clerkSync,
+  demoLogin
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -21,6 +22,7 @@ router.post('/signup', signup);
 router.post('/otp/verify', verifyOtp);
 router.post('/otp/resend', resendOtp);
 router.post('/login', login);
+router.post('/demo-login', demoLogin);
 router.post('/refresh', refresh);
 router.post('/logout', protect, logout);
 router.post('/clerk-sync', clerkSync);

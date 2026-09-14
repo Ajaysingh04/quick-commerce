@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import API from '../../services/api';
 import {
   TrendingUp,
@@ -14,6 +15,8 @@ import {
   Truck,
   Sparkles,
   Tag,
+  Store,
+  ExternalLink,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
@@ -144,16 +147,30 @@ const Dashboard = () => {
           <div className="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Overview</div>
           <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">Store operations dashboard</h1>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
-          {['7D', '30D', '90D'].map((option) => (
-            <button
-              key={option}
-              onClick={() => setRange(option)}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition ${range === option ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-            >
-              {option}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800 shadow-xs hover:bg-emerald-100 hover:border-emerald-400 transition cursor-pointer"
+            title="Open customer live store"
+          >
+            <Store className="h-4 w-4 text-emerald-600" />
+            <span>Customer Live Store</span>
+            <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+          </Link>
+
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+            {['7D', '30D', '90D'].map((option) => (
+              <button
+                key={option}
+                onClick={() => setRange(option)}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition cursor-pointer ${range === option ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

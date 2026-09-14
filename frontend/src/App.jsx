@@ -13,6 +13,7 @@ import Home from './pages/user/Home.jsx';
 import Shop from './pages/user/Shop.jsx';
 import AllProducts from './pages/user/AllProducts.jsx';
 import AllStores from './pages/user/AllStores.jsx';
+import StoreDetails from './pages/user/StoreDetails.jsx';
 import CategoryProducts from './pages/user/CategoryProducts.jsx';
 import Offers from './pages/user/Offers.jsx';
 import About from './pages/user/About.jsx';
@@ -62,6 +63,7 @@ import PartnerStaff from './pages/partner/Staff.jsx';
 import JoinStaff from './pages/partner/JoinStaff.jsx';
 
 import AuthPage from './pages/shared/AuthPage.jsx';
+import DemoHub from './pages/shared/DemoHub.jsx';
 import OTPVerify from './pages/shared/OTPVerify.jsx';
 import Support from './pages/shared/Support.jsx';
 import AuthSync from './pages/shared/AuthSync.jsx';
@@ -115,6 +117,7 @@ function App() {
  <Route path="shop" element={<Shop />} />
  <Route path="products" element={<AllProducts />} />
  <Route path="stores" element={<AllStores />} />
+ <Route path="store/:id" element={<StoreDetails />} />
  <Route path="category/:id" element={<CategoryProducts />} />
  <Route path="offers" element={<Offers />} />
  <Route path="about" element={<About />} />
@@ -232,6 +235,8 @@ function App() {
  </Route>
 
  {/* Shared Auth/Access Routes */}
+ <Route path="/demo" element={<DemoHub />} />
+ <Route path="/demo-login" element={<DemoHub />} />
  <Route path="/login/*" element={<AuthPage />} />
  <Route path="/signup/*" element={<AuthPage />} />
  <Route path="/verify-otp" element={<OTPVerify />} />

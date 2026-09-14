@@ -1,32 +1,40 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import DemoAccessModal from './DemoAccessModal.jsx';
 
 const ProtectedRoute = ({ children, allowedRoles, requireKyc }) => {
- const { isAuthenticated, user } = useSelector(state => state.auth);
- const location = useLocation();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const location = useLocation();
 
- if (!isAuthenticated) {
- // Redirect admin routes to the options login page, others to the start (home) page
- const redirectPath = location.pathname.startsWith('/admin') ? '/login' : '/';
- return <Navigate to={redirectPath} state={{ from: location }} replace />;
- }
+  const getTargetRole = () => {
+    if (location.pathname.startsWith('/admin') || allowedRoles?.includes('admin')) {
+      return 'admin';
+    }
+    if (location.pathname.startsWith('/partner') || allowedRoles?.includes('partner')) {
+      return 'partner';
+    }
+    if (location.pathname.startsWith('/delivery') || allowedRoles?.includes('delivery')) {
+      return 'delivery';
+    }
+    return 'user';
+  };
 
- if (allowedRoles && !allowedRoles.includes(user?.role)) {
- // Redirect to unauthorized page or default landing pages depending on role
- if (user?.role === 'admin') {
- return <Navigate to="/admin" replace />;
- } else if (user?.role === 'delivery') {
- return <Navigate to="/delivery" replace />;
- }
- return <Navigate to="/" replace />;
- }
+  const targetRole = getTargetRole();
 
- if (requireKyc && user?.role === 'delivery' && user?.kyc?.status !== 'approved') {
- return <Navigate to="/delivery/onboarding" replace />;
- }
+  if (!isAuthenticated) {
+    return <DemoAccessModal requestedRole={targetRole} returnPath={location.pathname} />;
+  }
 
- return children;
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    return <DemoAccessModal requestedRole={targetRole} returnPath={location.pathname} />;
+  }
+
+  if (requireKyc && user?.role === 'delivery' && user?.kyc?.status !== 'approved') {
+    return <Navigate to="/delivery/onboarding" replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;

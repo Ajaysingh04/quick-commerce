@@ -34,7 +34,11 @@ const AllStores = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {stores.length > 0 ? (
               stores.map(store => (
-                <div key={store._id} className="bg-white rounded-[20px] p-4 flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow border border-gray-100">
+                <div
+                  key={store._id}
+                  onClick={() => navigate(`/store/${store._id}`)}
+                  className="bg-white rounded-[20px] p-4 flex gap-4 items-center cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all border border-gray-100"
+                >
                   <img src={store.bannerImage || store.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80'} alt={store.name} className="w-16 h-16 rounded-full object-cover" />
                   <div className="flex flex-col">
                     <span className="font-bold text-gray-800">{store.name}</span>

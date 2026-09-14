@@ -445,3 +445,93 @@ export const clerkSync = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Demo login for client preview/evaluations
+// @route   POST /api/auth/demo-login
+// @access  Public
+export const demoLogin = async (req, res) => {
+  const { role = 'admin' } = req.body;
+  const targetRole = ['admin', 'partner', 'delivery', 'user'].includes(role) ? role : 'admin';
+
+  const demoProfiles = {
+    admin: {
+      name: 'Super Admin (Demo)',
+      email: 'admin.demo@quickcommerce.com',
+      phone: '9876543210',
+      role: 'admin',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    },
+    partner: {
+      name: 'Store Partner (Demo)',
+      email: 'partner.demo@quickcommerce.com',
+      phone: '9876543211',
+      role: 'partner',
+      avatar: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80',
+    },
+    delivery: {
+      name: 'Delivery Rider (Demo)',
+      email: 'delivery.demo@quickcommerce.com',
+      phone: '9876543212',
+      role: 'delivery',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    },
+    user: {
+      name: 'Customer (Demo)',
+      email: 'customer.demo@quickcommerce.com',
+      phone: '9876543213',
+      role: 'user',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    },
+  };
+
+  const profile = demoProfiles[targetRole];
+
+  try {
+    let user = await User.findOne({ email: profile.email });
+    if (!user) {
+      user = await User.create({
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        password: 'DemoPassword@12345',
+        role: profile.role,
+        avatar: profile.avatar,
+        isVerified: true,
+        kyc: { status: 'approved' }
+      });
+    } else {
+      user.role = profile.role;
+      user.isVerified = true;
+      if (profile.role === 'delivery') {
+        user.kyc = { status: 'approved' };
+      }
+      await user.save();
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    sendRefreshTokenCookie(res, refreshToken);
+
+    res.json({
+      message: `Demo login as ${targetRole} successful!`,
+      token: accessToken,
+      user: {
+        id: user._id,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        phone: user.phone,
+        isVerified: true,
+        kyc: user.kyc
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

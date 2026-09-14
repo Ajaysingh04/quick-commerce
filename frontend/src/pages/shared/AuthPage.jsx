@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { FaGoogle } from 'react-icons/fa';
 import {
   Eye,
@@ -21,14 +22,17 @@ import {
   KeyRound,
   ArrowLeft,
   Star,
-  Check
+  Check,
+  Layers,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSignIn, useSignUp, useAuth } from '@clerk/clerk-react';
+import { DEMO_PROFILES, loginAsDemo } from '../../utils/demoAuth.js';
 
 const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isSignUp, setIsSignUp] = useState(location.pathname === '/signup');
 
   // Clerk Hooks
@@ -225,6 +229,26 @@ const AuthPage = () => {
       }
 
       setError(errMsg);
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoQuickLogin = async (role) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      if (userId) {
+        try { await signOut(); } catch (e) {}
+      }
+      await loginAsDemo(role, dispatch);
+      const target = location.state?.from?.pathname || DEMO_PROFILES[role]?.targetPath || '/';
+      setTimeout(() => {
+        navigate(target, { replace: true });
+      }, 200);
+    } catch (e) {
+      console.error(e);
+      setError('Failed to activate demo mode. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -825,8 +849,55 @@ const AuthPage = () => {
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Welcome Back!</h1>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Sign in with your email to access orders, cart & instant delivery.
+                    Sign in with your email or use 1-click demo access for reviewing panels.
                   </p>
+                </div>
+
+                {/* Instant Demo Access Box */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200/80 shadow-xs">
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <span className="text-[11px] font-black text-emerald-900 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      Client Demo Access (1-Click)
+                    </span>
+                    <Link to="/demo" className="text-[10px] font-bold text-emerald-700 hover:underline">
+                      Explore Portals ↗
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleDemoQuickLogin('admin')}
+                      className="p-2 rounded-xl bg-white border border-emerald-200 hover:border-emerald-500 hover:bg-emerald-600 hover:text-white text-slate-800 text-[11px] font-black transition text-center shadow-xs flex flex-col items-center gap-1 cursor-pointer group"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 group-hover:text-white" />
+                      <span>Admin HQ</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDemoQuickLogin('partner')}
+                      className="p-2 rounded-xl bg-white border border-sky-200 hover:border-sky-500 hover:bg-sky-600 hover:text-white text-slate-800 text-[11px] font-black transition text-center shadow-xs flex flex-col items-center gap-1 cursor-pointer group"
+                    >
+                      <Store className="w-4 h-4 text-sky-600" />
+                      <span>Store Partner</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDemoQuickLogin('delivery')}
+                      className="p-2 rounded-xl bg-white border border-amber-200 hover:border-amber-500 hover:bg-amber-600 hover:text-white text-slate-800 text-[11px] font-black transition text-center shadow-xs flex flex-col items-center gap-1 cursor-pointer group"
+                    >
+                      <Bike className="w-4 h-4 text-amber-600" />
+                      <span>Rider App</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDemoQuickLogin('user')}
+                      className="p-2 rounded-xl bg-white border border-rose-200 hover:border-rose-500 hover:bg-rose-600 hover:text-white text-slate-800 text-[11px] font-black transition text-center shadow-xs flex flex-col items-center gap-1 cursor-pointer group"
+                    >
+                      <User className="w-4 h-4 text-rose-600" />
+                      <span>Customer</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Google OAuth Quick Button */}

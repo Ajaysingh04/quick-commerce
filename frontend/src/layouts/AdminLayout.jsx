@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSettings } from '../context/SettingsContext.jsx';
 import { logout } from '../store/authSlice.js';
 import { useAuth } from '@clerk/clerk-react';
@@ -32,12 +32,14 @@ import {
   ShieldCheck,
   Activity,
   Zap,
+  User,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const AdminLayout = () => {
   const { settings } = useSettings();
+  const { user } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
   const location = useLocation();
@@ -45,8 +47,28 @@ const AdminLayout = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [isConnected, setIsConnected] = useState(true);
+
+  const profileMenuRef = useRef(null);
+
+  const userInitials = (user?.name || 'Admin')
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase() || 'AD';
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
@@ -213,27 +235,35 @@ const AdminLayout = () => {
         {/* Bottom Profile & Logout */}
         <div className="border-t border-slate-800/80 p-3.5">
           <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-slate-900/60 p-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-xs font-black text-slate-950 shadow-md">
-              AD
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-xs font-black text-slate-950 shadow-md">
+              {userInitials}
             </div>
             {!isSidebarCollapsed && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1">
-                  <p className="truncate text-xs font-black text-white">Super Admin</p>
+                  <p className="truncate text-xs font-black text-white">{user?.name || 'Super Admin'}</p>
                   <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[8px] font-bold text-emerald-300">Active</span>
                 </div>
-                <p className="truncate text-[10px] text-slate-400">admin@quickcommerce.com</p>
+                <p className="truncate text-[10px] text-slate-400">{user?.email || 'admin@quickcommerce.com'}</p>
               </div>
             )}
           </div>
 
-          {!isSidebarCollapsed && (
+          {!isSidebarCollapsed ? (
             <button
               onClick={handleLogout}
-              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-300 transition hover:bg-rose-500/20"
+              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-300 transition hover:bg-rose-500/20 hover:text-rose-100 hover:border-rose-500/40 shadow-xs active:scale-[0.98]"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-3.5 w-3.5 text-rose-400" />
               Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={handleLogout}
+              title="Sign Out"
+              className="mt-2.5 flex h-9 w-9 items-center justify-center rounded-xl border border-rose-500/25 bg-rose-500/10 text-rose-300 transition hover:bg-rose-500/25 hover:text-rose-100 mx-auto shadow-xs active:scale-95"
+            >
+              <LogOut className="h-4 w-4 text-rose-400" />
             </button>
           )}
         </div>
@@ -264,7 +294,7 @@ const AdminLayout = () => {
             </div>
 
             {/* Header Right Action Items */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <Link
                 to="/"
                 target="_blank"
@@ -281,14 +311,93 @@ const AdminLayout = () => {
                 </span>
               </button>
 
-              <div className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 shadow-xs">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-slate-900 to-slate-700 text-xs font-black text-white">
-                  A
-                </div>
-                <div className="hidden sm:block text-left">
-                  <div className="text-xs font-black text-slate-900 leading-tight">Admin Console</div>
-                  <div className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Full Access</div>
-                </div>
+              {/* Direct Quick Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50/80 px-3 py-1.5 text-xs font-bold text-rose-600 shadow-xs hover:bg-rose-100 hover:border-rose-300 hover:text-rose-700 transition active:scale-95 cursor-pointer"
+                title="Sign Out of Admin"
+              >
+                <LogOut className="h-3.5 w-3.5 text-rose-600" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+
+              {/* User Profile Menu Dropdown */}
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 sm:pr-3 shadow-xs hover:border-slate-300 transition text-left cursor-pointer"
+                  title="Admin Account Menu"
+                >
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-slate-900 to-slate-700 text-xs font-black text-white shadow-xs">
+                    {userInitials}
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <div className="text-xs font-black text-slate-900 leading-tight truncate max-w-[100px]">{user?.name || 'Admin'}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Full Access</div>
+                  </div>
+                  <ChevronDown className={`hidden sm:block h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isProfileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-60 rounded-2xl bg-white p-2 shadow-2xl border border-slate-200/80 z-50 overflow-hidden"
+                    >
+                      <div className="px-3 py-2.5 border-b border-slate-100 bg-slate-50/70 rounded-xl mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-black text-slate-900 truncate">{user?.name || 'Super Admin'}</p>
+                          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[8px] font-black uppercase text-emerald-700">Admin</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">{user?.email || 'admin@quickcommerce.com'}</p>
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <Link
+                          to="/admin/profile"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+                        >
+                          <User className="h-4 w-4 text-slate-500" />
+                          Admin Profile
+                        </Link>
+                        <Link
+                          to="/admin/settings"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+                        >
+                          <Settings className="h-4 w-4 text-slate-500" />
+                          System Settings
+                        </Link>
+                        <Link
+                          to="/"
+                          target="_blank"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+                        >
+                          <Store className="h-4 w-4 text-emerald-600" />
+                          Customer Storefront
+                        </Link>
+                      </div>
+
+                      <div className="my-1.5 border-t border-slate-100" />
+
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 text-rose-600" />
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -340,13 +449,25 @@ const AdminLayout = () => {
               })}
             </nav>
 
-            <button
-              onClick={handleLogout}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-300"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Sign Out
-            </button>
+            {/* Mobile Bottom Profile Card & Logout */}
+            <div className="border-t border-slate-800 pt-3 mt-2">
+              <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/60 p-2 border border-white/5 mb-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-slate-950 font-black text-xs">
+                  {userInitials}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black text-white truncate">{user?.name || 'Super Admin'}</p>
+                  <p className="text-[10px] text-slate-400 truncate">{user?.email || 'admin@quickcommerce.com'}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/15 px-3 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25 transition active:scale-98"
+              >
+                <LogOut className="h-3.5 w-3.5 text-rose-400" />
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       )}
