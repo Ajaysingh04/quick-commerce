@@ -566,26 +566,35 @@ const OrderTracking = () => {
             {showSlipModal && (
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
+                className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-sm"
               >
                 <motion.div 
                   initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-                  className="bg-slate-200 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                  className="bg-slate-100 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col border border-slate-300"
                 >
-                  <div className="flex justify-between items-center p-6 border-b border-slate-300 bg-white shadow-sm z-10">
-                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><IndianRupee className="w-6 h-6 text-emerald-600"/> Order Slip</h3>
-                    <div className="flex gap-2">
-                      <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors">
-                        <Download className="w-4 h-4"/> Download
+                  <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-200 bg-white shadow-sm z-10">
+                    <h3 className="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <IndianRupee className="w-5 h-5 text-emerald-600"/> Order Slip
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={handleDownloadPdf} 
+                        className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+                      >
+                        <Download className="w-4 h-4"/> <span className="hidden sm:inline">Download</span> PDF
                       </button>
-                      <button onClick={() => setShowSlipModal(false)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors">
+                      <button 
+                        onClick={() => setShowSlipModal(false)} 
+                        className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                      >
                         <X className="w-5 h-5"/>
                       </button>
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-100 custom-scrollbar flex justify-center items-start">
-                    <div className="bg-white shadow-xl rounded-xl w-full max-w-[800px] font-sans text-slate-800" style={{ padding: '40px' }}>
-                       <InvoiceJSX orderDetails={orderDetails} orderId={orderId} />
+
+                  <div className="flex-1 overflow-y-auto p-2 sm:p-6 md:p-8 bg-slate-100 custom-scrollbar flex justify-center items-start">
+                    <div className="bg-white shadow-xl rounded-2xl sm:rounded-3xl w-full max-w-[800px] font-sans text-slate-800 p-4 sm:p-8 md:p-10 border border-slate-200/60">
+                      <InvoiceJSX orderDetails={orderDetails} orderId={orderId} settings={settings} />
                     </div>
                   </div>
                 </motion.div>
@@ -598,113 +607,132 @@ const OrderTracking = () => {
   );
 };
 
-// Extracted JSX for Invoice to avoid duplication
+// Extracted JSX for Invoice to avoid duplication & ensure responsiveness
 const InvoiceJSX = ({ orderDetails, orderId, settings }) => (
-  <div style={{ position: 'relative' }}>
+  <div className="relative overflow-hidden">
     {/* Watermark Seal */}
-    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', opacity: 0.05, pointerEvents: 'none', zIndex: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <span style={{ fontSize: '140px', fontWeight: '900', color: '#10b981', whiteSpace: 'nowrap', lineHeight: '1' }}>{settings?.siteTitle ? settings.siteTitle.toUpperCase() : 'ROSEDASH'}</span>
-      <span style={{ fontSize: '40px', fontWeight: 'bold', color: '#10b981', letterSpacing: '10px', whiteSpace: 'nowrap' }}>OFFICIAL SLIP</span>
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 opacity-[0.03] pointer-events-none z-0 flex flex-col items-center justify-center w-full select-none">
+      <span className="text-5xl sm:text-8xl font-black text-emerald-600 uppercase tracking-tighter whitespace-nowrap leading-none">
+        {settings?.siteTitle || 'ROSEDASH'}
+      </span>
+      <span className="text-xl sm:text-3xl font-bold text-emerald-600 tracking-widest whitespace-nowrap mt-2">
+        OFFICIAL RECEIPT
+      </span>
     </div>
     
-    <div style={{ position: 'relative', zIndex: 1 }}>
+    <div className="relative z-10 space-y-6">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #10b981', paddingBottom: '20px', marginBottom: '30px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          {settings?.logoUrl && <img src={settings.logoUrl} alt="Logo" style={{ height: '48px', objectFit: 'contain' }} />}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b-2 border-emerald-500 pb-5">
+        <div className="flex items-center gap-3">
+          {settings?.logoUrl && (
+            <img src={settings.logoUrl} alt="Logo" className="h-10 sm:h-12 object-contain" />
+          )}
           <div>
-            <h1 style={{ color: '#0f172a', margin: '0 0 5px 0', fontSize: '32px', fontWeight: '900', letterSpacing: '-1px' }}>{settings?.siteTitle || 'RoseDash'}</h1>
-            <p style={{ margin: '0', color: '#10b981', fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '2px' }}>Order Receipt</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none m-0">
+              {settings?.siteTitle || 'RoseDash'}
+            </h1>
+            <p className="text-xs sm:text-sm font-bold text-emerald-600 uppercase tracking-widest mt-1">
+              Order Receipt
+            </p>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-        <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#64748b', fontWeight: 'bold' }}>Order ID: <span style={{ color: '#0f172a' }}>{orderId}</span></p>
-        <p style={{ margin: '0', fontSize: '14px', color: '#64748b' }}>Date: {new Date(orderDetails.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <div className="text-left sm:text-right font-sans">
+          <p className="text-xs sm:text-sm font-bold text-slate-500 m-0">
+            Order ID: <span className="text-slate-900 font-mono font-black">{orderId}</span>
+          </p>
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            Date: {new Date(orderDetails.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+          </p>
+        </div>
       </div>
-    </div>
 
-    {/* Store & Customer Info */}
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', gap: '20px' }}>
-      <div style={{ flex: '1', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Fulfilled By</h3>
-        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#0f172a', fontSize: '16px' }}>{orderDetails.store?.name || 'RoseDash Dark Store'}</p>
-        <p style={{ margin: '0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>Authorized Retailer<br/>Quality Verified</p>
-      </div>
-      <div style={{ flex: '1', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Delivered To</h3>
-        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#0f172a', fontSize: '16px' }}>{orderDetails.user?.name || 'Customer'}</p>
-        <p style={{ margin: '0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
-          {orderDetails.deliveryAddress?.street}<br/>
-          {orderDetails.deliveryAddress?.city}, {orderDetails.deliveryAddress?.state} {orderDetails.deliveryAddress?.zipCode}
-        </p>
-      </div>
-    </div>
-    
-    {/* Items Table */}
-    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '30px' }}>
-      <thead>
-        <tr style={{ backgroundColor: '#10b981', color: 'white' }}>
-          <th style={{ padding: '12px 15px', textAlign: 'left', borderRadius: '8px 0 0 8px', fontSize: '14px' }}>Item Description</th>
-          <th style={{ padding: '12px 15px', textAlign: 'center', fontSize: '14px' }}>Qty</th>
-          <th style={{ padding: '12px 15px', textAlign: 'right', fontSize: '14px' }}>Unit Price</th>
-          <th style={{ padding: '12px 15px', textAlign: 'right', borderRadius: '0 8px 8px 0', fontSize: '14px' }}>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {orderDetails.items?.map((item, idx) => (
-          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-            <td style={{ padding: '15px', fontWeight: 'bold', color: '#334155' }}>{item.product?.name || item.name || 'Product Item'}</td>
-            <td style={{ padding: '15px', textAlign: 'center', color: '#64748b', fontWeight: 'bold' }}>{item.quantity}</td>
-            <td style={{ padding: '15px', textAlign: 'right', color: '#64748b' }}>₹{item.price}</td>
-            <td style={{ padding: '15px', textAlign: 'right', fontWeight: 'bold', color: '#0f172a' }}>₹{item.price * item.quantity}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    
-    {/* Totals Section */}
-    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-      <div style={{ width: '300px', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
-          <span style={{ fontWeight: 'bold' }}>Subtotal:</span>
-          <span>₹{orderDetails.billDetails?.subtotal || 0}</span>
+      {/* Store & Customer Info */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <h3 className="text-[11px] font-black text-emerald-600 uppercase tracking-wider mb-1.5">Fulfilled By</h3>
+          <p className="font-bold text-slate-900 text-sm sm:text-base mb-1">{orderDetails.store?.name || 'RoseDash Dark Store'}</p>
+          <p className="text-xs text-slate-500 leading-relaxed">Authorized Retailer &bull; Quality Verified</p>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
-          <span style={{ fontWeight: 'bold' }}>Delivery Fee:</span>
-          <span>₹{orderDetails.billDetails?.deliveryFee || 0}</span>
+
+        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <h3 className="text-[11px] font-black text-emerald-600 uppercase tracking-wider mb-1.5">Delivered To</h3>
+          <p className="font-bold text-slate-900 text-sm sm:text-base mb-1">{orderDetails.user?.name || 'Customer'}</p>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            {orderDetails.deliveryAddress?.street || 'Standard Delivery Address'}
+            {orderDetails.deliveryAddress?.city ? `, ${orderDetails.deliveryAddress.city}` : ''}
+            {orderDetails.deliveryAddress?.state ? `, ${orderDetails.deliveryAddress.state}` : ''}
+            {orderDetails.deliveryAddress?.zipCode ? ` - ${orderDetails.deliveryAddress.zipCode}` : ''}
+          </p>
         </div>
-        {(() => {
-          const extraCharges = (orderDetails.billDetails?.tax || 0) + 
-                               (orderDetails.billDetails?.codCharge || 0) + 
-                               (orderDetails.billDetails?.extraDistanceSurcharge || 0) + 
-                               (orderDetails.billDetails?.appliedCharges?.reduce((a, c) => a + c.amount, 0) || 0);
-          if (extraCharges > 0) {
-            return (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: '#64748b', fontSize: '14px' }}>
-                <span style={{ fontWeight: 'bold' }}>Taxes & Charges:</span>
-                <span>₹{extraCharges}</span>
-              </div>
-            );
-          }
-          return null;
-        })()}
-        {orderDetails.billDetails?.discount > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', marginBottom: '12px', fontSize: '14px' }}>
-            <span style={{ fontWeight: 'bold' }}>Discount Applied:</span>
-            <span>-₹{orderDetails.billDetails?.discount}</span>
+      </div>
+      
+      {/* Items Table with horizontal scroll wrapper for small screens */}
+      <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
+        <table className="w-full text-left border-collapse min-w-[420px]">
+          <thead>
+            <tr className="bg-emerald-600 text-white text-xs uppercase tracking-wider font-bold">
+              <th className="p-3 sm:p-4 rounded-tl-xl">Item Description</th>
+              <th className="p-3 sm:p-4 text-center">Qty</th>
+              <th className="p-3 sm:p-4 text-right">Unit Price</th>
+              <th className="p-3 sm:p-4 text-right rounded-tr-xl">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+            {orderDetails.items?.map((item, idx) => (
+              <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+                <td className="p-3 sm:p-4 font-bold text-slate-800">{item.product?.name || item.name || 'Product Item'}</td>
+                <td className="p-3 sm:p-4 text-center text-slate-600 font-semibold">{item.quantity}</td>
+                <td className="p-3 sm:p-4 text-right text-slate-500">₹{item.price}</td>
+                <td className="p-3 sm:p-4 text-right font-black text-slate-900">₹{item.price * item.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Totals Section */}
+      <div className="flex justify-end pt-2">
+        <div className="w-full sm:w-80 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200/80 space-y-2 text-xs sm:text-sm">
+          <div className="flex justify-between text-slate-600">
+            <span className="font-semibold">Subtotal:</span>
+            <span className="font-bold text-slate-800">₹{orderDetails.billDetails?.subtotal || 0}</span>
           </div>
-        )}
-        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: '900', fontSize: '20px', borderTop: '2px dashed #cbd5e1', paddingTop: '15px', marginTop: '15px' }}>
-          <span>Grand Total:</span>
-          <span style={{ color: '#10b981' }}>₹{orderDetails.billDetails?.grandTotal || 0}</span>
+          <div className="flex justify-between text-slate-600">
+            <span className="font-semibold">Delivery Fee:</span>
+            <span className="font-bold text-slate-800">₹{orderDetails.billDetails?.deliveryFee || 0}</span>
+          </div>
+          {(() => {
+            const extraCharges = (orderDetails.billDetails?.tax || 0) + 
+                                 (orderDetails.billDetails?.codCharge || 0) + 
+                                 (orderDetails.billDetails?.extraDistanceSurcharge || 0) + 
+                                 (orderDetails.billDetails?.appliedCharges?.reduce((a, c) => a + c.amount, 0) || 0);
+            if (extraCharges > 0) {
+              return (
+                <div className="flex justify-between text-slate-600">
+                  <span className="font-semibold">Taxes & Charges:</span>
+                  <span className="font-bold text-slate-800">₹{extraCharges}</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
+          {orderDetails.billDetails?.discount > 0 && (
+            <div className="flex justify-between text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-lg">
+              <span>Discount Applied:</span>
+              <span>-₹{orderDetails.billDetails?.discount}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-slate-900 font-black text-base sm:text-lg border-t border-slate-200 pt-3 mt-2">
+            <span>Grand Total:</span>
+            <span className="text-emerald-600">₹{orderDetails.billDetails?.grandTotal || 0}</span>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Footer */}
-      <div style={{ marginTop: '50px', textAlign: 'center', color: '#94a3b8', fontSize: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-        <p style={{ margin: '0 0 5px 0' }}>Thank you for shopping with {settings?.siteTitle || 'RoseDash'}!</p>
-        <p style={{ margin: '0' }}>For support, contact us at {settings?.contactEmail || 'support@rosedash.com'}</p>
+      <div className="mt-8 text-center text-[11px] sm:text-xs text-slate-400 border-t border-slate-100 pt-4 space-y-1">
+        <p className="font-semibold text-slate-500 m-0">Thank you for shopping with {settings?.siteTitle || 'RoseDash'}!</p>
+        <p className="m-0">For support, contact us at {settings?.contactEmail || 'support@rosedash.com'}</p>
       </div>
     </div>
   </div>
