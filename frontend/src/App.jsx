@@ -14,6 +14,7 @@ import Shop from './pages/user/Shop.jsx';
 import AllProducts from './pages/user/AllProducts.jsx';
 import AllStores from './pages/user/AllStores.jsx';
 import StoreDetails from './pages/user/StoreDetails.jsx';
+import ProductDetails from './pages/user/ProductDetails.jsx';
 import CategoryProducts from './pages/user/CategoryProducts.jsx';
 import Offers from './pages/user/Offers.jsx';
 import About from './pages/user/About.jsx';
@@ -116,6 +117,7 @@ function App() {
  <Route index element={<Home />} />
  <Route path="shop" element={<Shop />} />
  <Route path="products" element={<AllProducts />} />
+ <Route path="product/:id" element={<ProductDetails />} />
  <Route path="stores" element={<AllStores />} />
  <Route path="store/:id" element={<StoreDetails />} />
  <Route path="category/:id" element={<CategoryProducts />} />

@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getProducts,
+  getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -43,8 +44,9 @@ router.put(
 );
 router.delete('/categories/:id', protect, restrictTo('admin'), deleteCategory);
 
-// Dishes routes
+// Dishes / Products routes
 router.get('/', getProducts);
+router.get('/:id', getProductById);
 
 router.post(
   '/', 

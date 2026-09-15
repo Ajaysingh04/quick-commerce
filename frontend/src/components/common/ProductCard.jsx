@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Plus, Minus, Heart, ShoppingBag, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -6,6 +7,7 @@ import { addToCart, updateQuantity } from '../../store/cartSlice';
 import { toggleWishlistThunk } from '../../store/wishlistSlice';
 
 const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Commerce Store' }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
@@ -79,13 +81,21 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
       ? `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF`
       : null);
 
+  const handleCardClick = () => {
+    const prodId = product.id || product._id;
+    if (prodId) {
+      navigate(`/product/${prodId}`);
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ y: -6, transition: { duration: 0.25, ease: 'easeOut' } }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-200/80 bg-white p-3.5 shadow-[0_14px_35px_rgba(15,23,42,0.05)] transition-shadow duration-300 hover:border-emerald-200/70 hover:shadow-[0_24px_50px_rgba(16,185,129,0.12)]"
+      onClick={handleCardClick}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-200/80 bg-white p-3.5 shadow-[0_14px_35px_rgba(15,23,42,0.05)] transition-shadow duration-300 hover:border-emerald-200/70 hover:shadow-[0_24px_50px_rgba(16,185,129,0.12)] cursor-pointer"
     >
       {/* Top Floating Badges */}
-      <div className="absolute left-3.5 top-3.5 z-10 flex flex-wrap items-center gap-1.5">
+      <div className="absolute left-3.5 top-3.5 z-10 flex flex-wrap items-center gap-1.5 pointer-events-none">
         {discountPercent && (
           <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-red-600 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white shadow-sm">
             <Zap className="h-2.5 w-2.5" />
@@ -101,7 +111,8 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
       <motion.button
         type="button"
         whileTap={{ scale: 0.85 }}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           if (!isAuthenticated) {
             alert('Please login to add items to wishlist.');
             return;
@@ -156,37 +167,48 @@ const ProductCard = ({ product, storeId = 'quick-store', storeName = 'Quick Comm
             )}
           </div>
 
-          {quantity === 0 ? (
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.92 }}
-              onClick={handleAdd}
-              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition hover:bg-emerald-600 hover:shadow-md"
-            >
-              <ShoppingBag className="h-3 w-3" />
-              Add
-            </motion.button>
-          ) : (
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/90 px-1 py-1 text-emerald-800 shadow-sm">
+          <div onClick={(e) => e.stopPropagation()}>
+            {quantity === 0 ? (
               <motion.button
                 type="button"
-                whileTap={{ scale: 0.85 }}
-                onClick={() => handleUpdate(-1)}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-black shadow-xs transition hover:bg-emerald-100"
+                whileTap={{ scale: 0.92 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAdd();
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition hover:bg-emerald-600 hover:shadow-md"
               >
-                <Minus className="h-3 w-3" />
+                <ShoppingBag className="h-3 w-3" />
+                Add
               </motion.button>
-              <span className="min-w-4 text-center text-xs font-black">{quantity}</span>
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.85 }}
-                onClick={() => handleUpdate(1)}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-black shadow-xs transition hover:bg-emerald-100"
-              >
-                <Plus className="h-3 w-3" />
-              </motion.button>
-            </div>
-          )}
+            ) : (
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/90 px-1 py-1 text-emerald-800 shadow-sm">
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdate(-1);
+                  }}
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-black shadow-xs transition hover:bg-emerald-100"
+                >
+                  <Minus className="h-3 w-3" />
+                </motion.button>
+                <span className="min-w-4 text-center text-xs font-black">{quantity}</span>
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdate(1);
+                  }}
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-black shadow-xs transition hover:bg-emerald-100"
+                >
+                  <Plus className="h-3 w-3" />
+                </motion.button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

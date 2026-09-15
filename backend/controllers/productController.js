@@ -189,6 +189,37 @@ export const getProducts = async (req, res) => {
   }
 };
 
+// @desc    Get single product by ID
+// @route   GET /api/products/:id
+// @access  Public
+export const getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let product;
+
+    // Support MongoDB ObjectId or custom IDs
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      product = await Product.findById(id)
+        .populate('store', 'name address rating distance bannerImage')
+        .populate('category', 'name icon image');
+    } else {
+      product = await Product.findOne({
+        $or: [{ _id: id }, { sku: id }]
+      })
+        .populate('store', 'name address rating distance bannerImage')
+        .populate('category', 'name icon image');
+    }
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Add new Product dish
 // @route   POST /api/admin/products
 // @access  Private/Admin
