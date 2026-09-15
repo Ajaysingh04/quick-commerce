@@ -40,13 +40,51 @@ const PartnerLayout = () => {
   const approvalWelcomeKey = 'roseDashApprovalWelcomeSeen';
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [storeProfile, setStoreProfile] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [approvalWelcome, setApprovalWelcome] = useState(null);
+
+  const DEFAULT_PARTNER_NOTIFICATIONS = [
+    {
+      id: 'partner-notif-1',
+      title: 'New Order Received',
+      message: 'Order #A1842 received for 3 items (₹450). Please pack and prepare.',
+      time: '2 mins ago',
+      isUnread: true,
+      link: '/partner/orders'
+    },
+    {
+      id: 'partner-notif-2',
+      title: 'Rider Assigned',
+      message: 'Rajesh Kumar is arriving at your dark store to pick up Order #A1840.',
+      time: '12 mins ago',
+      isUnread: true,
+      link: '/partner/orders'
+    },
+    {
+      id: 'partner-notif-3',
+      title: 'Low Stock Alert',
+      message: 'Fresh Milk is running low (4 units left). Update stock levels.',
+      time: '1 hour ago',
+      isUnread: true,
+      link: '/partner/inventory'
+    }
+  ];
+
+  const [notificationHistory, setNotificationHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('partner_notification_list');
+      if (saved) return JSON.parse(saved);
+    } catch(e){}
+    return DEFAULT_PARTNER_NOTIFICATIONS;
+  });
+
   const redirectTimerRef = useRef(null);
   const redirectGuardRef = useRef('');
   const approvalHandledRef = useRef(false);
   const profileMenuRef = useRef(null);
+  const notificationsMenuRef = useRef(null);
 
   const storeName = storeProfile?.name || user?.name || 'Partner Store';
   const storeInitials = storeName
@@ -72,6 +110,9 @@ const PartnerLayout = () => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setIsProfileMenuOpen(false);
+      }
+      if (notificationsMenuRef.current && !notificationsMenuRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -207,6 +248,21 @@ const PartnerLayout = () => {
       }
     };
   }, [location.pathname, navigate]);
+
+  const markAllNotificationsRead = () => {
+    setNotificationHistory((prev) => {
+      const updated = prev.map(n => ({ ...n, isUnread: false }));
+      try { localStorage.setItem('partner_notification_list', JSON.stringify(updated)); } catch(e){}
+      return updated;
+    });
+  };
+
+  const clearAllNotifications = () => {
+    setNotificationHistory([]);
+    try { localStorage.setItem('partner_notification_list', JSON.stringify([])); } catch(e){}
+  };
+
+  const unreadNotificationsCount = notificationHistory.filter(n => n.isUnread).length;
 
   const handleLogout = () => {
     signOut().catch(() => {}).finally(() => {
@@ -346,10 +402,113 @@ const PartnerLayout = () => {
                   <ArrowUpRight className="h-3 w-3 text-emerald-500" />
                 </Link>
 
-                <button className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-xs">
-                  <Bell className="h-4 w-4" />
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-sky-500 px-1 text-[9px] font-bold text-white">3</span>
-                </button>
+                {/* Working Partner Notification Bell Dropdown */}
+                <div className="relative" ref={notificationsMenuRef}>
+                  <button 
+                    onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                    className="relative rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 hover:text-slate-900 shadow-xs hover:border-sky-300 transition cursor-pointer active:scale-95"
+                    title="Notifications"
+                  >
+                    <Bell className="h-4 w-4 text-slate-700" />
+                    {unreadNotificationsCount > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[9px] font-black text-white shadow-xs animate-pulse">
+                        {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isNotificationsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                        transition={{ duration: 0.15 }}
+                        className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200/90 z-50 overflow-hidden flex flex-col max-h-[80vh] sm:max-h-[85vh]"
+                      >
+                        {/* Dropdown Header */}
+                        <div className="p-3.5 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-black text-sm text-slate-900">Partner Notifications</h4>
+                            {unreadNotificationsCount > 0 && (
+                              <span className="bg-sky-100 text-sky-700 font-extrabold text-[10px] px-2 py-0.5 rounded-full">
+                                {unreadNotificationsCount} new
+                              </span>
+                            )}
+                          </div>
+
+                          {notificationHistory.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={markAllNotificationsRead}
+                                className="text-[11px] font-bold text-sky-600 hover:text-sky-800 px-2 py-1 rounded-lg hover:bg-sky-50 transition cursor-pointer"
+                                title="Mark all as read"
+                              >
+                                Mark read
+                              </button>
+                              <button
+                                onClick={clearAllNotifications}
+                                className="text-[11px] font-bold text-rose-500 hover:text-rose-700 px-2 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                title="Clear notifications"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Dropdown Items List */}
+                        <div className="divide-y divide-slate-100 overflow-y-auto max-h-80 custom-scrollbar">
+                          {notificationHistory.length === 0 ? (
+                            <div className="p-8 text-center text-slate-400 font-semibold text-xs flex flex-col items-center gap-2">
+                              <Bell className="w-8 h-8 opacity-20" />
+                              <span>No new notifications</span>
+                            </div>
+                          ) : (
+                            notificationHistory.map((notif) => (
+                              <Link
+                                key={notif.id}
+                                to={notif.link || '/partner/orders'}
+                                onClick={() => {
+                                  setIsNotificationsOpen(false);
+                                  setNotificationHistory(prev => prev.map(n => n.id === notif.id ? { ...n, isUnread: false } : n));
+                                }}
+                                className={`p-3.5 flex items-start gap-3 transition-colors hover:bg-slate-50 block ${
+                                  notif.isUnread ? 'bg-sky-50/30' : 'bg-white'
+                                }`}
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                                  <Sparkles className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <h5 className="font-bold text-xs text-slate-900 truncate">{notif.title}</h5>
+                                    <span className="text-[10px] font-medium text-slate-400 shrink-0">{notif.time || 'Just now'}</span>
+                                  </div>
+                                  <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5 leading-snug">{notif.message}</p>
+                                </div>
+                                {notif.isUnread && (
+                                  <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0 mt-1.5 shadow-xs" />
+                                )}
+                              </Link>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Dropdown Footer */}
+                        <div className="p-2.5 border-t border-slate-100 bg-slate-50/60 text-center">
+                          <Link
+                            to="/partner/notifications"
+                            onClick={() => setIsNotificationsOpen(false)}
+                            className="text-xs font-bold text-slate-700 hover:text-sky-700 transition block py-1"
+                          >
+                            View All Notifications &rarr;
+                          </Link>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Top Quick Logout Button */}
                 <button

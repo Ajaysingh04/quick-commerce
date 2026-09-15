@@ -418,7 +418,7 @@ const AdminLayout = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200/90 z-50 overflow-hidden flex flex-col max-h-[85vh]"
+                      className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200/90 z-50 overflow-hidden flex flex-col max-h-[80vh] sm:max-h-[85vh]"
                     >
                       {/* Dropdown Header */}
                       <div className="p-3.5 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
