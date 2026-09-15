@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChefHat, CheckCircle2, AlertCircle, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
-import { useAuth } from '@clerk/clerk-react';
+import { useSafeAuth } from '../../utils/useSafeAuth.js';
 import API from '../../services/api.js';
 
 const JoinStaff = () => {
- const { token } = useParams();
- const navigate = useNavigate();
- const { isSignedIn, isLoaded, user } = useAuth();
+  const { token } = useParams();
+  const navigate = useNavigate();
+  const { isSignedIn, isLoaded, user } = useSafeAuth();
  
  const [loading, setLoading] = useState(false);
  const [status, setStatus] = useState('idle'); // idle, success, error

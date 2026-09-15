@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSettings } from '../context/SettingsContext.jsx';
 import { logout } from '../store/authSlice.js';
-import { useAuth } from '@clerk/clerk-react';
+import { useSafeAuth } from '../utils/useSafeAuth.js';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -43,7 +43,7 @@ const AdminLayout = () => {
 
   const dispatch = useDispatch();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut } = useSafeAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

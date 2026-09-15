@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useSettings } from '../../context/SettingsContext.jsx';
 import { logout } from '../../store/authSlice.js';
 import API from '../../services/api.js';
-import { useAuth } from '@clerk/clerk-react';
+import { useSafeAuth } from '../../utils/useSafeAuth.js';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -35,7 +35,7 @@ const PartnerLayout = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut } = useSafeAuth();
 
   const approvalWelcomeKey = 'roseDashApprovalWelcomeSeen';
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

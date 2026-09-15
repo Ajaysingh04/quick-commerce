@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useSafeAuth, useSafeUser } from '../../utils/useSafeAuth.js';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../store/authSlice.js';
 import API from '../../services/api.js';
 
 const AuthSync = () => {
- const { getToken, isLoaded: authLoaded, signOut, isSignedIn } = useAuth();
- const { user, isLoaded: userLoaded } = useUser();
+ const { getToken, isLoaded: authLoaded, signOut, isSignedIn } = useSafeAuth();
+ const { user, isLoaded: userLoaded } = useSafeUser();
  const navigate = useNavigate();
  const dispatch = useDispatch();
 

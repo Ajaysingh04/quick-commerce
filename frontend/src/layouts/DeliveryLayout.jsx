@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
-import { useAuth } from '@clerk/clerk-react';
+import { useSafeAuth } from '../utils/useSafeAuth.js';
 import { useSettings } from '../context/SettingsContext.jsx';
 import {
   LayoutDashboard,
@@ -49,7 +49,7 @@ const DeliveryLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut } = useSafeAuth();
   const { settings } = useSettings();
   const { user } = useSelector((state) => state.auth);
 

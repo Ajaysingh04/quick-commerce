@@ -4,7 +4,7 @@ import { User, MapPin, ShoppingBag, Phone, Mail, Plus, Edit, Trash2, Check, Chec
 import { useSelector, useDispatch } from 'react-redux';
 import { setCredentials, logout } from '../../store/authSlice';
 import { clearCart } from '../../store/cartSlice';
-import { useAuth } from '@clerk/clerk-react';
+import { useSafeAuth } from '../../utils/useSafeAuth.js';
 import API from '../../services/api';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -47,7 +47,7 @@ const itemVariants = {
 const UserProfile = () => {
   const { user, token } = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  const { signOut } = useAuth();
+  const { signOut } = useSafeAuth();
   
   const handleLogout = () => {
     signOut().catch(() => {}).finally(() => {

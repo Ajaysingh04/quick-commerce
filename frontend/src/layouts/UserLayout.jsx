@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useSettings } from '../context/SettingsContext.jsx';
 import { logout } from '../store/authSlice.js';
 import { fetchWishlist, toggleWishlistThunk } from '../store/wishlistSlice.js';
-import { useAuth, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { useSafeAuth } from '../utils/useSafeAuth.js';
 import { updateQuantity, selectSubtotal, selectCartTotal, clearCart } from '../store/cartSlice.js';
 import { ShoppingBag, User as UserIcon, Menu, X, Plus, Minus, Search, ChevronRight, Mail, Phone, MapPin, ArrowUp, Heart, Smile, Gift, Smartphone, ArrowLeft } from 'lucide-react';
 import API from '../services/api.js';
@@ -23,7 +24,7 @@ const UserLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut, isSignedIn, isLoaded } = useAuth();
+  const { signOut, isSignedIn, isLoaded } = useSafeAuth();
 
   React.useEffect(() => {
     const isDemo = user?.isDemo || localStorage.getItem('isDemoMode') === 'true';

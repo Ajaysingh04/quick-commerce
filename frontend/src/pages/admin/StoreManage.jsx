@@ -22,21 +22,95 @@ const StoreManage = () => {
  const [bannerFile, setBannerFile] = useState(null);
  const [editingStoreId, setEditingStoreId] = useState(null);
 
- useEffect(() => {
-   fetchStores();
- }, []);
+  const DEFAULT_DARKSTORES = [
+    {
+      _id: 'store-1',
+      name: 'Connaught Place Mega Darkstore',
+      cuisineTypes: ['110001', '110002', '110005'],
+      deliveryTime: 10,
+      distance: 1.8,
+      costForTwo: 99,
+      featured: true,
+      isActive: true,
+      bannerImage: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=400&q=80'
+    },
+    {
+      _id: 'store-2',
+      name: 'Indiranagar Express Micro-Hub',
+      cuisineTypes: ['560038', '560008', '560075'],
+      deliveryTime: 12,
+      distance: 2.3,
+      costForTwo: 99,
+      featured: true,
+      isActive: true,
+      bannerImage: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=400&q=80'
+    },
+    {
+      _id: 'store-3',
+      name: 'Bandra West Rapid Fulfillment Center',
+      cuisineTypes: ['400050', '400052', '400053'],
+      deliveryTime: 8,
+      distance: 1.2,
+      costForTwo: 99,
+      featured: true,
+      isActive: true,
+      bannerImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'
+    },
+    {
+      _id: 'store-4',
+      name: 'Gachibowli Tech Park Darkstore',
+      cuisineTypes: ['500032', '500081', '500084'],
+      deliveryTime: 14,
+      distance: 3.1,
+      costForTwo: 99,
+      featured: false,
+      isActive: true,
+      bannerImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=400&q=80'
+    },
+    {
+      _id: 'store-5',
+      name: 'Whitefield Smart Warehouse',
+      cuisineTypes: ['560066', '560067'],
+      deliveryTime: 15,
+      distance: 3.8,
+      costForTwo: 149,
+      featured: false,
+      isActive: true,
+      bannerImage: 'https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=400&q=80'
+    },
+    {
+      _id: 'store-6',
+      name: 'Noida Sector 62 Super Hub',
+      cuisineTypes: ['201301', '201309'],
+      deliveryTime: 10,
+      distance: 2.0,
+      costForTwo: 99,
+      featured: true,
+      isActive: true,
+      bannerImage: 'https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=400&q=80'
+    }
+  ];
 
- const fetchStores = async () => {
-   setPageLoading(true);
-   try {
-     const res = await API.get('/stores');
-     setStores(res.data);
-   } catch (err) {
-     console.error('Failed to fetch stores', err);
-   } finally {
-     setPageLoading(false);
-   }
- };
+  useEffect(() => {
+    fetchStores();
+  }, []);
+
+  const fetchStores = async () => {
+    setPageLoading(true);
+    try {
+      const res = await API.get('/stores');
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setStores(res.data);
+      } else {
+        setStores(DEFAULT_DARKSTORES);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch stores from API, using default Darkstores catalog:', err);
+      setStores(DEFAULT_DARKSTORES);
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
  const handleSubmit = async (e) => {
  e.preventDefault();

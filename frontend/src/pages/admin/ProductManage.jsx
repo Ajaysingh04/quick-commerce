@@ -3,106 +3,139 @@ import API from '../../services/api.js';
 import { Plus, Check, X, ShieldAlert, Trash2, ToggleLeft, ToggleRight, Utensils, ChefHat, Layers, IndianRupee, Search, Package, Upload, FileJson, FileText, Download, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORY_TEMPLATES } from '../../data/productTemplates.js';
 
-const BACKUP_CATALOG = [
- { _id: '1', name: 'Amul Taaza Toned Fresh Milk', price: 54, originalPrice: 56, weight: '1 L', stockQuantity: 150, sku: 'DAIRY-001', isVeg: true, inStock: true, description: 'Fresh toned milk', store: { name: 'Quick Commerce Store' }, category: { name: 'Dairy' }, image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=100&q=80' },
- { _id: '2', name: 'Britannia Good Day Cashew Cookies', price: 20, originalPrice: 25, weight: '72 g', stockQuantity: 300, sku: 'SNK-002', isVeg: true, inStock: true, description: 'Rich cashew cookies', store: { name: 'Quick Commerce Store' }, category: { name: 'Snacks' }, image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=100&q=80' },
- { _id: '3', name: 'Fresh Onion (Pyaz)', price: 45, originalPrice: 60, weight: '1 kg', stockQuantity: 0, sku: 'VEG-003', isVeg: true, inStock: false, description: 'Farm fresh onions', store: { name: 'Quick Commerce Store' }, category: { name: 'Vegetables' }, image: 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?auto=format&fit=crop&w=100&q=80' }
-];
+const FULL_BACKUP_CATALOG = Object.entries(CATEGORY_TEMPLATES).flatMap(([catName, items], catIdx) =>
+  items.map((item, itemIdx) => ({
+    _id: `prod-${catIdx}-${itemIdx}-${item.sku || 'sku'}`,
+    name: item.name,
+    price: item.price,
+    originalPrice: item.originalPrice || item.price + 20,
+    weight: item.weight || '1 pc',
+    stockQuantity: item.stockQuantity || 100,
+    sku: item.sku || `SKU-${catIdx}${itemIdx}`,
+    isVeg: item.isVeg !== undefined ? item.isVeg : true,
+    inStock: item.inStock !== undefined ? item.inStock : true,
+    isPopular: item.isPopular || false,
+    description: item.description || `Premium quality ${item.name}`,
+    store: { _id: 'store-1', name: item.store || 'Connaught Place Mega Darkstore' },
+    category: { _id: `cat-${catIdx}`, name: catName },
+    image: item.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80'
+  }))
+);
 
 const ProductManage = () => {
- const [products, setProducts] = useState([]);
- const [storesList, setStoresList] = useState([]);
- const [categoriesList, setCategoriesList] = useState([]);
- 
- const [name, setName] = useState('');
- const [price, setPrice] = useState('');
- const [originalPrice, setOriginalPrice] = useState('');
- const [weight, setWeight] = useState('');
- const [discount, setDiscount] = useState('');
- const [sku, setSku] = useState('');
- const [stockQuantity, setStockQuantity] = useState(100);
- const [isVeg, setIsVeg] = useState(true);
- const [isPopular, setIsPopular] = useState(false);
- const [description, setDescription] = useState('');
- const [image, setImage] = useState('');
- const [imageFile, setImageFile] = useState(null);
- const [selectedStore, setSelectedStore] = useState('');
- const [selectedCategory, setSelectedCategory] = useState('');
- const [editingProductId, setEditingProductId] = useState(null);
- const [isEditMode, setIsEditMode] = useState(false);
- const [currentPage, setCurrentPage] = useState(1);
- const itemsPerPage = 8;
+  const [products, setProducts] = useState([]);
+  const [storesList, setStoresList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [weight, setWeight] = useState('');
+  const [discount, setDiscount] = useState('');
+  const [sku, setSku] = useState('');
+  const [stockQuantity, setStockQuantity] = useState(100);
+  const [isVeg, setIsVeg] = useState(true);
+  const [isPopular, setIsPopular] = useState(false);
+  const [description, setDescription] = useState('');
+  const [image, setImage] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
- const [searchQuery, setSearchQuery] = useState('');
- const [filterVeg, setFilterVeg] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterVeg, setFilterVeg] = useState('all');
 
- useEffect(() => {
-   setCurrentPage(1);
- }, [searchQuery, filterVeg]);
- 
- const [success, setSuccess] = useState('');
- const [error, setError] = useState('');
- const [loading, setLoading] = useState(false);
- const [bulkFile, setBulkFile] = useState(null);
- const [bulkLoading, setBulkLoading] = useState(false);
- const [selectedTemplateCategory, setSelectedTemplateCategory] = useState('All');
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterVeg]);
+  
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [selectedTemplateCategory, setSelectedTemplateCategory] = useState('All');
 
- useEffect(() => {
- fetchInitialData();
- }, []);
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
- // Sync Add New Product category dropdown with Bulk Upload template selection
- useEffect(() => {
-   if (categoriesList.length > 0 && selectedTemplateCategory) {
-     const matchedCategory = categoriesList.find(
-       c => c.name.toLowerCase() === selectedTemplateCategory.toLowerCase()
-     );
-     if (matchedCategory) {
-       setSelectedCategory(matchedCategory._id);
-     }
-   }
- }, [selectedTemplateCategory, categoriesList]);
+  // Sync Add New Product category dropdown with Bulk Upload template selection
+  useEffect(() => {
+    if (categoriesList.length > 0 && selectedTemplateCategory) {
+      const matchedCategory = categoriesList.find(
+        c => c.name.toLowerCase() === selectedTemplateCategory.toLowerCase()
+      );
+      if (matchedCategory) {
+        setSelectedCategory(matchedCategory._id);
+      }
+    }
+  }, [selectedTemplateCategory, categoriesList]);
 
- const fetchInitialData = async () => {
- setLoading(true);
- try {
- // 1. Fetch products list
- const productsRes = await API.get('/products?all=true');
- setProducts(productsRes.data);
- 
- // 2. Fetch stores list
- const restRes = await API.get('/stores');
- setStoresList(restRes.data);
- if (restRes.data.length > 0) {
- setSelectedStore(restRes.data[0]._id);
- }
- 
- // 3. Fetch categories list
- const catRes = await API.get('/products/categories?all=true');
- setCategoriesList(catRes.data);
- if (catRes.data.length > 0) {
- setSelectedCategory(catRes.data[0]._id);
- }
- } catch (err) {
- console.warn('API error loading initial admin data, using backups:', err);
- setProducts(BACKUP_CATALOG);
- setStoresList([
- { _id: 'store-1', name: 'Quick Commerce Store' }
- ]);
- setSelectedStore('store-1');
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch products list
+      const productsRes = await API.get('/products?all=true');
+      if (Array.isArray(productsRes.data) && productsRes.data.length > 0) {
+        setProducts(productsRes.data);
+      } else {
+        setProducts(FULL_BACKUP_CATALOG);
+      }
+      
+      // 2. Fetch stores list
+      const restRes = await API.get('/stores');
+      if (Array.isArray(restRes.data) && restRes.data.length > 0) {
+        setStoresList(restRes.data);
+        setSelectedStore(restRes.data[0]._id);
+      } else {
+        setStoresList([
+          { _id: 'store-1', name: 'Connaught Place Mega Darkstore' },
+          { _id: 'store-2', name: 'Indiranagar Express Micro-Hub' },
+          { _id: 'store-3', name: 'Bandra West Rapid Fulfillment' }
+        ]);
+        setSelectedStore('store-1');
+      }
+      
+      // 3. Fetch categories list
+      const catRes = await API.get('/products/categories?all=true');
+      if (Array.isArray(catRes.data) && catRes.data.length > 0) {
+        setCategoriesList(catRes.data);
+        setSelectedCategory(catRes.data[0]._id);
+      } else {
+        const defaultCats = Object.keys(CATEGORY_TEMPLATES).map((catName, idx) => ({
+          _id: `cat-${idx}`,
+          name: catName
+        }));
+        setCategoriesList(defaultCats);
+        setSelectedCategory('cat-0');
+      }
+    } catch (err) {
+      console.warn('API error loading initial admin data, using full backup catalog:', err);
+      setProducts(FULL_BACKUP_CATALOG);
+      setStoresList([
+        { _id: 'store-1', name: 'Connaught Place Mega Darkstore' },
+        { _id: 'store-2', name: 'Indiranagar Express Micro-Hub' },
+        { _id: 'store-3', name: 'Bandra West Rapid Fulfillment' }
+      ]);
+      setSelectedStore('store-1');
 
- setCategoriesList([
- { _id: 'cat-dairy', name: 'Dairy' },
- { _id: 'cat-snacks', name: 'Snacks' },
- { _id: 'cat-veg', name: 'Vegetables' }
- ]);
- setSelectedCategory('cat-dairy');
- } finally {
- setLoading(false);
- }
- };
+      const defaultCats = Object.keys(CATEGORY_TEMPLATES).map((catName, idx) => ({
+        _id: `cat-${idx}`,
+        name: catName
+      }));
+      setCategoriesList(defaultCats);
+      setSelectedCategory('cat-0');
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const handleSubmitProduct = async (e) => {
+  const handleSubmitProduct = async (e) => {
  e.preventDefault();
  setError('');
  setSuccess('');
