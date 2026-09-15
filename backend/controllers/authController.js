@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Store from '../models/Store.js';
 import sendEmail from '../utils/sendEmail.js';
 import { 
   generateAccessToken, 
@@ -506,6 +507,32 @@ export const demoLogin = async (req, res) => {
         user.kyc = { status: 'approved' };
       }
       await user.save();
+    }
+
+    if (profile.role === 'partner') {
+      let store = await Store.findOne({ owner: user._id });
+      if (!store) {
+        store = await Store.create({
+          name: 'Green Grocers Dark Store',
+          owner: user._id,
+          description: 'Demo store dashboard with full inventory & live orders.',
+          isActive: true,
+          status: 'approved',
+          franchisePurchaseStatus: 'paid',
+          onboardingCompleted: true,
+          kycStatus: 'approved',
+          category: 'Grocery',
+          cuisineTypes: ['Essentials', 'Fresh Food'],
+          deliveryTime: 15,
+          bannerImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80'
+        });
+      } else {
+        store.status = 'approved';
+        store.franchisePurchaseStatus = 'paid';
+        store.onboardingCompleted = true;
+        store.kycStatus = 'approved';
+        await store.save();
+      }
     }
 
     const accessToken = generateAccessToken(user);

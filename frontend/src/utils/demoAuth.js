@@ -32,7 +32,7 @@ export const DEMO_PROFILES = {
     desc: 'Manage store orders, catalog inventory, promotions, and logistics dispatch.',
     badge: 'Dark Store Ops',
     color: 'from-sky-500 to-indigo-600',
-    targetPath: '/partner/onboarding?demo=true'
+    targetPath: '/partner/dashboard'
   },
   delivery: {
     id: 'demo-delivery-01',

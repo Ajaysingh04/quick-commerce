@@ -32,11 +32,15 @@ const DemoAccessModal = ({ requestedRole, returnPath }) => {
     setIsActivating(true);
     try {
       await loginAsDemo(role, dispatch);
-      const target = returnPath || DEMO_PROFILES[role]?.targetPath || '/';
-      // Small timeout for smooth UX transition
+      
+      let target = DEMO_PROFILES[role]?.targetPath || '/';
+      if (returnPath && role === requestedRole) {
+        target = returnPath;
+      }
+      
       setTimeout(() => {
         navigate(target, { replace: true });
-      }, 300);
+      }, 200);
     } catch (e) {
       console.error('Demo login error:', e);
     } finally {

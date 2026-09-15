@@ -26,17 +26,20 @@ const UserLayout = () => {
   const { signOut, isSignedIn, isLoaded } = useAuth();
 
   React.useEffect(() => {
-    // Sync Clerk sign-out with Redux
-    if (isLoaded && !isSignedIn && isAuthenticated) {
-      dispatch(logout());
-      dispatch(clearCart());
+    const isDemo = user?.isDemo || localStorage.getItem('isDemoMode') === 'true';
+    if (!isDemo) {
+      // Sync Clerk sign-out with Redux
+      if (isLoaded && !isSignedIn && isAuthenticated) {
+        dispatch(logout());
+        dispatch(clearCart());
+      }
+      
+      // Auto-sync if Clerk is signed in but Redux lost state (e.g. after refresh)
+      if (isLoaded && isSignedIn && !isAuthenticated && location.pathname !== '/auth-sync') {
+        navigate('/auth-sync');
+      }
     }
-    
-    // Auto-sync if Clerk is signed in but Redux lost state (e.g. after refresh)
-    if (isLoaded && isSignedIn && !isAuthenticated && location.pathname !== '/auth-sync') {
-      navigate('/auth-sync');
-    }
-  }, [isLoaded, isSignedIn, isAuthenticated, dispatch, navigate, location.pathname]);
+  }, [isLoaded, isSignedIn, isAuthenticated, user, dispatch, navigate, location.pathname]);
 
   // Scroll to top on route change
   React.useEffect(() => {
