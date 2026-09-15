@@ -113,7 +113,7 @@ const Orders = () => {
           </div>
           <p className="text-xs text-slate-500 mt-1">Show Pickup QR to riders, pack items, and track live delivery handovers.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar w-full xl:w-auto pb-1">
           {['New', 'Packing', 'Ready', 'History', 'Refunds'].map(f => {
             const count = 
               f === 'New' ? orders.filter(o=>['pending', 'placed'].includes(o.status)).length : 
@@ -126,7 +126,7 @@ const Orders = () => {
               <button 
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   filter === f 
                     ? 'bg-[#e31837] text-white shadow-lg shadow-[#e31837]/20' 
                     : 'bg-white text-slate-600 border border-gray-200 hover:border-[#e31837]'
@@ -141,7 +141,7 @@ const Orders = () => {
       </div>
 
       {/* Order List */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#f5f6fa] custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-[#f5f6fa] custom-scrollbar">
         <AnimatePresence>
           {filteredOrders.length > 0 ? (
             filteredOrders.map((order) => (

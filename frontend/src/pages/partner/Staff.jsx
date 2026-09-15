@@ -127,108 +127,199 @@ const Staff = () => {
  )}
  </AnimatePresence>
 
- {/* Staff List */}
- <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm overflow-x-auto custom-scrollbar">
- <table className="w-full text-left text-sm whitespace-nowrap">
- <thead className="bg-[#f5f6fa] text-xs uppercase font-bold text-slate-500 tracking-wider">
- <tr>
- <th className="px-6 py-4">Team Member</th>
- <th className="px-6 py-4">Role & Access</th>
- <th className="px-6 py-4">Status</th>
- <th className="px-6 py-4">Added On</th>
- <th className="px-6 py-4 text-right">Actions</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-100 ">
- {/* Active Staff */}
- {staffList.map((staff) => (
- <tr key={staff._id || Math.random()} className="hover:bg-[#f5f6fa] :bg-slate-800/20 transition-colors group">
- <td className="px-6 py-4">
- <div className="flex items-center gap-3">
- <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${
- staff.role === 'Manager' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
- }`}>
- {staff.user?.name ? staff.user.name.charAt(0) : 'U'}
- </div>
- <div>
- <div className="font-bold text-slate-800 ">{staff.user?.name || 'Unknown User'}</div>
- <div className="text-[10px] font-semibold text-slate-500">{staff.user?.email || 'N/A'}</div>
- </div>
- </div>
- </td>
- <td className="px-6 py-4">
- <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${
- staff.role === 'Manager' ? 'bg-blue-50 text-blue-600 border-blue-200 ' : 'bg-orange-50 text-orange-600 border-orange-200 '
- }`}>
- {staff.role === 'Manager' ? <Shield className="w-3.5 h-3.5" /> : <ChefHat className="w-3.5 h-3.5" />} {staff.role}
- </span>
- </td>
- <td className="px-6 py-4">
- <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
- staff.status === 'Active' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-500 bg-slate-100'
- }`}>
- <div className={`w-1.5 h-1.5 rounded-full ${staff.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
- {staff.status}
- </span>
- </td>
- <td className="px-6 py-4 text-slate-500 font-medium">
- {new Date(staff.addedOn).toLocaleDateString()}
- </td>
- <td className="px-6 py-4 text-right">
- <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
- <button onClick={() => toggleStatus(staff._id)} className="p-1.5 text-slate-400 hover:text-[#e31837] hover:bg-[#e31837]/10 rounded-lg transition-colors" title={staff.status === 'Active' ? 'Deactivate access' : 'Activate access'}>
- {staff.status === 'Active' ? <Lock className="w-4 h-4" /> : <Check className="w-4 h-4" />}
- </button>
- <button onClick={() => removeStaff(staff._id)} className="p-1.5 text-slate-400 hover:text-[#e31837] hover:bg-[#e31837]/10 rounded-lg transition-colors" title="Remove Staff">
- <Trash2 className="w-4 h-4" />
- </button>
- </div>
- </td>
- </tr>
- ))}
- 
- {/* Pending Invites */}
- {invites.map((invite) => (
- <tr key={invite._id || Math.random()} className="hover:bg-[#f5f6fa] :bg-slate-800/20 transition-colors bg-amber-50/30 ">
- <td className="px-6 py-4">
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-full border border-dashed border-amber-300 flex items-center justify-center font-black text-sm text-amber-500">
- <Clock className="w-4 h-4" />
- </div>
- <div>
- <div className="font-bold text-slate-800 flex items-center gap-2">Pending Invite</div>
- <div className="text-[10px] font-semibold text-slate-500">{invite.email}</div>
- </div>
- </div>
- </td>
- <td className="px-6 py-4">
- <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border bg-[#f5f6fa] text-slate-600 border-gray-200 ">
- {invite.role}
- </span>
- </td>
- <td className="px-6 py-4">
- <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-amber-600 bg-amber-100 border border-amber-200 ">
- <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
- Awaiting Join
- </span>
- </td>
- <td className="px-6 py-4 text-slate-500 font-medium">
- {new Date(invite.invitedOn).toLocaleDateString()}
- </td>
- <td className="px-6 py-4 text-right">
- <button className="text-[10px] font-bold text-amber-600 hover:text-amber-700 underline">Resend Link</button>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- {!loading && staffList.length === 0 && invites.length === 0 && (
- <div className="text-center py-12 text-slate-400">
- <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
- <p className="font-semibold text-sm">No team members or pending invites.</p>
- </div>
- )}
- </div>
+  {/* Staff List */}
+  <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+    {/* Mobile Cards View (< md) */}
+    <div className="block md:hidden divide-y divide-gray-100">
+      {/* Active Staff */}
+      {staffList.map((staff) => (
+        <div key={staff._id || Math.random()} className="p-4 flex flex-col gap-3 hover:bg-slate-50 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+              staff.role === 'Manager' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
+            }`}>
+              {staff.user?.name ? staff.user.name.charAt(0) : 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="font-bold text-slate-800 text-sm truncate">{staff.user?.name || 'Unknown User'}</h4>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                  staff.status === 'Active' ? 'text-emerald-700 bg-emerald-100' : 'text-slate-600 bg-slate-100'
+                }`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${staff.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                  {staff.status}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 truncate mt-0.5">{staff.user?.email || 'N/A'}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${
+              staff.role === 'Manager' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'
+            }`}>
+              {staff.role === 'Manager' ? <Shield className="w-3.5 h-3.5" /> : <ChefHat className="w-3.5 h-3.5" />} {staff.role}
+            </span>
+
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => toggleStatus(staff._id)} 
+                className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors" 
+                title={staff.status === 'Active' ? 'Deactivate access' : 'Activate access'}
+              >
+                {staff.status === 'Active' ? <Lock className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+              </button>
+              <button 
+                onClick={() => removeStaff(staff._id)} 
+                className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors" 
+                title="Remove Staff"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Pending Invites Mobile */}
+      {invites.map((invite) => (
+        <div key={invite._id || Math.random()} className="p-4 flex flex-col gap-3 bg-amber-50/40 hover:bg-amber-50/60 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl border border-dashed border-amber-300 flex items-center justify-center font-black text-sm text-amber-500 shrink-0">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="font-bold text-slate-800 text-sm">Pending Invite</h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                  Awaiting Join
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 truncate mt-0.5">{invite.email}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-amber-100 text-xs">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border bg-white text-slate-600 border-gray-200">
+              {invite.role}
+            </span>
+            <button className="text-xs font-bold text-amber-700 hover:underline">Resend Link</button>
+          </div>
+        </div>
+      ))}
+
+      {!loading && staffList.length === 0 && invites.length === 0 && (
+        <div className="text-center py-12 text-slate-400 p-4">
+          <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="font-semibold text-sm">No team members or pending invites.</p>
+        </div>
+      )}
+    </div>
+
+    {/* Desktop Table View (>= md) */}
+    <div className="hidden md:block overflow-x-auto custom-scrollbar">
+      <table className="w-full text-left text-sm whitespace-nowrap">
+        <thead className="bg-[#f5f6fa] text-xs uppercase font-bold text-slate-500 tracking-wider">
+          <tr>
+            <th className="px-6 py-4">Team Member</th>
+            <th className="px-6 py-4">Role & Access</th>
+            <th className="px-6 py-4">Status</th>
+            <th className="px-6 py-4">Added On</th>
+            <th className="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {/* Active Staff */}
+          {staffList.map((staff) => (
+            <tr key={staff._id || Math.random()} className="hover:bg-[#f5f6fa] transition-colors group">
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${
+                    staff.role === 'Manager' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
+                  }`}>
+                    {staff.user?.name ? staff.user.name.charAt(0) : 'U'}
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-800">{staff.user?.name || 'Unknown User'}</div>
+                    <div className="text-[10px] font-semibold text-slate-500">{staff.user?.email || 'N/A'}</div>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                  staff.role === 'Manager' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'
+                }`}>
+                  {staff.role === 'Manager' ? <Shield className="w-3.5 h-3.5" /> : <ChefHat className="w-3.5 h-3.5" />} {staff.role}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                  staff.status === 'Active' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-500 bg-slate-100'
+                }`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${staff.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                  {staff.status}
+                </span>
+              </td>
+              <td className="px-6 py-4 text-slate-500 font-medium">
+                {new Date(staff.addedOn).toLocaleDateString()}
+              </td>
+              <td className="px-6 py-4 text-right">
+                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => toggleStatus(staff._id)} className="p-1.5 text-slate-400 hover:text-[#e31837] hover:bg-[#e31837]/10 rounded-lg transition-colors" title={staff.status === 'Active' ? 'Deactivate access' : 'Activate access'}>
+                    {staff.status === 'Active' ? <Lock className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                  </button>
+                  <button onClick={() => removeStaff(staff._id)} className="p-1.5 text-slate-400 hover:text-[#e31837] hover:bg-[#e31837]/10 rounded-lg transition-colors" title="Remove Staff">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+          
+          {/* Pending Invites */}
+          {invites.map((invite) => (
+            <tr key={invite._id || Math.random()} className="hover:bg-[#f5f6fa] transition-colors bg-amber-50/30">
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border border-dashed border-amber-300 flex items-center justify-center font-black text-sm text-amber-500">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-800 flex items-center gap-2">Pending Invite</div>
+                    <div className="text-[10px] font-semibold text-slate-500">{invite.email}</div>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border bg-[#f5f6fa] text-slate-600 border-gray-200">
+                  {invite.role}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-amber-600 bg-amber-100 border border-amber-200">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                  Awaiting Join
+                </span>
+              </td>
+              <td className="px-6 py-4 text-slate-500 font-medium">
+                {new Date(invite.invitedOn).toLocaleDateString()}
+              </td>
+              <td className="px-6 py-4 text-right">
+                <button className="text-[10px] font-bold text-amber-600 hover:text-amber-700 underline">Resend Link</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {!loading && staffList.length === 0 && invites.length === 0 && (
+        <div className="text-center py-12 text-slate-400">
+          <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="font-semibold text-sm">No team members or pending invites.</p>
+        </div>
+      )}
+    </div>
+  </div>
 
  </div>
  );

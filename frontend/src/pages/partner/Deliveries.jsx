@@ -144,36 +144,64 @@ const Deliveries = () => {
  ))}
  </div>
  ) : (
- <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm overflow-x-auto custom-scrollbar">
- <table className="w-full text-left text-sm whitespace-nowrap">
- <thead className="bg-[#f5f6fa] text-xs uppercase font-bold text-slate-500 tracking-wider">
- <tr>
- <th className="px-6 py-4">Order ID</th>
- <th className="px-6 py-4">Rider</th>
- <th className="px-6 py-4">Time</th>
- <th className="px-6 py-4">Duration</th>
- <th className="px-6 py-4 text-right">Status</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-100 ">
- {pastDeliveries.map((delivery) => (
- <tr key={delivery.id} className="hover:bg-[#f5f6fa] :bg-slate-800/20 transition-colors">
- <td className="px-6 py-4 font-mono font-bold text-slate-600 ">{delivery.id}</td>
- <td className="px-6 py-4 font-bold text-slate-800 ">{delivery.rider}</td>
- <td className="px-6 py-4 text-slate-500 font-medium">{delivery.time}</td>
- <td className="px-6 py-4 text-slate-600 font-semibold">{delivery.duration}</td>
- <td className="px-6 py-4 text-right">
- <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
- delivery.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-[#e31837]/10 text-[#c8102e] border border-rose-200'
- }`}>
- {delivery.status}
- </span>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
+  <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+    {/* Mobile Cards View (< md) */}
+    <div className="block md:hidden divide-y divide-gray-100">
+      {pastDeliveries.map((delivery) => (
+        <div key={delivery.id} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-bold text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{delivery.id}</span>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
+                delivery.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'
+              }`}>
+                {delivery.status}
+              </span>
+            </div>
+            <p className="font-bold text-slate-900 text-sm mt-1">{delivery.rider}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">{delivery.time}</p>
+          </div>
+          <div className="text-right">
+            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
+              {delivery.duration}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Desktop Table View (>= md) */}
+    <div className="hidden md:block overflow-x-auto custom-scrollbar">
+      <table className="w-full text-left text-sm whitespace-nowrap">
+        <thead className="bg-[#f5f6fa] text-xs uppercase font-bold text-slate-500 tracking-wider">
+          <tr>
+            <th className="px-6 py-4">Order ID</th>
+            <th className="px-6 py-4">Rider</th>
+            <th className="px-6 py-4">Time</th>
+            <th className="px-6 py-4">Duration</th>
+            <th className="px-6 py-4 text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {pastDeliveries.map((delivery) => (
+            <tr key={delivery.id} className="hover:bg-[#f5f6fa] transition-colors">
+              <td className="px-6 py-4 font-mono font-bold text-slate-600">{delivery.id}</td>
+              <td className="px-6 py-4 font-bold text-slate-800">{delivery.rider}</td>
+              <td className="px-6 py-4 text-slate-500 font-medium">{delivery.time}</td>
+              <td className="px-6 py-4 text-slate-600 font-semibold">{delivery.duration}</td>
+              <td className="px-6 py-4 text-right">
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                  delivery.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'
+                }`}>
+                  {delivery.status}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
  )}
 
  </div>

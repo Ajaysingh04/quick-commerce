@@ -247,85 +247,165 @@ const Inventory = () => {
  </div>
  </div>
 
- {/* Inventory Table */}
- <div className="flex-1 overflow-auto custom-scrollbar">
- <table className="w-full text-left text-sm whitespace-nowrap">
- <thead className="bg-[#f5f6fa] sticky top-0 z-10">
- <tr className="border-b border-gray-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
- <th className="py-4 px-6">Product Name</th>
- <th className="py-4 px-6">Category</th>
- <th className="py-4 px-6">Price</th>
- <th className="py-4 px-6 text-center">Stock</th>
- <th className="py-4 px-6">Status</th>
- <th className="py-4 px-6 text-right">Actions</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-100 ">
- {filteredProducts.map((product) => (
- <tr key={product._id} className="hover:bg-[#f5f6fa]/80 :bg-slate-800/40 transition-colors group">
- <td className="py-4 px-6">
- <div className="flex items-center gap-3">
- <img 
- src={product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80'} 
- alt={product.name} 
- className="w-10 h-10 rounded-lg object-cover bg-slate-100" 
- />
- <div>
- <div className="font-bold text-slate-900 flex items-center gap-2">
- {product.name}
- {product.isBestseller && <span className="bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider font-black">Bestseller</span>}
- </div>
- <div className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[200px]">{product.weight} | SKU: {product.sku || 'N/A'}</div>
- </div>
- </div>
- </td>
- <td className="py-4 px-6">
- <span className="text-xs font-semibold bg-slate-100 px-2.5 py-1 rounded-md text-slate-600 ">
- {product.category?.name || 'Uncategorized'}
- </span>
- </td>
- <td className="py-4 px-6 font-black text-slate-800 ">
- ₹{product.price}
- {product.originalPrice && <span className="ml-2 text-xs text-slate-400 line-through">₹{product.originalPrice}</span>}
- </td>
- <td className="py-4 px-6 text-center">
- <span className={`font-bold ${product.stockQuantity < 10 ? 'text-red-500' : 'text-slate-700 '}`}>
- {product.stockQuantity}
- </span>
- </td>
- <td className="py-4 px-6">
- <button 
- onClick={() => handleStockToggle(product._id, product.inStock)}
- className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
- product.inStock 
- ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' 
- : 'bg-rose-100 text-[#c8102e] hover:bg-rose-200'
- }`}
- >
- {product.inStock ? <><Check className="w-3 h-3"/> Active</> : <><XIcon className="w-3 h-3"/> Inactive</>}
- </button>
- </td>
- <td className="py-4 px-6 text-right">
- <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
- <button onClick={() => openModal(product)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg transition-colors" title="Edit Item">
- <Edit className="w-4 h-4" />
- </button>
- <button onClick={() => handleDelete(product._id)} className="p-1.5 text-slate-400 hover:text-[#e31837] hover:bg-[#e31837]/10 :bg-[#e31837]/10 rounded-lg transition-colors" title="Delete Item">
- <Trash2 className="w-4 h-4" />
- </button>
- </div>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- {filteredProducts.length === 0 && (
- <div className="text-center py-12 text-slate-400">
- <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
- <p className="font-semibold text-sm">No products found.</p>
- </div>
- )}
- </div>
+  {/* Inventory List */}
+  <div className="flex-1 overflow-auto custom-scrollbar">
+    {/* Mobile Cards View (< md) */}
+    <div className="block md:hidden divide-y divide-gray-100">
+      {filteredProducts.map((product) => (
+        <div key={product._id} className="p-4 flex flex-col gap-3 hover:bg-slate-50/60 transition-colors">
+          <div className="flex items-start gap-3">
+            <img 
+              src={product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80'} 
+              alt={product.name} 
+              className="w-14 h-14 rounded-xl object-cover bg-slate-100 shrink-0 border border-slate-200" 
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="font-bold text-slate-900 text-sm truncate">{product.name}</h4>
+                {product.isBestseller && (
+                  <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider font-black shrink-0">
+                    Bestseller
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">{product.weight || '1 pc'} | SKU: {product.sku || 'N/A'}</p>
+              <div className="mt-1.5">
+                <span className="text-[10px] font-semibold bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">
+                  {product.category?.name || 'Uncategorized'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs">
+            <div>
+              <div className="font-black text-slate-900 text-sm">
+                ₹{product.price}
+                {product.originalPrice && <span className="ml-1.5 text-xs text-slate-400 font-normal line-through">₹{product.originalPrice}</span>}
+              </div>
+              <div className="text-[10px] font-semibold text-slate-500">
+                Stock: <span className={product.stockQuantity < 10 ? 'text-rose-600 font-bold' : 'text-slate-800 font-bold'}>{product.stockQuantity}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => handleStockToggle(product._id, product.inStock)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
+                  product.inStock 
+                    ? 'bg-emerald-100 text-emerald-700' 
+                    : 'bg-rose-100 text-[#c8102e]'
+                }`}
+              >
+                {product.inStock ? <><Check className="w-3 h-3"/> Active</> : <><XIcon className="w-3 h-3"/> Inactive</>}
+              </button>
+
+              <button 
+                onClick={() => openModal(product)} 
+                className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" 
+                title="Edit Item"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => handleDelete(product._id)} 
+                className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors" 
+                title="Delete Item"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-12 text-slate-400 p-4">
+          <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="font-semibold text-sm">No products found.</p>
+        </div>
+      )}
+    </div>
+
+    {/* Desktop Table View (>= md) */}
+    <div className="hidden md:block">
+      <table className="w-full text-left text-sm whitespace-nowrap">
+        <thead className="bg-[#f5f6fa] sticky top-0 z-10">
+          <tr className="border-b border-gray-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
+            <th className="py-4 px-6">Product Name</th>
+            <th className="py-4 px-6">Category</th>
+            <th className="py-4 px-6">Price</th>
+            <th className="py-4 px-6 text-center">Stock</th>
+            <th className="py-4 px-6">Status</th>
+            <th className="py-4 px-6 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+        {filteredProducts.map((product) => (
+          <tr key={product._id} className="hover:bg-[#f5f6fa]/80 transition-colors group">
+            <td className="py-4 px-6">
+              <div className="flex items-center gap-3">
+                <img 
+                  src={product.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80'} 
+                  alt={product.name} 
+                  className="w-10 h-10 rounded-lg object-cover bg-slate-100" 
+                />
+                <div>
+                  <div className="font-bold text-slate-900 flex items-center gap-2">
+                    {product.name}
+                    {product.isBestseller && <span className="bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider font-black">Bestseller</span>}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[200px]">{product.weight} | SKU: {product.sku || 'N/A'}</div>
+                </div>
+              </div>
+            </td>
+            <td className="py-4 px-6">
+              <span className="text-xs font-semibold bg-slate-100 px-2.5 py-1 rounded-md text-slate-600">
+                {product.category?.name || 'Uncategorized'}
+              </span>
+            </td>
+            <td className="py-4 px-6 font-black text-slate-800">
+              ₹{product.price}
+              {product.originalPrice && <span className="ml-2 text-xs text-slate-400 line-through">₹{product.originalPrice}</span>}
+            </td>
+            <td className="py-4 px-6 text-center">
+              <span className={`font-bold ${product.stockQuantity < 10 ? 'text-red-500' : 'text-slate-700'}`}>
+                {product.stockQuantity}
+              </span>
+            </td>
+            <td className="py-4 px-6">
+              <button 
+                onClick={() => handleStockToggle(product._id, product.inStock)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
+                  product.inStock 
+                    ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' 
+                    : 'bg-rose-100 text-[#c8102e] hover:bg-rose-200'
+                }`}
+              >
+                {product.inStock ? <><Check className="w-3 h-3"/> Active</> : <><XIcon className="w-3 h-3"/> Inactive</>}
+              </button>
+            </td>
+            <td className="py-4 px-6 text-right">
+              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => openModal(product)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Item">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button onClick={() => handleDelete(product._id)} className="p-1.5 text-slate-400 hover:text-[#e31837] hover:bg-[#e31837]/10 rounded-lg transition-colors" title="Delete Item">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+        </tbody>
+      </table>
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-12 text-slate-400">
+          <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="font-semibold text-sm">No products found.</p>
+        </div>
+      )}
+    </div>
+  </div>
 
  {/* Add / Edit Modal */}
  <AnimatePresence>

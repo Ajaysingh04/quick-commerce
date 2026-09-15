@@ -176,7 +176,7 @@ const Reviews = () => {
  </div>
  </div>
  ) : replyingTo === review.id ? (
- <div className="mt-4 flex gap-2">
+ <div className="mt-4 flex flex-col sm:flex-row gap-2">
  <input 
  type="text" 
  value={replyText}
@@ -185,18 +185,20 @@ const Reviews = () => {
  className="flex-1 px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:border-[#e31837]"
  autoFocus
  />
+ <div className="flex gap-2">
  <button 
  onClick={() => handleReplySubmit(review.id)}
- className="px-4 py-2 bg-[#e31837] text-white font-bold rounded-xl text-sm hover:bg-[#c8102e]"
+ className="flex-1 sm:flex-none px-4 py-2 bg-[#e31837] text-white font-bold rounded-xl text-sm hover:bg-[#c8102e]"
  >
  Send
  </button>
  <button 
  onClick={() => { setReplyingTo(null); setReplyText(''); }}
- className="px-4 py-2 bg-slate-200 text-slate-600 font-bold rounded-xl text-sm"
+ className="flex-1 sm:flex-none px-4 py-2 bg-slate-200 text-slate-600 font-bold rounded-xl text-sm"
  >
  Cancel
  </button>
+ </div>
  </div>
  ) : (
  <div className="flex items-center gap-3 pt-4 mt-2 border-t border-gray-200 ">
