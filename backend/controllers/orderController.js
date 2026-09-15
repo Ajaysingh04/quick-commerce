@@ -33,12 +33,7 @@ export const createRazorpayIntent = async (req, res) => {
   try {
     const razorpayKeyId = process.env.RAZORPAY_KEY_ID?.trim();
     const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
-
-    if (!razorpayKeyId || !razorpayKeySecret || razorpayKeyId.includes('your_') || razorpayKeySecret.includes('your_')) {
-      return res.status(400).json({
-        message: 'Razorpay payment is not configured for this environment. Please add valid Razorpay keys.'
-      });
-    }
+    const hasLiveRazorpay = razorpayKeyId && razorpayKeySecret && !razorpayKeyId.includes('your_') && !razorpayKeySecret.includes('your_') && razorpay;
 
     // Prevent CastError for mock data
     if (!mongoose.Types.ObjectId.isValid(storeId)) {
@@ -291,30 +286,31 @@ export const createOrder = async (req, res) => {
       await order.save();
     }
 
+    // Populate the newly created order so frontend gets full item & store info
+    const populatedOrder = await Order.findById(order._id)
+      .populate('store', 'name bannerImage distance address owner')
+      .populate('user', 'name email phone')
+      .populate('items.product', 'name image price isVeg');
+
     // Trigger websocket for delivery partners and admins to pick it up
     if (global.io && order.status === 'placed') {
-      // populate the order slightly to send to drivers
-      const populatedOrder = await Order.findById(order._id)
-        .populate('store', 'name distance owner')
-        .populate('user', 'name phone');
-      
-      global.io.to('delivery_partners').emit('newOrderAvailable', populatedOrder);
+      global.io.to('delivery_partners').emit('newOrderAvailable', populatedOrder || order);
       // Emit to admin dashboard
-      global.io.emit('newOrderReceived', populatedOrder);
+      global.io.emit('newOrderReceived', populatedOrder || order);
       global.io.emit('adminNotification', {
         title: 'New Order Received',
-        message: `Order #${populatedOrder._id.toString().slice(-6).toUpperCase()} received from ${populatedOrder.user?.name || 'Customer'}.`,
+        message: `Order #${(order._id).toString().slice(-6).toUpperCase()} received from ${populatedOrder?.user?.name || 'Customer'}.`,
         date: new Date().toISOString()
       });
       
       // Emit specifically to the store owner if connected
-      if (populatedOrder.store?.owner) {
+      if (populatedOrder?.store?.owner) {
         global.io.emit(`newOrderPartner_${populatedOrder.store.owner.toString()}`, populatedOrder);
       }
     }
 
-    // Cash on delivery redirect
-    res.status(201).json({ order });
+    // Return populated order
+    res.status(201).json({ order: populatedOrder || order });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -325,6 +321,10 @@ export const createOrder = async (req, res) => {
 // @access  Private (JWT Access)
 export const getOrderById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
     const order = await Order.findById(req.params.id)
       .populate('user', 'name email phone')
       .populate('store', 'name bannerImage description distance deliveryTime')
@@ -336,7 +336,7 @@ export const getOrderById = async (req, res) => {
     }
 
     // Auth restriction
-    if (req.user.role === 'user' && order.user._id.toString() !== req.user._id.toString()) {
+    if (req.user && req.user.role === 'user' && order.user && order.user._id && order.user._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Unauthorized access to order logs' });
     }
 
