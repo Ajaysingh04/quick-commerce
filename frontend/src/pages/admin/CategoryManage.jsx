@@ -412,15 +412,18 @@ const CategoryManage = () => {
       </div>
 
       {/* Right List */}
-      <div className="w-full bg-white rounded-3xl p-6 border border-emerald-200/60 shadow-premium">
-        <h3 className="text-lg font-black border-b border-emerald-200 pb-3 mb-4 flex items-center gap-2">
-          <LayoutGrid className="w-5 h-5 text-emerald-600" /> All Categories
-        </h3>
+      <div className="w-full bg-white rounded-3xl p-4 sm:p-6 border border-emerald-200/60 shadow-premium overflow-hidden">
+        <div className="flex items-center justify-between border-b border-emerald-200 pb-3 mb-4">
+          <h3 className="text-base sm:text-lg font-black flex items-center gap-2 text-slate-800">
+            <LayoutGrid className="w-5 h-5 text-emerald-600" /> All Categories
+          </h3>
+          <span className="text-[10px] font-bold text-slate-400 sm:hidden">← Swipe table →</span>
+        </div>
 
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left text-sm border-collapse">
+        <div className="overflow-x-auto w-full custom-scrollbar pb-2">
+          <table className="w-full min-w-[620px] text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
                 <th className="py-3 px-4">Image</th>
                 <th className="py-3 px-4">Category Name</th>
                 <th className="py-3 px-4">Active State</th>

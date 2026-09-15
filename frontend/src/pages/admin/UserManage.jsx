@@ -104,23 +104,26 @@ const UserManage = () => {
   }, [search]);
 
   return (
-    <div className="bg-white rounded-3xl p-6 border border-emerald-200/60 shadow-premium flex flex-col gap-6 relative">
+    <div className="bg-white rounded-3xl p-4 sm:p-6 border border-emerald-200/60 shadow-premium flex flex-col gap-6 relative overflow-hidden">
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-emerald-200 pb-4">
         <div>
-          <h3 className="text-lg font-black">User Accounts Management</h3>
+          <h3 className="text-base sm:text-lg font-black text-slate-800">User Accounts Management</h3>
           <p className="text-xs text-slate-400 mt-1">Review profiles, update credentials roles, and deactivate system accounts.</p>
         </div>
 
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-emerald-50 rounded-full pl-9 pr-4 py-2 text-xs outline-none focus:border focus:border-emerald-600 font-medium"
-          />
+        <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+          <span className="text-[10px] font-bold text-slate-400 sm:hidden">← Swipe table →</span>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search by name or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-emerald-50 rounded-full pl-9 pr-4 py-2 text-xs outline-none focus:border focus:border-emerald-600 font-medium"
+            />
+          </div>
         </div>
       </div>
 
@@ -129,10 +132,10 @@ const UserManage = () => {
       {loading ? (
         <div className="py-10 text-center text-slate-500 animate-pulse font-bold text-sm">Loading Users...</div>
       ) : (
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left text-sm border-collapse">
+        <div className="overflow-x-auto w-full custom-scrollbar pb-2">
+          <table className="w-full min-w-[650px] text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
                 <th className="py-3 px-4">Account Holder</th>
                 <th className="py-3 px-4">Email Address</th>
                 <th className="py-3 px-4">Role Permission</th>

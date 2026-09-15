@@ -720,20 +720,24 @@ const ProductManage = () => {
  </div>
 
  {/* List */}
- <div className="bg-white border border-emerald-200 rounded-3xl shadow-sm overflow-hidden flex flex-col">
- <div className="overflow-x-auto custom-scrollbar">
- <table className="w-full text-left text-sm whitespace-nowrap">
- <thead className="bg-emerald-50 ">
- <tr className="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-emerald-200 ">
- <th className="py-4 px-6">Product Details</th>
- <th className="py-4 px-6">Store & Cat</th>
- <th className="py-4 px-6">Price</th>
- <th className="py-4 px-6">Stock</th>
- <th className="py-4 px-6 text-center">Status</th>
- <th className="py-4 px-6 text-right">Actions</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-100 ">
+  <div className="bg-white border border-emerald-200 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+    <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-emerald-100 bg-emerald-50/40 sm:hidden">
+      <span className="text-[11px] font-bold text-slate-700">Products Catalog</span>
+      <span className="text-[10px] font-bold text-slate-400">← Swipe table →</span>
+    </div>
+    <div className="overflow-x-auto custom-scrollbar pb-2">
+      <table className="w-full min-w-[760px] text-left text-sm whitespace-nowrap">
+        <thead className="bg-emerald-50">
+          <tr className="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-emerald-200">
+            <th className="py-4 px-6">Product Details</th>
+            <th className="py-4 px-6">Store & Cat</th>
+            <th className="py-4 px-6">Price</th>
+            <th className="py-4 px-6">Stock</th>
+            <th className="py-4 px-6 text-center">Status</th>
+            <th className="py-4 px-6 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
  {(() => {
    const indexOfLastItem = currentPage * itemsPerPage;
    const indexOfFirstItem = indexOfLastItem - itemsPerPage;

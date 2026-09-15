@@ -232,18 +232,21 @@ const CouponManage = () => {
       </div>
 
       {/* Bottom List */}
-      <div className="w-full bg-white rounded-3xl p-6 border border-emerald-200/60 shadow-premium">
-        <h3 className="text-lg font-black border-b border-emerald-200 pb-3 mb-4">Active Promo Campaigns</h3>
+      <div className="w-full bg-white rounded-3xl p-4 sm:p-6 border border-emerald-200/60 shadow-premium overflow-hidden">
+        <div className="flex items-center justify-between border-b border-emerald-200 pb-3 mb-4">
+          <h3 className="text-base sm:text-lg font-black text-slate-800">Active Promo Campaigns</h3>
+          <span className="text-[10px] font-bold text-slate-400 sm:hidden">← Swipe table →</span>
+        </div>
 
         {loading ? (
           <div className="py-10 text-center text-slate-400 font-bold animate-pulse">Loading coupons...</div>
         ) : coupons.length === 0 ? (
           <div className="py-10 text-center text-slate-400 font-bold">No coupons found. Launch one!</div>
         ) : (
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left text-sm border-collapse">
+          <div className="overflow-x-auto w-full custom-scrollbar pb-2">
+            <table className="w-full min-w-[640px] text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
                   <th className="py-3 px-4">Coupon Code</th>
                   <th className="py-3 px-4">Discount</th>
                   <th className="py-3 px-4">Min Spend</th>
