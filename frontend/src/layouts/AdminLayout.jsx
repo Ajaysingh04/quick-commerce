@@ -213,7 +213,7 @@ const AdminLayout = () => {
       {/* Real-time Toast Notifications */}
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
         <AnimatePresence>
-          {notifications.map((notif) => (
+          {toastNotifications.map((notif) => (
             <motion.div
               key={notif.id}
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -232,7 +232,7 @@ const AdminLayout = () => {
                 </div>
               </div>
               <button
-                onClick={() => setNotifications((prev) => prev.filter((n) => n.id !== notif.id))}
+                onClick={() => setToastNotifications((prev) => prev.filter((n) => n.id !== notif.id))}
                 className="text-slate-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
