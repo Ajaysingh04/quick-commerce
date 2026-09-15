@@ -111,133 +111,204 @@ const CustomersList = () => {
  </div>
  </div>
 
- {/* Table Content */}
- <div className="overflow-x-auto">
- <table className="w-full text-left border-collapse min-w-[800px]">
- <thead>
- <tr className="bg-emerald-50/50 border-b border-emerald-200 ">
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">User Details</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Role</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Contact Info</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Saved Addresses</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Joined Date</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
- </tr>
- </thead>
- <tbody>
- {filteredUsers.length > 0 ? (
- filteredUsers.map((user, i) => (
- <motion.tr 
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: i * 0.05 }}
- key={user._id} 
- className="border-b border-slate-50 hover:bg-emerald-50/50 :bg-slate-800/20 transition-colors"
- >
- {/* User Details */}
- <td className="p-4">
- <div className="flex items-center gap-3">
- {user.avatar ? (
- <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
- ) : (
- <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
- {user.name?.charAt(0).toUpperCase()}
- </div>
- )}
- <div>
- <p className="font-bold text-slate-900 text-sm">{user.name}</p>
- <p className="text-xs text-slate-500">{user._id}</p>
- </div>
- </div>
- </td>
+  {/* Table Content */}
+  <div className="w-full">
+    {/* Mobile Cards View (< md) */}
+    <div className="block md:hidden divide-y divide-emerald-100">
+      {filteredUsers.length > 0 ? (
+        filteredUsers.map((user) => (
+          <div key={user._id} className="p-4 flex flex-col gap-3 hover:bg-emerald-50/40 transition-colors">
+            <div className="flex items-center gap-3">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-black text-sm shrink-0">
+                  {user.name?.charAt(0)?.toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-bold text-slate-900 text-sm truncate">{user.name}</p>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shrink-0 ${getRoleBadgeColor(user.role)}`}>
+                    {getRoleIcon(user.role)}
+                    {user.role}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 truncate mt-0.5">{user.email}</p>
+                {user.phone && <p className="text-xs text-slate-500 mt-0.5 font-medium">{user.phone}</p>}
+              </div>
+            </div>
 
- {/* Role */}
- <td className="p-4">
- <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}>
- {getRoleIcon(user.role)}
- {user.role}
- </span>
- </td>
+            <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{user.addresses?.length || 0} Addresses</span>
+              </div>
+              <span className="text-[11px] text-slate-400 font-medium">
+                Joined: {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            </div>
 
- {/* Contact */}
- <td className="p-4 space-y-1.5">
- <div className="flex items-center gap-2 text-sm text-slate-700 ">
- <Mail className="w-3.5 h-3.5 text-slate-400" />
- {user.email}
- </div>
- {user.phone && (
- <div className="flex items-center gap-2 text-sm text-slate-700 ">
- <Phone className="w-3.5 h-3.5 text-slate-400" />
- {user.phone}
- </div>
- )}
- {user.alternatePhone && (
- <div className="flex items-center gap-2 text-xs text-slate-500">
- <Phone className="w-3.5 h-3.5 text-slate-400" />
- {user.alternatePhone} (Alt)
- </div>
- )}
- </td>
+            {user.role === 'delivery' && user.kyc && (
+              <div className="pt-2 border-t border-slate-100 flex justify-end">
+                <button 
+                  onClick={() => {
+                    setSelectedKycUser(user);
+                    setIsKycModalOpen(true);
+                  }}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${
+                    user.kyc.status === 'pending_review' 
+                      ? 'bg-amber-100 text-amber-600' 
+                      : user.kyc.status === 'approved'
+                      ? 'bg-emerald-100 text-emerald-600'
+                      : user.kyc.status === 'rejected'
+                      ? 'bg-rose-100 text-rose-600'
+                      : 'bg-emerald-100 text-slate-600'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  {user.kyc.status === 'pending_review' ? 'Review KYC' : 'View KYC'}
+                </button>
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div className="p-8 text-center text-slate-500 flex flex-col items-center gap-2">
+          <Search className="w-8 h-8 text-slate-300" />
+          <p>No users found matching your search.</p>
+        </div>
+      )}
+    </div>
 
- {/* Addresses */}
- <td className="p-4">
- <div className="flex items-center gap-2">
- <MapPin className={`w-4 h-4 ${user.addresses?.length > 0 ? 'text-emerald-600' : 'text-slate-300'}`} />
- <span className="text-sm font-semibold text-slate-700 ">
- {user.addresses?.length || 0} Saved
- </span>
- </div>
- {user.addresses?.length > 0 && (
- <p className="text-xs text-slate-500 mt-1 truncate max-w-[200px]">
- {user.addresses[0].street}, {user.addresses[0].city}
- </p>
- )}
- </td>
+    {/* Desktop Table (>= md) */}
+    <div className="hidden md:block overflow-x-auto">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="bg-emerald-50/50 border-b border-emerald-200">
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">User Details</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Role</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Contact Info</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Saved Addresses</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Joined Date</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {filteredUsers.length > 0 ? (
+          filteredUsers.map((user, i) => (
+            <motion.tr 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              key={user._id} 
+              className="border-b border-slate-50 hover:bg-emerald-50/50 transition-colors"
+            >
+              {/* User Details */}
+              <td className="p-4">
+                <div className="flex items-center gap-3">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">{user.name}</p>
+                    <p className="text-xs text-slate-500">{user._id}</p>
+                  </div>
+                </div>
+              </td>
 
- {/* Joined Date */}
- <td className="p-4 text-sm font-medium text-slate-600 ">
- {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
- </td>
+              {/* Role */}
+              <td className="p-4">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}>
+                  {getRoleIcon(user.role)}
+                  {user.role}
+                </span>
+              </td>
 
- {/* Actions */}
- <td className="p-4">
- {user.role === 'delivery' && user.kyc && (
- <button 
- onClick={() => {
- setSelectedKycUser(user);
- setIsKycModalOpen(true);
- }}
- className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${
- user.kyc.status === 'pending_review' 
- ? 'bg-amber-100 text-amber-600 hover:bg-amber-200 '
- : user.kyc.status === 'approved'
- ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200 '
- : user.kyc.status === 'rejected'
- ? 'bg-rose-100 text-rose-600 hover:bg-rose-200 '
- : 'bg-emerald-100 text-slate-600 hover:bg-slate-200 '
- }`}
- >
- <FileText className="w-3.5 h-3.5" />
- {user.kyc.status === 'pending_review' ? 'Review KYC' : 'View KYC'}
- </button>
- )}
- </td>
- </motion.tr>
- ))
- ) : (
- <tr>
- <td colSpan="5" className="p-8 text-center text-slate-500">
- <div className="flex flex-col items-center gap-2">
- <Search className="w-8 h-8 text-slate-300" />
- <p>No users found matching your search.</p>
- </div>
- </td>
- </tr>
- )}
- </tbody>
- </table>
- </div>
- </div>
+              {/* Contact */}
+              <td className="p-4 space-y-1.5">
+                <div className="flex items-center gap-2 text-sm text-slate-700">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  {user.email}
+                </div>
+                {user.phone && (
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    {user.phone}
+                  </div>
+                )}
+                {user.alternatePhone && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    {user.alternatePhone} (Alt)
+                  </div>
+                )}
+              </td>
+
+              {/* Addresses */}
+              <td className="p-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className={`w-4 h-4 ${user.addresses?.length > 0 ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span className="text-sm font-semibold text-slate-700">
+                    {user.addresses?.length || 0} Saved
+                  </span>
+                </div>
+                {user.addresses?.length > 0 && (
+                  <p className="text-xs text-slate-500 mt-1 truncate max-w-[200px]">
+                    {user.addresses[0].street}, {user.addresses[0].city}
+                  </p>
+                )}
+              </td>
+
+              {/* Joined Date */}
+              <td className="p-4 text-sm font-medium text-slate-600">
+                {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </td>
+
+              {/* Actions */}
+              <td className="p-4">
+                {user.role === 'delivery' && user.kyc && (
+                  <button 
+                    onClick={() => {
+                      setSelectedKycUser(user);
+                      setIsKycModalOpen(true);
+                    }}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${
+                      user.kyc.status === 'pending_review' 
+                        ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' 
+                        : user.kyc.status === 'approved'
+                        ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' 
+                        : user.kyc.status === 'rejected'
+                        ? 'bg-rose-100 text-rose-600 hover:bg-rose-200' 
+                        : 'bg-emerald-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    {user.kyc.status === 'pending_review' ? 'Review KYC' : 'View KYC'}
+                  </button>
+                )}
+              </td>
+            </motion.tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="6" className="p-8 text-center text-slate-500">
+              <div className="flex flex-col items-center gap-2">
+                <Search className="w-8 h-8 text-slate-300" />
+                <p>No users found matching your search.</p>
+              </div>
+            </td>
+          </tr>
+        )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
  {/* KYC Modal */}
  <AnimatePresence>

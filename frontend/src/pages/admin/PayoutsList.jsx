@@ -159,90 +159,147 @@ const PayoutsList = () => {
  </div>
  </div>
 
- {/* Table Content */}
- <div className="overflow-x-auto">
- <table className="w-full text-left border-collapse min-w-[800px]">
- <thead>
- <tr className="bg-emerald-50/50 border-b border-emerald-200 ">
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Partner Details</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Bank Info</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
- <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
- </tr>
- </thead>
- <tbody>
- {filteredWithdrawals.length > 0 ? (
- filteredWithdrawals.map((w, i) => (
- <motion.tr 
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: i * 0.05 }}
- key={w._id} 
- className="border-b border-slate-50 hover:bg-emerald-50/50 :bg-slate-800/20 transition-colors"
- >
- {/* Partner Details */}
- <td className="p-4">
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
- {w.deliveryPartner?.name?.charAt(0).toUpperCase()}
- </div>
- <div>
- <p className="font-bold text-slate-900 text-sm">{w.deliveryPartner?.name}</p>
- <p className="text-xs text-slate-500">{w.deliveryPartner?.phone}</p>
- </div>
- </div>
- </td>
+  {/* Table Content */}
+  <div className="w-full">
+    {/* Mobile Cards View (< md) */}
+    <div className="block md:hidden divide-y divide-emerald-100">
+      {filteredWithdrawals.length > 0 ? (
+        filteredWithdrawals.map((w) => (
+          <div key={w._id} className="p-4 flex flex-col gap-3 hover:bg-emerald-50/40 transition-colors">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
+                  {w.deliveryPartner?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-sm">{w.deliveryPartner?.name}</p>
+                  <p className="text-xs text-slate-500">{w.deliveryPartner?.phone}</p>
+                </div>
+              </div>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${getStatusBadge(w.status)}`}>
+                {w.status}
+              </span>
+            </div>
 
- {/* Bank Info */}
- <td className="p-4">
- <p className="text-sm font-semibold text-slate-800 ">{w.bankDetails?.bankName}</p>
- <p className="text-xs text-slate-500 font-mono">XXXX-{w.bankDetails?.accountNumber?.slice(-4)}</p>
- </td>
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-400">Bank Details</p>
+                <p className="font-semibold text-slate-800">{w.bankDetails?.bankName}</p>
+                <p className="text-[11px] text-slate-500 font-mono">XXXX-{w.bankDetails?.accountNumber?.slice(-4)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] uppercase font-bold text-slate-400">Requested Amount</p>
+                <p className="text-lg font-black text-emerald-600">₹{w.amount}</p>
+              </div>
+            </div>
 
- {/* Amount */}
- <td className="p-4">
- <p className="text-lg font-black text-emerald-600">₹{w.amount}</p>
- </td>
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[10px] text-slate-400 font-medium">
+                {new Date(w.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+              <button 
+                onClick={() => handleOpenAnalytics(w)}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Review & Analytics
+              </button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="p-8 text-center text-slate-500 flex flex-col items-center gap-2">
+          <Wallet className="w-8 h-8 text-slate-300" />
+          <p>No withdrawal requests found.</p>
+        </div>
+      )}
+    </div>
 
- {/* Status */}
- <td className="p-4">
- <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${getStatusBadge(w.status)}`}>
- {w.status}
- </span>
- </td>
+    {/* Desktop Table (>= md) */}
+    <div className="hidden md:block overflow-x-auto">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="bg-emerald-50/50 border-b border-emerald-200">
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Partner Details</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Bank Info</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
+            <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {filteredWithdrawals.length > 0 ? (
+          filteredWithdrawals.map((w, i) => (
+            <motion.tr 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              key={w._id} 
+              className="border-b border-slate-50 hover:bg-emerald-50/50 transition-colors"
+            >
+              {/* Partner Details */}
+              <td className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                    {w.deliveryPartner?.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">{w.deliveryPartner?.name}</p>
+                    <p className="text-xs text-slate-500">{w.deliveryPartner?.phone}</p>
+                  </div>
+                </div>
+              </td>
 
- {/* Date */}
- <td className="p-4 text-sm font-medium text-slate-600 ">
- {new Date(w.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
- </td>
+              {/* Bank Info */}
+              <td className="p-4">
+                <p className="text-sm font-semibold text-slate-800">{w.bankDetails?.bankName}</p>
+                <p className="text-xs text-slate-500 font-mono">XXXX-{w.bankDetails?.accountNumber?.slice(-4)}</p>
+              </td>
 
- {/* Actions */}
- <td className="p-4">
- <button 
- onClick={() => handleOpenAnalytics(w)}
- className="text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100 :bg-emerald-600/20"
- >
- <FileText className="w-3.5 h-3.5" />
- Review & Analytics
- </button>
- </td>
- </motion.tr>
- ))
- ) : (
- <tr>
- <td colSpan="6" className="p-8 text-center text-slate-500">
- <div className="flex flex-col items-center gap-2">
- <Wallet className="w-8 h-8 text-slate-300" />
- <p>No withdrawal requests found.</p>
- </div>
- </td>
- </tr>
- )}
- </tbody>
- </table>
- </div>
+              {/* Amount */}
+              <td className="p-4">
+                <p className="text-lg font-black text-emerald-600">₹{w.amount}</p>
+              </td>
+
+              {/* Status */}
+              <td className="p-4">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${getStatusBadge(w.status)}`}>
+                  {w.status}
+                </span>
+              </td>
+
+              {/* Date */}
+              <td className="p-4 text-sm font-medium text-slate-600">
+                {new Date(w.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </td>
+
+              {/* Actions */}
+              <td className="p-4">
+                <button 
+                  onClick={() => handleOpenAnalytics(w)}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Review & Analytics
+                </button>
+              </td>
+            </motion.tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="6" className="p-8 text-center text-slate-500">
+              <div className="flex flex-col items-center gap-2">
+                <Wallet className="w-8 h-8 text-slate-300" />
+                <p>No withdrawal requests found.</p>
+              </div>
+            </td>
+          </tr>
+        )}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
  {/* Analytics Modal */}
  <AnimatePresence>

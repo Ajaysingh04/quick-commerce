@@ -721,12 +721,100 @@ const ProductManage = () => {
 
  {/* List */}
   <div className="bg-white border border-emerald-200 rounded-3xl shadow-sm overflow-hidden flex flex-col">
-    <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-emerald-100 bg-emerald-50/40 sm:hidden">
-      <span className="text-[11px] font-bold text-slate-700">Products Catalog</span>
-      <span className="text-[10px] font-bold text-slate-400">← Swipe table →</span>
+    {/* Mobile Cards View (< md) */}
+    <div className="block md:hidden divide-y divide-emerald-100">
+      {(() => {
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentItems = filteredCatalog.slice(indexOfFirstItem, indexOfLastItem);
+
+        if (currentItems.length === 0) {
+          return (
+            <div className="py-12 text-center text-slate-400 p-4">
+              <Layers className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p className="font-semibold text-sm">No products found matching filters.</p>
+            </div>
+          );
+        }
+
+        return currentItems.map(product => (
+          <div key={product._id} className="p-4 flex flex-col gap-3 hover:bg-emerald-50/40 transition-colors">
+            <div className="flex items-start gap-3">
+              <div className="w-16 h-16 rounded-xl overflow-hidden border border-emerald-100 shrink-0 bg-white shadow-sm">
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 break-words">
+                    {product.name}
+                    {product.isVeg ? (
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white shadow-sm shrink-0" title="Veg"></span>
+                    ) : (
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 border border-white shadow-sm shrink-0" title="Non-Veg"></span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5 mt-0.5">
+                  <Package className="w-3.5 h-3.5 text-slate-400" />
+                  {product.weight || 'Standard'}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md uppercase">
+                    {product.category?.name || 'Uncategorized'}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[130px]">
+                    {product.store?.name || 'All Stores'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div>
+                <div className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                  ₹{product.price}
+                  {product.originalPrice && <span className="text-xs text-slate-400 font-normal line-through">₹{product.originalPrice}</span>}
+                </div>
+                <div className="text-[10px] font-bold text-slate-400">Stock: <span className="text-slate-700">{product.stockQuantity}</span></div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleToggleStock(product._id, product.inStock)}
+                  className="p-1 text-slate-400 hover:text-emerald-600 transition-transform active:scale-95"
+                  title={product.inStock ? "In Stock" : "Out of Stock"}
+                >
+                  {product.inStock 
+                    ? <ToggleRight className="w-7 h-7 text-emerald-500" /> 
+                    : <ToggleLeft className="w-7 h-7 text-slate-300" />
+                  }
+                </button>
+                <button 
+                  onClick={() => handleEditClick(product)}
+                  className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                  title="Edit"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => handleDeleteProduct(product._id)}
+                  className="p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ));
+      })()}
     </div>
-    <div className="overflow-x-auto custom-scrollbar pb-2">
-      <table className="w-full min-w-[760px] text-left text-sm whitespace-nowrap">
+
+    {/* Desktop Table View (>= md) */}
+    <div className="hidden md:block overflow-x-auto custom-scrollbar">
+      <table className="w-full text-left text-sm whitespace-nowrap">
         <thead className="bg-emerald-50">
           <tr className="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-emerald-200">
             <th className="py-4 px-6">Product Details</th>
@@ -755,7 +843,7 @@ const ProductManage = () => {
    }
 
    return currentItems.map(product => (
- <tr key={product._id} className="hover:bg-emerald-50/50 :bg-slate-800/30 transition-colors">
+ <tr key={product._id} className="hover:bg-emerald-50/50 transition-colors">
  <td className="py-4 px-6">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-lg overflow-hidden border border-emerald-100 shrink-0 bg-white">
@@ -781,11 +869,11 @@ const ProductManage = () => {
  <div className="font-semibold text-slate-700 truncate max-w-[120px]">{product.store?.name || 'Unknown Store'}</div>
  <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{product.category?.name || 'Uncategorized'}</div>
  </td>
- <td className="py-4 px-6 font-black text-slate-800 ">
+ <td className="py-4 px-6 font-black text-slate-800">
  ₹{product.price}
  {product.originalPrice && <span className="ml-2 text-xs text-slate-400 line-through">₹{product.originalPrice}</span>}
  </td>
- <td className="py-4 px-6 font-bold text-slate-700 ">
+ <td className="py-4 px-6 font-bold text-slate-700">
  {product.stockQuantity}
  </td>
  <td className="py-4 px-6 text-center">
@@ -796,7 +884,7 @@ const ProductManage = () => {
  >
  {product.inStock 
  ? <ToggleRight className="w-7 h-7 text-emerald-500" /> 
- : <ToggleLeft className="w-7 h-7 text-slate-300 " />
+ : <ToggleLeft className="w-7 h-7 text-slate-300" />
  }
  </button>
  </td>
@@ -811,7 +899,7 @@ const ProductManage = () => {
    </button>
    <button 
      onClick={() => handleDeleteProduct(product._id)}
-     className="p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 :bg-rose-500/10 rounded-lg transition-colors"
+     className="p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-colors"
      title="Delete Product"
    >
      <Trash2 className="w-4 h-4" />
@@ -827,7 +915,7 @@ const ProductManage = () => {
  
  {/* Pagination Footer */}
  {Math.ceil(filteredCatalog.length / itemsPerPage) > 0 && (
-   <div className="flex justify-between items-center px-6 py-4 border-t border-emerald-200/60 bg-emerald-50/30">
+   <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-4 sm:px-6 py-4 border-t border-emerald-200/60 bg-emerald-50/30">
      <div className="text-xs font-bold text-slate-500">
        Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredCatalog.length)} of {filteredCatalog.length}
      </div>

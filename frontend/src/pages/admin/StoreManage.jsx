@@ -353,12 +353,75 @@ const StoreManage = () => {
   {/* Right List */}
   <div className="w-full bg-white rounded-3xl p-4 sm:p-6 border border-emerald-200/60 shadow-premium overflow-hidden">
   <div className="flex items-center justify-between border-b border-emerald-200 pb-3 mb-4">
-    <h3 className="text-base sm:text-lg font-black text-slate-800">Dark Stores / Hubs Catalog</h3>
-    <span className="text-[10px] font-bold text-slate-400 sm:hidden">← Swipe table →</span>
+    <h3 className="text-base sm:text-lg font-black text-slate-800">Dark Stores / Hubs Catalog ({stores.length})</h3>
   </div>
 
-  <div className="overflow-x-auto w-full custom-scrollbar pb-2">
-  <table className="w-full min-w-[640px] text-left text-sm border-collapse">
+  {/* MOBILE CARDS VIEW (md:hidden) */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
+    {(() => {
+      const indexOfLastItem = currentPage * itemsPerPage;
+      const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+      const currentItems = stores.slice(indexOfFirstItem, indexOfLastItem);
+      
+      if (stores.length === 0) {
+        return (
+          <div className="py-8 text-center text-slate-400 font-medium col-span-full">No hubs found.</div>
+        );
+      }
+
+      return currentItems.map((res) => (
+        <div key={res._id} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="font-black text-sm text-slate-800 break-words">{res.name}</div>
+              <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                ⚡ {res.deliveryTime} mins • 📍 {res.distance} km
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button 
+                onClick={() => handleToggleFeatured(res._id, res.featured)} 
+                className={`p-1.5 rounded-xl transition-colors ${res.featured ? 'bg-amber-100 text-amber-500' : 'bg-slate-200/80 text-slate-400'}`}
+                title="Toggle Featured"
+              >
+                <Star className="w-4 h-4" fill={res.featured ? "currentColor" : "none"} />
+              </button>
+              <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${res.isActive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                {res.isActive ? 'Active' : 'Disabled'}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white p-2.5 rounded-xl border border-slate-200/50 flex justify-between items-center text-xs">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Min Order Value</span>
+            <span className="font-black text-slate-800">₹{res.costForTwo || 99}</span>
+          </div>
+
+          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+            <button 
+              onClick={() => handleToggleStatus(res._id, res.isActive)}
+              className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${res.isActive ? 'bg-emerald-100/70 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+            >
+              {res.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+              <span>{res.isActive ? 'Hub Active' : 'Hub Disabled'}</span>
+            </button>
+            <button 
+              onClick={() => handleEditClick(res)}
+              className="p-1.5 text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl shadow-xs"
+              title="Edit Hub"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      ));
+    })()}
+  </div>
+
+  {/* DESKTOP TABLE VIEW (hidden md:block) */}
+  <div className="hidden md:block overflow-x-auto w-full custom-scrollbar pb-2">
+  <table className="w-full text-left text-sm border-collapse">
   <thead>
   <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
   <th className="py-3 px-4">Hub Name</th>
@@ -369,53 +432,53 @@ const StoreManage = () => {
   </tr>
   </thead>
   <tbody className="divide-y divide-slate-100 font-semibold">
- {(() => {
-   const indexOfLastItem = currentPage * itemsPerPage;
-   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-   const currentItems = stores.slice(indexOfFirstItem, indexOfLastItem);
-   
-   if (stores.length === 0) {
-     return (
-       <tr>
-         <td colSpan="5" className="py-8 text-center text-slate-400 font-medium">No hubs found.</td>
-       </tr>
-     );
-   }
-   
-   return currentItems.map((res) => (
- <tr key={res._id} className="hover:bg-emerald-50 :bg-slate-850">
- <td className="py-3.5 px-4 font-bold text-slate-800">{res.name}</td>
- <td className="py-3.5 px-4 text-xs font-semibold text-slate-500">{res.deliveryTime}m | {res.distance}km</td>
- <td className="py-3.5 px-4 text-center">
-  <button onClick={() => handleToggleFeatured(res._id, res.featured)} className={`p-1.5 rounded-full transition-colors ${res.featured ? 'bg-amber-100 text-amber-500 hover:bg-amber-200' : 'bg-slate-100 text-slate-300 hover:bg-slate-200'}`}>
-    <Star className="w-4 h-4" fill={res.featured ? "currentColor" : "none"} />
-  </button>
- </td>
- <td className="py-3.5 px-4">
- <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${res.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
- {res.isActive ? 'Active' : 'Disabled'}
- </span>
- </td>
- <td className="py-3.5 px-4 text-right flex justify-end items-center gap-1">
- <button 
- onClick={() => handleEditClick(res)}
- className="p-1.5 text-slate-400 hover:text-amber-500"
- title="Edit Hub"
- >
-   <Edit2 className="w-4 h-4" />
- </button>
- <button 
- onClick={() => handleToggleStatus(res._id, res.isActive)}
- className="p-1.5 text-slate-400 hover:text-emerald-600"
- title={res.isActive ? 'Disable Hub' : 'Enable Hub'}
- >
- {res.isActive ? <ToggleRight className="w-6 h-6 text-emerald-600" /> : <ToggleLeft className="w-6 h-6" />}
- </button>
- </td>
- </tr>
-   ));
- })()}
- </tbody>
+  {(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = stores.slice(indexOfFirstItem, indexOfLastItem);
+    
+    if (stores.length === 0) {
+      return (
+        <tr>
+          <td colSpan="5" className="py-8 text-center text-slate-400 font-medium">No hubs found.</td>
+        </tr>
+      );
+    }
+    
+    return currentItems.map((res) => (
+      <tr key={res._id} className="hover:bg-emerald-50">
+        <td className="py-3.5 px-4 font-bold text-slate-800">{res.name}</td>
+        <td className="py-3.5 px-4 text-xs font-semibold text-slate-500">{res.deliveryTime}m | {res.distance}km</td>
+        <td className="py-3.5 px-4 text-center">
+          <button onClick={() => handleToggleFeatured(res._id, res.featured)} className={`p-1.5 rounded-full transition-colors ${res.featured ? 'bg-amber-100 text-amber-500 hover:bg-amber-200' : 'bg-slate-100 text-slate-300 hover:bg-slate-200'}`}>
+            <Star className="w-4 h-4" fill={res.featured ? "currentColor" : "none"} />
+          </button>
+        </td>
+        <td className="py-3.5 px-4">
+          <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${res.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+            {res.isActive ? 'Active' : 'Disabled'}
+          </span>
+        </td>
+        <td className="py-3.5 px-4 text-right flex justify-end items-center gap-1">
+          <button 
+            onClick={() => handleEditClick(res)}
+            className="p-1.5 text-slate-400 hover:text-amber-500"
+            title="Edit Hub"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => handleToggleStatus(res._id, res.isActive)}
+            className="p-1.5 text-slate-400 hover:text-emerald-600"
+            title={res.isActive ? 'Disable Hub' : 'Enable Hub'}
+          >
+            {res.isActive ? <ToggleRight className="w-6 h-6 text-emerald-600" /> : <ToggleLeft className="w-6 h-6" />}
+          </button>
+        </td>
+      </tr>
+    ));
+  })()}
+  </tbody>
  </table>
  </div>
  

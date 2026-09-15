@@ -415,13 +415,103 @@ const CategoryManage = () => {
       <div className="w-full bg-white rounded-3xl p-4 sm:p-6 border border-emerald-200/60 shadow-premium overflow-hidden">
         <div className="flex items-center justify-between border-b border-emerald-200 pb-3 mb-4">
           <h3 className="text-base sm:text-lg font-black flex items-center gap-2 text-slate-800">
-            <LayoutGrid className="w-5 h-5 text-emerald-600" /> All Categories
+            <LayoutGrid className="w-5 h-5 text-emerald-600" /> All Categories ({categories.length})
           </h3>
-          <span className="text-[10px] font-bold text-slate-400 sm:hidden">← Swipe table →</span>
         </div>
 
-        <div className="overflow-x-auto w-full custom-scrollbar pb-2">
-          <table className="w-full min-w-[620px] text-left text-sm border-collapse">
+        {/* MOBILE CARDS VIEW (md:hidden) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
+          {(() => {
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentItems = categories.slice(indexOfFirstItem, indexOfLastItem);
+            
+            if (categories.length === 0) {
+              return (
+                <div className="py-8 text-center text-slate-400 font-medium col-span-full">No categories found.</div>
+              );
+            }
+
+            return currentItems.map((cat) => (
+              <div key={cat._id} className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/70 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {cat.image ? (
+                      <img src={cat.image} alt={cat.name} className="w-11 h-11 object-cover rounded-xl shadow-xs border border-emerald-100 shrink-0" />
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-xl shrink-0">{cat.icon || '📦'}</div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-black text-sm text-slate-800 truncate">{cat.icon} {cat.name}</div>
+                      <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{cat.productCount || 15} Products</div>
+                    </div>
+                  </div>
+
+                  <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full shrink-0 ${cat.isActive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                    {cat.isActive ? 'Active' : 'Disabled'}
+                  </span>
+                </div>
+
+                {editingId === cat._id ? (
+                  <div className="pt-2 border-t border-slate-200/60 space-y-2">
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={editIcon} 
+                        onChange={(e) => setEditIcon(e.target.value)} 
+                        className="w-12 px-2 py-1.5 text-xs rounded-lg border border-emerald-200 outline-none"
+                        placeholder="Icon"
+                      />
+                      <input 
+                        type="text" 
+                        value={editName} 
+                        onChange={(e) => setEditName(e.target.value)} 
+                        className="flex-1 px-2 py-1.5 text-xs rounded-lg border border-emerald-200 outline-none"
+                        placeholder="Name"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => handleSaveEdit(cat._id)} className="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" /> Save
+                      </button>
+                      <button onClick={() => setEditingId(null)} className="px-3 py-1 bg-slate-200 text-slate-700 font-bold text-xs rounded-lg">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                    <button 
+                      onClick={() => handleToggleStatus(cat._id, cat.isActive)}
+                      className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${cat.isActive ? 'bg-emerald-100/70 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                    >
+                      {cat.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                      <span>{cat.isActive ? 'Enabled' : 'Disabled'}</span>
+                    </button>
+                    <button 
+                      onClick={() => handleEditClick(cat)}
+                      className="p-1.5 text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl shadow-xs"
+                      title="Edit Category"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteCategory(cat._id)}
+                      className="p-1.5 text-rose-600 bg-white hover:bg-rose-50 border border-rose-200 rounded-xl shadow-xs"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ));
+          })()}
+        </div>
+
+        {/* DESKTOP TABLE VIEW (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto w-full custom-scrollbar">
+          <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
                 <th className="py-3 px-4">Image</th>

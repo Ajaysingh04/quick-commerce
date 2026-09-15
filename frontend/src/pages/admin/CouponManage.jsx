@@ -234,8 +234,7 @@ const CouponManage = () => {
       {/* Bottom List */}
       <div className="w-full bg-white rounded-3xl p-4 sm:p-6 border border-emerald-200/60 shadow-premium overflow-hidden">
         <div className="flex items-center justify-between border-b border-emerald-200 pb-3 mb-4">
-          <h3 className="text-base sm:text-lg font-black text-slate-800">Active Promo Campaigns</h3>
-          <span className="text-[10px] font-bold text-slate-400 sm:hidden">← Swipe table →</span>
+          <h3 className="text-base sm:text-lg font-black text-slate-800">Active Promo Campaigns ({coupons.length})</h3>
         </div>
 
         {loading ? (
@@ -243,56 +242,110 @@ const CouponManage = () => {
         ) : coupons.length === 0 ? (
           <div className="py-10 text-center text-slate-400 font-bold">No coupons found. Launch one!</div>
         ) : (
-          <div className="overflow-x-auto w-full custom-scrollbar pb-2">
-            <table className="w-full min-w-[640px] text-left text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
-                  <th className="py-3 px-4">Coupon Code</th>
-                  <th className="py-3 px-4">Discount</th>
-                  <th className="py-3 px-4">Min Spend</th>
-                  <th className="py-3 px-4">Store</th>
-                  <th className="py-3 px-4">Active Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-emerald-100 font-semibold">
-                {coupons.map((cp) => (
-                  <tr key={cp._id} className={`hover:bg-emerald-50 transition-colors ${couponId === cp._id ? 'bg-emerald-50/50' : ''}`}>
-                    <td className="py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-emerald-600">{cp.code}</td>
-                    <td className="py-3.5 px-4">
-                      {cp.discountType === 'percentage' ? `${cp.discountValue || cp.discountPercent}%` : cp.discountType === 'flat' ? `₹${cp.discountValue}` : 'BOGO'} 
-                      {cp.maxDiscount && cp.discountType === 'percentage' ? ` (Up to ₹${cp.maxDiscount})` : ''}
-                    </td>
-                    <td className="py-3.5 px-4">₹{cp.minOrderValue || 0}</td>
-                    <td className="py-3.5 px-4 text-xs font-bold text-slate-500">
-                      {cp.store ? cp.store.name : <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded">Platform</span>}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${cp.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 text-slate-500'}`}>
-                        {cp.isActive ? 'Active' : 'Expired/Paused'}
+          <>
+            {/* MOBILE CARDS VIEW (md:hidden) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
+              {coupons.map((cp) => (
+                <div key={cp._id} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-mono font-black text-sm uppercase px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-xl border border-emerald-200/60 shadow-xs">
+                      {cp.code}
+                    </div>
+                    <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${cp.isActive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-200 text-slate-500'}`}>
+                      {cp.isActive ? 'Active' : 'Paused'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                    <div className="bg-white p-2 rounded-xl border border-slate-200/50">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Discount</span>
+                      <span className="font-black text-slate-800">
+                        {cp.discountType === 'percentage' ? `${cp.discountValue || cp.discountPercent}%` : `₹${cp.discountValue}`}
+                        {cp.maxDiscount && cp.discountType === 'percentage' ? ` (Max ₹${cp.maxDiscount})` : ''}
                       </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right flex justify-end gap-2">
-                      <button 
-                        onClick={() => handleEdit(cp)}
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded transition-colors"
-                        title="Edit Coupon"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleToggleStatus(cp._id, cp.isActive)}
-                        className={`p-1.5 rounded transition-colors ${cp.isActive ? 'text-emerald-600 hover:bg-rose-50 hover:text-rose-500' : 'text-slate-400 hover:bg-emerald-50 hover:text-emerald-600'}`}
-                        title="Toggle Status"
-                      >
-                        {cp.isActive ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
-                      </button>
-                    </td>
+                    </div>
+                    <div className="bg-white p-2 rounded-xl border border-slate-200/50">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Min Spend</span>
+                      <span className="font-black text-slate-800">₹{cp.minOrderValue || 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold px-1">
+                    <span>Target: {cp.store ? cp.store.name : 'Platform-wide'}</span>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                    <button 
+                      onClick={() => handleToggleStatus(cp._id, cp.isActive)}
+                      className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${cp.isActive ? 'bg-emerald-100/70 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                    >
+                      {cp.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                      <span>{cp.isActive ? 'Active Campaign' : 'Paused'}</span>
+                    </button>
+                    <button 
+                      onClick={() => handleEdit(cp)}
+                      className="p-1.5 text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl shadow-xs"
+                      title="Edit Coupon"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP TABLE VIEW (hidden md:block) */}
+            <div className="hidden md:block overflow-x-auto w-full custom-scrollbar">
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
+                    <th className="py-3 px-4">Coupon Code</th>
+                    <th className="py-3 px-4">Discount</th>
+                    <th className="py-3 px-4">Min Spend</th>
+                    <th className="py-3 px-4">Store</th>
+                    <th className="py-3 px-4">Active Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-emerald-100 font-semibold">
+                  {coupons.map((cp) => (
+                    <tr key={cp._id} className={`hover:bg-emerald-50 transition-colors ${couponId === cp._id ? 'bg-emerald-50/50' : ''}`}>
+                      <td className="py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-emerald-600">{cp.code}</td>
+                      <td className="py-3.5 px-4">
+                        {cp.discountType === 'percentage' ? `${cp.discountValue || cp.discountPercent}%` : cp.discountType === 'flat' ? `₹${cp.discountValue}` : 'BOGO'} 
+                        {cp.maxDiscount && cp.discountType === 'percentage' ? ` (Up to ₹${cp.maxDiscount})` : ''}
+                      </td>
+                      <td className="py-3.5 px-4">₹{cp.minOrderValue || 0}</td>
+                      <td className="py-3.5 px-4 text-xs font-bold text-slate-500">
+                        {cp.store ? cp.store.name : <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded">Platform</span>}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${cp.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 text-slate-500'}`}>
+                          {cp.isActive ? 'Active' : 'Expired/Paused'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleEdit(cp)}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded transition-colors"
+                          title="Edit Coupon"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleToggleStatus(cp._id, cp.isActive)}
+                          className={`p-1.5 rounded transition-colors ${cp.isActive ? 'text-emerald-600 hover:bg-rose-50 hover:text-rose-500' : 'text-slate-400 hover:bg-emerald-50 hover:text-emerald-600'}`}
+                          title="Toggle Status"
+                        >
+                          {cp.isActive ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

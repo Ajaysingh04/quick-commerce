@@ -132,70 +132,129 @@ const UserManage = () => {
       {loading ? (
         <div className="py-10 text-center text-slate-500 animate-pulse font-bold text-sm">Loading Users...</div>
       ) : (
-        <div className="overflow-x-auto w-full custom-scrollbar pb-2">
-          <table className="w-full min-w-[650px] text-left text-sm border-collapse">
-            <thead>
-              <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
-                <th className="py-3 px-4">Account Holder</th>
-                <th className="py-3 px-4">Email Address</th>
-                <th className="py-3 px-4">Role Permission</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-emerald-100 font-semibold">
-              {currentUsers.map((u) => (
-                <tr key={u._id} className="hover:bg-emerald-50 transition-colors">
-                  <td className="py-3.5 px-4 cursor-pointer" onClick={() => handleOpenDetails(u)}>
-                    <div className="flex items-center gap-3">
-                      {u.avatar ? (
-                        <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
-                          {u.name?.charAt(0)?.toUpperCase()}
-                        </div>
-                      )}
-                      <span>{u.name}</span>
+        <>
+          {/* MOBILE CARDS VIEW (md:hidden) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
+            {currentUsers.map((u) => (
+              <div key={u._id} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0" onClick={() => handleOpenDetails(u)}>
+                    {u.avatar ? (
+                      <img src={u.avatar} alt={u.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold shrink-0">
+                        {u.name?.charAt(0)?.toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm text-slate-800 truncate">{u.name}</div>
+                      <div className="text-[11px] text-slate-400 truncate break-all">{u.email}</div>
                     </div>
-                  </td>
-                  <td className="py-3.5 px-4 text-xs font-normal text-slate-500 ">{u.email}</td>
-                  <td className="py-3.5 px-4">
-                    <select 
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                      className="bg-transparent border border-emerald-200 rounded-lg p-1 text-xs outline-none text-slate-600 cursor-pointer"
-                    >
-                      <option value="user">Customer</option>
-                      <option value="delivery">Delivery Partner</option>
-                      <option value="admin">Administrator</option>
-                    </select>
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${u.isActive !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                      {u.isActive !== false ? 'Active' : 'Banned'}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right flex items-center justify-end gap-2">
-                    <button 
-                      onClick={() => handleOpenDetails(u)}
-                      className="p-1.5 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors"
-                      title="View Details"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => handleToggleActive(u._id, u.isActive !== false)}
-                      className="p-1 text-slate-400 hover:text-emerald-600"
-                      title="Toggle Status"
-                    >
-                      {u.isActive !== false ? <ToggleRight className="w-6 h-6 text-emerald-600" /> : <ToggleLeft className="w-6 h-6" />}
-                    </button>
-                  </td>
+                  </div>
+
+                  <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shrink-0 ${u.isActive !== false ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                    {u.isActive !== false ? 'Active' : 'Banned'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Role Permission:</span>
+                  <select 
+                    value={u.role}
+                    onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                    className="bg-white border border-emerald-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                  >
+                    <option value="user">Customer</option>
+                    <option value="delivery">Delivery Partner</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                  <button 
+                    onClick={() => handleToggleActive(u._id, u.isActive !== false)}
+                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${u.isActive !== false ? 'bg-emerald-100/70 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                  >
+                    {u.isActive !== false ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                    <span>{u.isActive !== false ? 'Account Active' : 'Deactivated'}</span>
+                  </button>
+                  <button 
+                    onClick={() => handleOpenDetails(u)}
+                    className="px-3 py-1.5 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-100 text-xs font-bold flex items-center gap-1 shadow-xs"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> Details
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (hidden md:block) */}
+          <div className="hidden md:block overflow-x-auto w-full custom-scrollbar pb-2">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
+                  <th className="py-3 px-4">Account Holder</th>
+                  <th className="py-3 px-4">Email Address</th>
+                  <th className="py-3 px-4">Role Permission</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-emerald-100 font-semibold">
+                {currentUsers.map((u) => (
+                  <tr key={u._id} className="hover:bg-emerald-50 transition-colors">
+                    <td className="py-3.5 px-4 cursor-pointer" onClick={() => handleOpenDetails(u)}>
+                      <div className="flex items-center gap-3">
+                        {u.avatar ? (
+                          <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                            {u.name?.charAt(0)?.toUpperCase()}
+                          </div>
+                        )}
+                        <span>{u.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs font-normal text-slate-500 ">{u.email}</td>
+                    <td className="py-3.5 px-4">
+                      <select 
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                        className="bg-transparent border border-emerald-200 rounded-lg p-1 text-xs outline-none text-slate-600 cursor-pointer"
+                      >
+                        <option value="user">Customer</option>
+                        <option value="delivery">Delivery Partner</option>
+                        <option value="admin">Administrator</option>
+                      </select>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${u.isActive !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                        {u.isActive !== false ? 'Active' : 'Banned'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => handleOpenDetails(u)}
+                        className="p-1.5 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleToggleActive(u._id, u.isActive !== false)}
+                        className="p-1 text-slate-400 hover:text-emerald-600"
+                        title="Toggle Status"
+                      >
+                        {u.isActive !== false ? <ToggleRight className="w-6 h-6 text-emerald-600" /> : <ToggleLeft className="w-6 h-6" />}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {!loading && filteredUsers.length > 0 && (

@@ -121,64 +121,114 @@ const DeliveryManage = () => {
       {loading ? (
         <div className="py-10 text-center text-slate-500 animate-pulse font-bold text-sm">Loading Delivery Partners...</div>
       ) : (
-        <div className="overflow-x-auto w-full custom-scrollbar pb-2">
-          <table className="w-full min-w-[650px] text-left text-sm border-collapse">
-            <thead>
-              <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
-                <th className="py-3 px-4">Rider Details</th>
-                <th className="py-3 px-4">Contact</th>
-                <th className="py-3 px-4">Vehicle Type</th>
-                <th className="py-3 px-4 text-center">KYC Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-emerald-100 font-semibold">
-              {currentUsers.map((u) => (
-                <tr key={u._id} className="hover:bg-emerald-50 transition-colors">
-                  <td className="py-3.5 px-4 cursor-pointer" onClick={() => handleOpenKyc(u)}>
-                    <div className="flex items-center gap-3">
-                      {u.avatar ? (
-                        <img src={u.avatar} alt={u.name} className="w-10 h-10 rounded-xl object-cover" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#e31837] to-[#c8102e] text-white flex items-center justify-center text-sm font-black shadow-sm">
-                          {u.name?.charAt(0)?.toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <span className="text-slate-800">{u.name}</span>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Rider ID: {u._id.slice(-6)}</p>
-                      </div>
+        <div className="w-full">
+          {/* Mobile Cards View (< md) */}
+          <div className="block md:hidden space-y-3">
+            {currentUsers.map((u) => (
+              <div key={u._id} className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  {u.avatar ? (
+                    <img src={u.avatar} alt={u.name} className="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#e31837] to-[#c8102e] text-white flex items-center justify-center text-base font-black shadow-sm shrink-0">
+                      {u.name?.charAt(0)?.toUpperCase()}
                     </div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <div className="text-xs text-slate-600">{u.email}</div>
-                    <div className="text-xs text-slate-500 mt-1">{u.phone || 'N/A'}</div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="text-xs text-slate-600 capitalize bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">{u.name}</h4>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Rider ID: {u._id.slice(-6)}</p>
+                    <div className="text-xs text-slate-600 truncate mt-0.5">{u.email}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-emerald-100/60">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Vehicle:</span>
+                    <span className="text-xs text-slate-700 font-semibold capitalize bg-white px-2 py-0.5 rounded-md border border-slate-200">
                       {u.deliveryDetails?.vehicleType || 'Not Set'}
                     </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
+                  </div>
+                  <div>
                     {getStatusBadge(u.kyc?.status)}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button 
-                      onClick={() => handleOpenKyc(u)}
-                      className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
-                    >
-                      <ShieldCheck className="w-4 h-4" /> Review KYC
-                    </button>
-                  </td>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between gap-2 border-t border-emerald-100/60">
+                  <span className="text-xs text-slate-500 font-medium">{u.phone || 'No phone'}</span>
+                  <button 
+                    onClick={() => handleOpenKyc(u)}
+                    className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-4 h-4" /> Review KYC
+                  </button>
+                </div>
+              </div>
+            ))}
+            {currentUsers.length === 0 && (
+              <div className="py-10 text-center text-slate-500 font-medium">No delivery partners found.</div>
+            )}
+          </div>
+
+          {/* Desktop Table View (>= md) */}
+          <div className="hidden md:block overflow-x-auto w-full custom-scrollbar pb-2">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-emerald-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-emerald-50/50">
+                  <th className="py-3 px-4">Rider Details</th>
+                  <th className="py-3 px-4">Contact</th>
+                  <th className="py-3 px-4">Vehicle Type</th>
+                  <th className="py-3 px-4 text-center">KYC Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
-              ))}
-              {currentUsers.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="py-10 text-center text-slate-500 font-medium">No delivery partners found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-emerald-100 font-semibold">
+                {currentUsers.map((u) => (
+                  <tr key={u._id} className="hover:bg-emerald-50 transition-colors">
+                    <td className="py-3.5 px-4 cursor-pointer" onClick={() => handleOpenKyc(u)}>
+                      <div className="flex items-center gap-3">
+                        {u.avatar ? (
+                          <img src={u.avatar} alt={u.name} className="w-10 h-10 rounded-xl object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#e31837] to-[#c8102e] text-white flex items-center justify-center text-sm font-black shadow-sm">
+                            {u.name?.charAt(0)?.toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-slate-800">{u.name}</span>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Rider ID: {u._id.slice(-6)}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="text-xs text-slate-600">{u.email}</div>
+                      <div className="text-xs text-slate-500 mt-1">{u.phone || 'N/A'}</div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-xs text-slate-600 capitalize bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+                        {u.deliveryDetails?.vehicleType || 'Not Set'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      {getStatusBadge(u.kyc?.status)}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button 
+                        onClick={() => handleOpenKyc(u)}
+                        className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
+                      >
+                        <ShieldCheck className="w-4 h-4" /> Review KYC
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {currentUsers.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="py-10 text-center text-slate-500 font-medium">No delivery partners found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
