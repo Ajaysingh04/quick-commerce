@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import API from '../../services/api';
 import { 
  Plus, Edit, Trash2, Search, Check, X as XIcon, Package, Image as ImageIcon, UploadCloud
@@ -33,6 +34,7 @@ const CANONICAL_CATEGORY_OPTIONS = [
 ];
 
 const Inventory = () => {
+ const [searchParams] = useSearchParams();
  const [products, setProducts] = useState([]);
  const [dbCategories, setDbCategories] = useState([]);
  const [loading, setLoading] = useState(true);
@@ -60,7 +62,11 @@ const Inventory = () => {
  useEffect(() => {
  fetchInventory();
  fetchCategories();
- }, []);
+ if (searchParams.get('action') === 'add') {
+   setIsModalOpen(true);
+   setEditingProduct(null);
+ }
+ }, [searchParams]);
 
  const fetchCategories = async () => {
     try {

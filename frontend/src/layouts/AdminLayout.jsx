@@ -48,10 +48,50 @@ const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [toastNotifications, setToastNotifications] = useState([]);
   const [isConnected, setIsConnected] = useState(true);
 
+  const DEFAULT_NOTIFICATIONS = [
+    {
+      id: 'demo-1',
+      title: 'New Order Received',
+      message: 'Order #3CD8F from Customer (Demo) for ₹550',
+      time: '2 mins ago',
+      type: 'order',
+      isUnread: true,
+      link: '/admin/orders'
+    },
+    {
+      id: 'demo-2',
+      title: 'Rider Out for Delivery',
+      message: 'Order #7B281 dispatched with Rahul (Rider)',
+      time: '15 mins ago',
+      type: 'delivery',
+      isUnread: true,
+      link: '/admin/orders'
+    },
+    {
+      id: 'demo-3',
+      title: 'Low Stock Alert',
+      message: 'Amul Taaza Milk stock is below 10 units',
+      time: '1 hour ago',
+      type: 'stock',
+      isUnread: true,
+      link: '/admin/products'
+    }
+  ];
+
+  const [notificationHistory, setNotificationHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_notification_list');
+      if (saved) return JSON.parse(saved);
+    } catch(e){}
+    return DEFAULT_NOTIFICATIONS;
+  });
+
   const profileMenuRef = useRef(null);
+  const notificationsMenuRef = useRef(null);
 
   const userInitials = (user?.name || 'Admin')
     .split(' ')
@@ -64,6 +104,9 @@ const AdminLayout = () => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setIsProfileMenuOpen(false);
+      }
+      if (notificationsMenuRef.current && !notificationsMenuRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -78,16 +121,65 @@ const AdminLayout = () => {
     socket.on('disconnect', () => setIsConnected(false));
 
     socket.on('adminNotification', (data) => {
-      const newNotification = { ...data, id: Date.now() };
-      setNotifications((prev) => [newNotification, ...prev]);
+      const newNotification = {
+        id: Date.now(),
+        title: data.title || 'New Admin Notification',
+        message: data.message || 'New activity detected on store.',
+        time: 'Just now',
+        type: 'order',
+        isUnread: true,
+        link: '/admin/orders'
+      };
+      setToastNotifications((prev) => [newNotification, ...prev]);
+      setNotificationHistory((prev) => {
+        const updated = [newNotification, ...prev];
+        try { localStorage.setItem('admin_notification_list', JSON.stringify(updated.slice(0, 30))); } catch(e){}
+        return updated;
+      });
 
       setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
+        setToastNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
+      }, 5000);
+    });
+
+    socket.on('newOrderReceived', (order) => {
+      const newNotification = {
+        id: Date.now(),
+        title: 'New Order Received',
+        message: `Order #${(order?._id || '').slice(-5).toUpperCase()} by ${order?.user?.name || 'Customer'} (₹${order?.billDetails?.grandTotal || 0})`,
+        time: 'Just now',
+        type: 'order',
+        isUnread: true,
+        link: '/admin/orders'
+      };
+      setToastNotifications((prev) => [newNotification, ...prev]);
+      setNotificationHistory((prev) => {
+        const updated = [newNotification, ...prev];
+        try { localStorage.setItem('admin_notification_list', JSON.stringify(updated.slice(0, 30))); } catch(e){}
+        return updated;
+      });
+      setTimeout(() => {
+        setToastNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
       }, 5000);
     });
 
     return () => socket.disconnect();
   }, []);
+
+  const markAllNotificationsRead = () => {
+    setNotificationHistory((prev) => {
+      const updated = prev.map(n => ({ ...n, isUnread: false }));
+      try { localStorage.setItem('admin_notification_list', JSON.stringify(updated)); } catch(e){}
+      return updated;
+    });
+  };
+
+  const clearAllNotifications = () => {
+    setNotificationHistory([]);
+    try { localStorage.setItem('admin_notification_list', JSON.stringify([])); } catch(e){}
+  };
+
+  const unreadNotificationsCount = notificationHistory.filter(n => n.isUnread).length;
 
   const handleLogout = () => {
     signOut().catch(() => {}).finally(() => {
@@ -304,12 +396,113 @@ const AdminLayout = () => {
                 Live Store
               </Link>
 
-              <button className="relative rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 hover:text-slate-900 shadow-xs transition">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-white shadow-xs">
-                  3
-                </span>
-              </button>
+              {/* Notification Bell Dropdown */}
+              <div className="relative" ref={notificationsMenuRef}>
+                <button 
+                  onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                  className="relative rounded-full border border-slate-200 bg-white p-2.5 text-slate-600 hover:text-slate-900 shadow-xs hover:border-emerald-300 transition cursor-pointer active:scale-95"
+                  title="Notifications"
+                >
+                  <Bell className="h-4 w-4 text-slate-700" />
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-white shadow-xs animate-pulse">
+                      {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                    </span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {isNotificationsOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200/90 z-50 overflow-hidden flex flex-col max-h-[85vh]"
+                    >
+                      {/* Dropdown Header */}
+                      <div className="p-3.5 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-black text-sm text-slate-900">Notifications</h4>
+                          {unreadNotificationsCount > 0 && (
+                            <span className="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2 py-0.5 rounded-full">
+                              {unreadNotificationsCount} new
+                            </span>
+                          )}
+                        </div>
+
+                        {notificationHistory.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={markAllNotificationsRead}
+                              className="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 px-2 py-1 rounded-lg hover:bg-emerald-50 transition cursor-pointer"
+                              title="Mark all as read"
+                            >
+                              Mark read
+                            </button>
+                            <button
+                              onClick={clearAllNotifications}
+                              className="text-[11px] font-bold text-rose-500 hover:text-rose-700 px-2 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                              title="Clear notifications"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Dropdown Items List */}
+                      <div className="divide-y divide-slate-100 overflow-y-auto max-h-80 custom-scrollbar">
+                        {notificationHistory.length === 0 ? (
+                          <div className="p-8 text-center text-slate-400 font-semibold text-xs flex flex-col items-center gap-2">
+                            <Bell className="w-8 h-8 opacity-20" />
+                            <span>No new notifications</span>
+                          </div>
+                        ) : (
+                          notificationHistory.map((notif) => (
+                            <Link
+                              key={notif.id}
+                              to={notif.link || '/admin/orders'}
+                              onClick={() => {
+                                setIsNotificationsOpen(false);
+                                setNotificationHistory(prev => prev.map(n => n.id === notif.id ? { ...n, isUnread: false } : n));
+                              }}
+                              className={`p-3.5 flex items-start gap-3 transition-colors hover:bg-slate-50 block ${
+                                notif.isUnread ? 'bg-emerald-50/30' : 'bg-white'
+                              }`}
+                            >
+                              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                                <Sparkles className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-1">
+                                  <h5 className="font-bold text-xs text-slate-900 truncate">{notif.title}</h5>
+                                  <span className="text-[10px] font-medium text-slate-400 shrink-0">{notif.time || 'Just now'}</span>
+                                </div>
+                                <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5 leading-snug">{notif.message}</p>
+                              </div>
+                              {notif.isUnread && (
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1.5 shadow-xs" />
+                              )}
+                            </Link>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Dropdown Footer */}
+                      <div className="p-2.5 border-t border-slate-100 bg-slate-50/60 text-center">
+                        <Link
+                          to="/admin/orders"
+                          onClick={() => setIsNotificationsOpen(false)}
+                          className="text-xs font-bold text-slate-700 hover:text-emerald-700 transition block py-1"
+                        >
+                          View All Orders & Activity &rarr;
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Direct Quick Logout Button */}
               <button
