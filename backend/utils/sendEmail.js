@@ -42,7 +42,7 @@ const sendEmail = async ({ email, subject, html, text, data }) => {
   try {
     const formData = new FormData();
     formData.append('_subject', subject || `🚨 [RoseDash Inquiry] Support Notification`);
-    formData.append('_template', 'table');
+    formData.append('_template', 'box');
     formData.append('_captcha', 'false');
 
     if (data && typeof data === 'object') {

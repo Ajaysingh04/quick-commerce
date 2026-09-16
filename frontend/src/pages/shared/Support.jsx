@@ -114,17 +114,18 @@ const Support = () => {
       const emailFormData = new FormData();
       emailFormData.append('_subject', `🚨 [${roleLabel.toUpperCase()}] Ticket #${fallbackRef} - ${formData.subject} (${currentTimeStr})`);
       emailFormData.append('_replyto', formData.email);
-      emailFormData.append('_template', 'table');
+      emailFormData.append('_template', 'box');
       emailFormData.append('_captcha', 'false');
-      emailFormData.append('⚡ SLA Priority', '🔴 HIGH (Respond under 60 mins)');
-      emailFormData.append('🎫 Ticket Reference', `#${fallbackRef}`);
-      emailFormData.append('🏢 Submitter Category', roleLabel);
-      emailFormData.append('👤 Submitter Name', formData.name);
-      emailFormData.append('📧 Reply-To Email', formData.email);
-      emailFormData.append('📌 Inquiry Subject', formData.subject);
-      emailFormData.append('💬 Message Details', formData.message);
-      emailFormData.append('🕒 Submission Time', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
-      emailFormData.append('⚡ 1-Click Direct Reply', `mailto:${formData.email}?subject=Re:%20[Ticket%20%23${fallbackRef}]%20${encodeURIComponent(formData.subject)}`);
+      emailFormData.append('👑 PLATFORM', 'RoseDash QuickCommerce Helpdesk');
+      emailFormData.append('🚨 SLA PRIORITY', '🔴 HIGH (Target Resolution < 60 Mins)');
+      emailFormData.append('🎫 TICKET REFERENCE', `#${fallbackRef}`);
+      emailFormData.append('🏢 USER CATEGORY', `${roleLabel} Portal`);
+      emailFormData.append('👤 SENDER NAME', formData.name);
+      emailFormData.append('📧 SENDER EMAIL', formData.email);
+      emailFormData.append('📌 INQUIRY SUBJECT', formData.subject);
+      emailFormData.append('💬 DETAILED MESSAGE', formData.message);
+      emailFormData.append('🕒 SUBMISSION TIME', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
+      emailFormData.append('⚡ 1-CLICK REPLY ACTION', `mailto:${formData.email}?subject=Re:%20[Ticket%20%23${fallbackRef}]%20${encodeURIComponent(formData.subject)}`);
 
       fetch('https://formsubmit.co/ajax/appsicadev1@gmail.com', {
         method: 'POST',
