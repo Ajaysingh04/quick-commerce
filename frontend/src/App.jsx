@@ -71,6 +71,7 @@ import AuthSync from './pages/shared/AuthSync.jsx';
 import StaticPage from './pages/shared/StaticPage.jsx';
 
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
+import ScrollToTop from './components/common/ScrollToTop.jsx';
 import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 
 const hasValidClerkKey = () => {
@@ -87,6 +88,7 @@ function App() {
  <ThemeProvider>
  <SettingsProvider>
  <Router>
+ <ScrollToTop />
  <Routes>
  
  {/* User Client Routes */}

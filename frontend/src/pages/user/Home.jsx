@@ -172,118 +172,66 @@ const Home = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="relative overflow-hidden rounded-[36px] border border-slate-800/80 bg-[#0B132B] text-white shadow-[0_30px_90px_rgba(11,19,43,0.35)]"
+          className="relative overflow-hidden rounded-[28px] sm:rounded-[36px] border border-slate-800/80 bg-[#0B132B] text-white shadow-[0_30px_90px_rgba(11,19,43,0.35)]"
         >
           {/* Ambient Glowing Orbs */}
-          <div className="pointer-events-none absolute -left-20 -top-20 h-96 w-96 rounded-full bg-emerald-500/20 blur-[100px]" />
-          <div className="pointer-events-none absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-blue-600/15 blur-[120px]" />
+          <div className="pointer-events-none absolute -left-20 -top-20 h-72 sm:h-96 w-72 sm:w-96 rounded-full bg-emerald-500/20 blur-[100px]" />
+          <div className="pointer-events-none absolute -bottom-20 -right-20 h-72 sm:h-96 w-72 sm:w-96 rounded-full bg-blue-600/15 blur-[120px]" />
 
-          <div className="relative grid gap-8 px-6 py-8 sm:px-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-12 lg:py-12">
+          <div className="relative flex flex-col lg:grid lg:grid-cols-[1.15fr_0.85fr] gap-6 lg:gap-8 px-4 py-5 sm:px-10 sm:py-8 lg:px-12 lg:py-12">
             
-            {/* Left Content */}
-            <div className="relative z-10 flex flex-col justify-center">
-              <div className="mb-4 inline-flex w-max items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-black tracking-wide text-emerald-300 backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5 text-emerald-400 animate-spin-slow" />
-                <span>FRESH • FAST • 10-MIN DELIVERY</span>
-              </div>
-
-              <h1 className="max-w-xl text-3xl font-black leading-[1.05] tracking-[-0.05em] text-white sm:text-5xl lg:text-6xl">
-                Daily essentials <br />
-                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                  delivered in 10 mins.
-                </span>
-              </h1>
-
-              <p className="mt-4 max-w-lg text-sm font-medium leading-relaxed text-slate-300 sm:text-base">
-                From morning dairy and organic vegetables to midnight munchies, get instant doorstep delivery at local market prices.
-              </p>
-
-              {/* Action Buttons */}
-              <div className="mt-7 flex flex-wrap items-center gap-3.5">
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate('/shop')}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-7 py-3.5 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_12px_35px_rgba(16,185,129,0.4)] transition hover:brightness-110"
-                >
-                  <ShoppingBag className="h-4 w-4" /> Shop Now
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate('/products')}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15"
-                >
-                  <Percent className="h-4 w-4 text-emerald-400" /> Explore Deals
-                </motion.button>
-              </div>
-
-              {/* Highlights Ticker */}
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {categoryHighlights.map(({ name, count, icon: Icon, color, accent, bg }) => (
-                  <div key={name} className={`rounded-2xl border border-white/10 bg-gradient-to-br ${color} p-3.5 backdrop-blur-sm`}>
-                    <div className={`mb-2 inline-flex rounded-xl p-2 ${bg} ${accent}`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="text-[11px] font-semibold text-slate-400">{name}</div>
-                    <div className="mt-0.5 text-sm font-black text-white">{count}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Hero Visual Showcase */}
-            <div className="relative z-10 flex items-center justify-center py-2 lg:py-0">
+            {/* Visual Showcase (Appears FIRST on mobile, RIGHT on desktop) */}
+            <div className="order-1 lg:order-2 relative z-10 flex items-center justify-center py-1 lg:py-0">
               <div className="relative w-full max-w-[480px]">
                 
                 {/* Floating Badge 1 */}
                 <motion.div
-                  animate={{ y: [0, -10, 0] }}
+                  animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute -left-4 top-8 z-20 rounded-2xl border border-white/15 bg-slate-900/80 px-3.5 py-2 shadow-2xl backdrop-blur-xl"
+                  className="absolute left-2 -top-3 sm:-left-4 sm:top-8 z-20 rounded-xl sm:rounded-2xl border border-white/15 bg-slate-900/90 px-2.5 py-1.5 sm:px-3.5 sm:py-2 shadow-2xl backdrop-blur-xl"
                 >
-                  <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
-                    <BadgeCheck className="h-4 w-4 text-emerald-400" />
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-emerald-300">
+                    <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
                     <span>100% Quality Checked</span>
                   </div>
                 </motion.div>
 
                 {/* Floating Badge 2 */}
                 <motion.div
-                  animate={{ y: [0, 10, 0] }}
+                  animate={{ y: [0, 6, 0] }}
                   transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute -right-4 bottom-8 z-20 rounded-2xl border border-emerald-400/30 bg-emerald-950/80 px-3.5 py-2 shadow-2xl backdrop-blur-xl"
+                  className="absolute right-2 -bottom-3 sm:-right-4 sm:bottom-8 z-20 rounded-xl sm:rounded-2xl border border-emerald-400/30 bg-emerald-950/90 px-2.5 py-1.5 sm:px-3.5 sm:py-2 shadow-2xl backdrop-blur-xl"
                 >
-                  <div className="flex items-center gap-2 text-xs font-black text-emerald-200">
-                    <Truck className="h-4 w-4 text-emerald-400" />
-                    <span>⚡ Lightning Fast</span>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-emerald-200">
+                    <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
+                    <span>⚡ Lightning 10m Delivery</span>
                   </div>
                 </motion.div>
 
                 {/* Main Card Frame */}
-                <div className="relative overflow-hidden rounded-[30px] border border-white/15 bg-gradient-to-b from-white/10 to-white/5 p-3 shadow-2xl backdrop-blur-2xl">
-                  <div className="relative overflow-hidden rounded-[24px] bg-slate-950">
+                <div className="relative overflow-hidden rounded-[24px] sm:rounded-[30px] border border-white/15 bg-gradient-to-b from-white/10 to-white/5 p-2 sm:p-3 shadow-2xl backdrop-blur-2xl">
+                  <div className="relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-slate-950">
                     <AnimatePresence mode="wait">
                       <motion.img
                         key={currentSlide}
                         src={heroImages[currentSlide] || heroFallback}
                         alt="Hero Banner"
-                        initial={{ opacity: 0, scale: 1.05 }}
+                        initial={{ opacity: 0, scale: 1.04 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="h-[340px] w-full object-cover"
+                        transition={{ duration: 0.5 }}
+                        className="h-[210px] sm:h-[300px] lg:h-[340px] w-full object-cover"
                       />
                     </AnimatePresence>
 
                     {/* Image Footer Live Pill */}
-                    <div className="absolute bottom-3 left-3 right-3 rounded-2xl border border-white/15 bg-slate-900/80 p-3 backdrop-blur-xl">
-                      <div className="flex items-center justify-between gap-3">
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-3 sm:left-3 sm:right-3 rounded-xl sm:rounded-2xl border border-white/15 bg-slate-900/85 p-2.5 sm:p-3 backdrop-blur-xl">
+                      <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Live Delivery Hub</p>
-                          <p className="mt-0.5 text-sm font-black text-white">Delivering across your city</p>
+                          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Live Delivery Hub</p>
+                          <p className="mt-0.5 text-xs sm:text-sm font-black text-white">Delivering across your city</p>
                         </div>
-                        <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300 border border-emerald-500/30">
+                        <div className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-emerald-300 border border-emerald-500/30">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
                           ONLINE
                         </div>
@@ -293,7 +241,7 @@ const Home = () => {
 
                   {/* Carousel Dots */}
                   {heroImages.length > 1 && (
-                    <div className="mt-3 flex justify-center gap-1.5">
+                    <div className="mt-2.5 sm:mt-3 flex justify-center gap-1.5">
                       {heroImages.map((_, idx) => (
                         <button
                           key={idx}
@@ -308,6 +256,59 @@ const Home = () => {
                 </div>
               </div>
             </div>
+
+            {/* Content Text & CTAs (Appears SECOND on mobile, LEFT on desktop) */}
+            <div className="order-2 lg:order-1 relative z-10 flex flex-col justify-center pt-2 lg:pt-0">
+              <div className="mb-3 inline-flex w-max items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-black tracking-wide text-emerald-300 backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-400 animate-spin-slow" />
+                <span>FRESH • FAST • 10-MIN DELIVERY</span>
+              </div>
+
+              <h1 className="max-w-xl text-2xl sm:text-5xl lg:text-6xl font-black leading-[1.12] sm:leading-[1.05] tracking-[-0.04em] sm:tracking-[-0.05em] text-white">
+                Daily essentials <br className="hidden sm:block" />
+                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                  delivered in 10 mins.
+                </span>
+              </h1>
+
+              <p className="mt-2.5 sm:mt-4 max-w-lg text-xs sm:text-base font-medium leading-relaxed text-slate-300">
+                From morning dairy and organic vegetables to midnight munchies, get instant doorstep delivery at local market prices.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="mt-5 sm:mt-7 flex flex-row flex-wrap items-center gap-2.5 sm:gap-3.5">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/shop')}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-5 sm:px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_12px_35px_rgba(16,185,129,0.4)] transition hover:brightness-110"
+                >
+                  <ShoppingBag className="h-4 w-4" /> Shop Now
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/products')}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15"
+                >
+                  <Percent className="h-4 w-4 text-emerald-400" /> Explore Deals
+                </motion.button>
+              </div>
+
+              {/* Highlights Ticker */}
+              <div className="mt-5 sm:mt-8 grid grid-cols-3 gap-2 sm:gap-3">
+                {categoryHighlights.map(({ name, count, icon: Icon, color, accent, bg }) => (
+                  <div key={name} className={`rounded-xl sm:rounded-2xl border border-white/10 bg-gradient-to-br ${color} p-2.5 sm:p-3.5 backdrop-blur-sm`}>
+                    <div className={`mb-1.5 inline-flex rounded-lg sm:rounded-xl p-1.5 sm:p-2 ${bg} ${accent}`}>
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-semibold text-slate-400 truncate">{name}</div>
+                    <div className="mt-0.5 text-xs sm:text-sm font-black text-white">{count}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </motion.section>
 
@@ -326,31 +327,31 @@ const Home = () => {
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          <div className="mt-5 grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 lg:grid-cols-6">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-36 rounded-[22px] skeleton-shimmer" />
+                <div key={i} className="h-32 sm:h-36 rounded-[20px] sm:rounded-[22px] skeleton-shimmer" />
               ))
             ) : (
               categories.slice(0, 6).map((category, idx) => (
                 <motion.button
                   key={category._id || idx}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/category/${category._id}`)}
-                  className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_8px_25px_rgba(15,23,42,0.04)] transition hover:border-emerald-300 hover:shadow-[0_16px_35px_rgba(16,185,129,0.12)] text-center"
+                  className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] sm:rounded-[24px] border border-slate-200/80 bg-white p-2.5 sm:p-4 shadow-[0_8px_25px_rgba(15,23,42,0.04)] transition hover:border-emerald-300 hover:shadow-[0_16px_35px_rgba(16,185,129,0.12)] text-center"
                 >
-                  <div className="relative mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-b from-emerald-50 to-slate-50 p-2 ring-1 ring-slate-100 transition group-hover:scale-110">
+                  <div className="relative mb-2 sm:mb-3 flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-b from-emerald-50 to-slate-50 p-1.5 sm:p-2 ring-1 ring-slate-100 transition group-hover:scale-110">
                     <img
                       src={category.image || heroFallback}
                       alt={category.name}
                       className="h-full w-full object-contain"
                     />
                   </div>
-                  <h3 className="line-clamp-1 text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <h3 className="line-clamp-1 text-[11px] sm:text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
                     {category.name}
                   </h3>
-                  <p className="mt-0.5 text-[10px] font-bold text-emerald-600">Explore →</p>
+                  <p className="mt-0.5 text-[9px] sm:text-[10px] font-bold text-emerald-600">Explore →</p>
                 </motion.button>
               ))
             )}
