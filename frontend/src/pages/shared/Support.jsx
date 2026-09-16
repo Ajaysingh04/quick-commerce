@@ -100,13 +100,38 @@ const Support = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
+    const roleLabel = user?.role === 'partner' ? 'Store Partner' : user?.role === 'delivery' ? 'Delivery Rider' : user?.role === 'admin' ? 'Administrator' : 'Customer';
+    const fallbackRef = `RD-${Date.now().toString().slice(-6).toUpperCase()}`;
+
     try {
       const payload = {
         ...formData,
         role: user?.role || 'user'
       };
+
+      // 1. Direct real-time email dispatch to appsicadev1@gmail.com
+      fetch('https://formsubmit.co/ajax/appsicadev1@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          _subject: `🚨 [RoseDash Support] #${fallbackRef}: ${formData.subject}`,
+          _template: 'table',
+          _captcha: 'false',
+          '🏷️ Ticket Reference': `#${fallbackRef}`,
+          '👤 Customer / Partner Name': formData.name,
+          '📧 Reply Email': formData.email,
+          '🏢 User Category': roleLabel,
+          '📌 Subject': formData.subject,
+          '💬 Detailed Query': formData.message,
+          '🕒 Time Submitted': new Date().toLocaleString()
+        })
+      }).catch((err) => console.warn('Relay notice:', err));
+
       const res = await API.post('/support', payload);
-      const generatedRef = res.data?.ticketRef || `RD-${Date.now().toString().slice(-6).toUpperCase()}`;
+      const generatedRef = res.data?.ticketRef || fallbackRef;
 
       const info = {
         name: formData.name,
@@ -125,9 +150,7 @@ const Support = () => {
         setShowToastNotification(false);
       }, 6000);
     } catch (error) {
-      console.error('Failed to submit ticket', error);
-      // Fallback local submission for client demonstration
-      const fallbackRef = `RD-${Date.now().toString().slice(-6).toUpperCase()}`;
+      console.error('Failed to submit ticket to API', error);
       const fallbackInfo = {
         name: formData.name,
         email: formData.email,

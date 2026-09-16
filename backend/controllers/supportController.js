@@ -22,6 +22,16 @@ export const createTicket = async (req, res) => {
     sendEmail({
       email: adminEmail,
       subject: `🚨 [New ${roleLabel} Query] #${ticketRef}: ${subject}`,
+      data: {
+        '🏷️ Ticket ID': `#${ticketRef}`,
+        '👤 Sender Name': name,
+        '📧 Sender Email': email,
+        '🏢 User Category': roleLabel,
+        '📌 Inquiry Subject': subject,
+        '💬 Full Message': message,
+        '⚡ Priority Level': 'High (< 60 Mins Response)',
+        '🕒 Submission Time': new Date().toLocaleString()
+      },
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0b1120; padding: 32px 20px; border-radius: 20px; color: #ffffff;">
           <div style="text-align: center; margin-bottom: 24px;">
