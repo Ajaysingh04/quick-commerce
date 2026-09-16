@@ -111,16 +111,18 @@ const Support = () => {
 
       // 1. Direct real-time email dispatch to appsicadev1@gmail.com using FormData
       const emailFormData = new FormData();
-      emailFormData.append('_subject', `🚨 [RoseDash ${roleLabel} Query] #${fallbackRef}: ${formData.subject}`);
+      emailFormData.append('_subject', `🚨 [${roleLabel.toUpperCase()} QUERY] #${fallbackRef}: ${formData.subject}`);
       emailFormData.append('_template', 'table');
       emailFormData.append('_captcha', 'false');
-      emailFormData.append('Ticket Reference', `#${fallbackRef}`);
-      emailFormData.append('User Type', roleLabel);
-      emailFormData.append('Sender Name', formData.name);
-      emailFormData.append('Sender Email', formData.email);
-      emailFormData.append('Subject', formData.subject);
-      emailFormData.append('Message', formData.message);
-      emailFormData.append('Submitted At', new Date().toLocaleString());
+      emailFormData.append('⚡ SLA Priority', '🔴 HIGH (Respond under 60 mins)');
+      emailFormData.append('🎫 Ticket Reference', `#${fallbackRef}`);
+      emailFormData.append('🏢 Submitter Category', roleLabel);
+      emailFormData.append('👤 Submitter Name', formData.name);
+      emailFormData.append('📧 Reply-To Email', formData.email);
+      emailFormData.append('📌 Inquiry Subject', formData.subject);
+      emailFormData.append('💬 Message Details', formData.message);
+      emailFormData.append('🕒 Submission Time', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
+      emailFormData.append('⚡ 1-Click Direct Reply', `mailto:${formData.email}?subject=Re:%20[Ticket%20%23${fallbackRef}]%20${encodeURIComponent(formData.subject)}`);
 
       fetch('https://formsubmit.co/ajax/appsicadev1@gmail.com', {
         method: 'POST',
