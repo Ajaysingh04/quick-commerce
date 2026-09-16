@@ -7,8 +7,8 @@ const settingsSchema = new mongoose.Schema({
   faviconUrl: { type: String, default: '/favicon.ico' },
   logoUrl: { type: String, default: '' },
   primaryColor: { type: String, default: '#f43f5e' },
-  contactEmail: { type: String, default: 'support@rosedash.com' },
-  contactPhone: { type: String, default: '+1234567890' },
+  contactEmail: { type: String, default: 'appsicadev1@gmail.com' },
+  contactPhone: { type: String, default: '+91 98765 43210' },
   contactAddress: { type: String, default: '123 Market St, City' },
   socialLinks: {
     facebook: { type: String, default: '' },

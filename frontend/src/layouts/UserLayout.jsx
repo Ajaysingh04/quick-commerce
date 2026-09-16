@@ -367,7 +367,7 @@ const UserLayout = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-emerald-300" />
-                  <span>{settings.contactEmail || 'support@quickcart.app'}</span>
+                  <span>{settings.contactEmail || 'appsicadev1@gmail.com'}</span>
                 </li>
               </ul>
             </div>

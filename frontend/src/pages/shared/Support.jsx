@@ -101,7 +101,11 @@ const Support = () => {
     e.preventDefault();
     setFormLoading(true);
     try {
-      const res = await API.post('/support', formData);
+      const payload = {
+        ...formData,
+        role: user?.role || 'user'
+      };
+      const res = await API.post('/support', payload);
       const generatedRef = res.data?.ticketRef || `RD-${Date.now().toString().slice(-6).toUpperCase()}`;
 
       const info = {
@@ -344,7 +348,7 @@ const Support = () => {
 
               <div className="space-y-3.5 text-sm font-bold relative z-10">
                 <a
-                  href={`mailto:${settings.contactEmail || 'support@rosedash.com'}`}
+                  href={`mailto:${settings.contactEmail || 'appsicadev1@gmail.com'}`}
                   className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition border border-transparent hover:border-white/5 group"
                 >
                   <div className="bg-emerald-500/20 p-2 rounded-xl border border-emerald-500/30 text-emerald-400 group-hover:scale-105 transition-transform">
@@ -353,7 +357,7 @@ const Support = () => {
                   <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Care</div>
                     <div className="text-xs sm:text-sm text-slate-200 font-semibold truncate">
-                      {settings.contactEmail || 'support@rosedash.com'}
+                      {settings.contactEmail || 'appsicadev1@gmail.com'}
                     </div>
                   </div>
                 </a>
