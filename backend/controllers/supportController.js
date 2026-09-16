@@ -18,10 +18,13 @@ export const createTicket = async (req, res) => {
     const adminEmail = process.env.ADMIN_SUPPORT_EMAIL || 'appsicadev1@gmail.com';
     const roleLabel = role === 'partner' ? 'Store Partner' : role === 'delivery' ? 'Delivery Rider' : role === 'admin' ? 'Administrator' : 'Customer';
 
+    const currentTimeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const emailSubject = `🚨 [${roleLabel.toUpperCase()}] Ticket #${ticketRef} - ${subject} (${currentTimeStr})`;
+
     // 1. Send Admin Alert Email to appsicadev1@gmail.com
     sendEmail({
       email: adminEmail,
-      subject: `🚨 [${roleLabel.toUpperCase()} INQUIRY] #${ticketRef}: ${subject}`,
+      subject: emailSubject,
       data: {
         '⚡ STATUS': '🔴 HIGH PRIORITY (< 60 Mins SLA)',
         '🎫 TICKET ID': `#${ticketRef}`,

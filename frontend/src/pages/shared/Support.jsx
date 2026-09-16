@@ -110,8 +110,10 @@ const Support = () => {
       };
 
       // 1. Direct real-time email dispatch to appsicadev1@gmail.com using FormData
+      const currentTimeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const emailFormData = new FormData();
-      emailFormData.append('_subject', `🚨 [${roleLabel.toUpperCase()} QUERY] #${fallbackRef}: ${formData.subject}`);
+      emailFormData.append('_subject', `🚨 [${roleLabel.toUpperCase()}] Ticket #${fallbackRef} - ${formData.subject} (${currentTimeStr})`);
+      emailFormData.append('_replyto', formData.email);
       emailFormData.append('_template', 'table');
       emailFormData.append('_captcha', 'false');
       emailFormData.append('⚡ SLA Priority', '🔴 HIGH (Respond under 60 mins)');
