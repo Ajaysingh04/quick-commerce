@@ -40,28 +40,35 @@ const sendEmail = async ({ email, subject, html, text, data }) => {
   // 2. Real Email Delivery Fallback via direct HTTP Dispatcher for appsicadev1@gmail.com
   const targetEmail = email || 'appsicadev1@gmail.com';
   try {
+    const formData = new FormData();
+    formData.append('_subject', subject || `🚨 [RoseDash Inquiry] Support Notification`);
+    formData.append('_template', 'table');
+    formData.append('_captcha', 'false');
+
+    if (data && typeof data === 'object') {
+      for (const [key, value] of Object.entries(data)) {
+        formData.append(key, String(value));
+      }
+    } else {
+      formData.append('Subject', subject || 'Support Query');
+      formData.append('Message', text || (html ? html.replace(/<[^>]*>/g, ' ').substring(0, 1000) : 'Inquiry details'));
+    }
+
     const response = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Referer': 'https://quick-commerce-nu.vercel.app'
       },
-      body: JSON.stringify({
-        _subject: subject || 'New RoseDash Support Inquiry',
-        _template: 'table',
-        _captcha: 'false',
-        ...(data || {
-          Notification: 'RoseDash Support Inquiry Alert',
-          Recipient: targetEmail,
-          Subject: subject,
-          Message: text || (html ? html.replace(/<[^>]*>/g, ' ').substring(0, 500) : 'Support query logged')
-        })
-      })
+      body: formData
     });
 
-    if (response.ok) {
+    const result = await response.json().catch(() => ({}));
+    if (response.ok && result.success !== 'false') {
       console.log(`[HTTP Dispatched] Real email delivered to ${targetEmail} via FormSubmit relay`);
       return { success: true, provider: 'formsubmit' };
+    } else {
+      console.warn(`[Relay Notice] FormSubmit status:`, result.message || result);
     }
   } catch (err) {
     console.warn(`[Relay Warning] Secondary delivery note: ${err.message}`);

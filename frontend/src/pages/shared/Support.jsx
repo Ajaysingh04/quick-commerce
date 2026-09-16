@@ -109,25 +109,26 @@ const Support = () => {
         role: user?.role || 'user'
       };
 
-      // 1. Direct real-time email dispatch to appsicadev1@gmail.com
+      // 1. Direct real-time email dispatch to appsicadev1@gmail.com using FormData
+      const emailFormData = new FormData();
+      emailFormData.append('_subject', `🚨 [RoseDash ${roleLabel} Query] #${fallbackRef}: ${formData.subject}`);
+      emailFormData.append('_template', 'table');
+      emailFormData.append('_captcha', 'false');
+      emailFormData.append('Ticket Reference', `#${fallbackRef}`);
+      emailFormData.append('User Type', roleLabel);
+      emailFormData.append('Sender Name', formData.name);
+      emailFormData.append('Sender Email', formData.email);
+      emailFormData.append('Subject', formData.subject);
+      emailFormData.append('Message', formData.message);
+      emailFormData.append('Submitted At', new Date().toLocaleString());
+
       fetch('https://formsubmit.co/ajax/appsicadev1@gmail.com', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Referer': 'https://quick-commerce-nu.vercel.app'
         },
-        body: JSON.stringify({
-          _subject: `🚨 [RoseDash Support] #${fallbackRef}: ${formData.subject}`,
-          _template: 'table',
-          _captcha: 'false',
-          '🏷️ Ticket Reference': `#${fallbackRef}`,
-          '👤 Customer / Partner Name': formData.name,
-          '📧 Reply Email': formData.email,
-          '🏢 User Category': roleLabel,
-          '📌 Subject': formData.subject,
-          '💬 Detailed Query': formData.message,
-          '🕒 Time Submitted': new Date().toLocaleString()
-        })
+        body: emailFormData
       }).catch((err) => console.warn('Relay notice:', err));
 
       const res = await API.post('/support', payload);
@@ -554,19 +555,31 @@ const Support = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                          <button
-                            type="button"
-                            onClick={handleResetForm}
-                            className="px-6 py-3 bg-white border-2 border-slate-200 hover:border-slate-400 text-slate-700 font-bold rounded-xl text-sm transition shadow-xs active:scale-95 cursor-pointer"
-                          >
-                            Submit Another Query
-                          </button>
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleResetForm}
+                              className="px-5 py-2.5 bg-white border-2 border-slate-200 hover:border-slate-400 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition shadow-xs active:scale-95 cursor-pointer"
+                            >
+                              Submit Another Query
+                            </button>
+
+                            <a
+                              href={`mailto:appsicadev1@gmail.com?subject=Inquiry %23${submittedInfo.ticketRef}: ${encodeURIComponent(submittedInfo.subject)}&body=Hello RoseDash Support,%0D%0A%0D%0AHere is my inquiry (Ticket %23${submittedInfo.ticketRef}):%0D%0A${encodeURIComponent(submittedInfo.message)}%0D%0A%0D%0AFrom: ${encodeURIComponent(submittedInfo.name)} (${encodeURIComponent(submittedInfo.email)})`}
+                              className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5 active:scale-95"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <Mail className="w-4 h-4 text-rose-600" />
+                              <span>Direct Mail / Gmail</span>
+                            </a>
+                          </div>
 
                           <div className="flex items-center gap-3">
                             <Link
                               to="/"
-                              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-sm transition shadow-md shadow-emerald-600/20 active:scale-95 flex items-center gap-2 cursor-pointer"
+                              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs sm:text-sm transition shadow-md shadow-emerald-600/20 active:scale-95 flex items-center gap-2 cursor-pointer"
                             >
                               <span>Continue Shopping</span>
                               <ArrowRight className="w-4 h-4" />
