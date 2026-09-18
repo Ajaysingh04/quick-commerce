@@ -44,6 +44,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
+  'https://quickcommerce.appsica.com',
   'https://quick-commerce-nu.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -56,6 +57,7 @@ const isOriginAllowed = (origin) => {
   if (allowedOrigins.includes(origin)) return true;
   if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true;
   if (origin.includes('vercel.app')) return true;
+  if (origin.includes('appsica.com')) return true;
   return false;
 };
 
